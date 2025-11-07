@@ -8,6 +8,11 @@
  * @module
  */
 
+import type * as access from "../access.js";
+import type * as auth from "../auth.js";
+import type * as customProfile from "../customProfile.js";
+import type * as http from "../http.js";
+
 import type {
   ApiFromModules,
   FilterApi,
@@ -22,7 +27,12 @@ import type {
  * const myFunctionReference = api.myModule.myFunction;
  * ```
  */
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  access: typeof access;
+  auth: typeof auth;
+  customProfile: typeof customProfile;
+  http: typeof http;
+}>;
 declare const fullApiWithMounts: typeof fullApi;
 
 export declare const api: FilterApi<
