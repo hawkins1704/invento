@@ -5,7 +5,14 @@ import { Authenticated, AuthLoading, Unauthenticated } from 'convex/react'
 import Layout from './components/Layout'
 import SelectArea from './pages/SelectArea'
 import AdminDashboard from './pages/AdminDashboard'
+import AdminInventory from './pages/admin/AdminInventory'
+import AdminSales from './pages/admin/AdminSales'
+import AdminStaff from './pages/admin/AdminStaff'
+import AdminBranches from './pages/admin/AdminBranches'
 import SalesDashboard from './pages/SalesDashboard'
+import SalesTables from './pages/sales/SalesTables'
+import SalesDaily from './pages/sales/SalesDaily'
+import SalesInventory from './pages/sales/SalesInventory'
 
 
 function App() {
@@ -35,8 +42,19 @@ function App() {
                 />
                 <Route path="select-area" element={<SelectArea />} />
                 <Route element={<Layout />}>
-                    <Route path="admin" element={<AdminDashboard />} />
-                    <Route path="sales" element={<SalesDashboard />} />
+                    <Route path="admin">
+                        <Route index element={<AdminDashboard />} />
+                        <Route path="inventory" element={<AdminInventory />} />
+                        <Route path="sales" element={<AdminSales />} />
+                        <Route path="staff" element={<AdminStaff />} />
+                        <Route path="branches" element={<AdminBranches />} />
+                    </Route>
+                    <Route path="sales">
+                        <Route index element={<SalesDashboard />} />
+                        <Route path="tables" element={<SalesTables />} />
+                        <Route path="daily" element={<SalesDaily />} />
+                        <Route path="inventory" element={<SalesInventory />} />
+                    </Route>
                 </Route>
             </Routes>
         </Router>

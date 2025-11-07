@@ -4,24 +4,73 @@ import { useAuthActions } from "@convex-dev/auth/react";
 
 const PRIMARY_COLOR = "#fa7316";
 
-const NAV_ITEMS = [
+type NavItem = {
+  label: string;
+  description: string;
+  path: string;
+  icon: string;
+  exact?: boolean;
+};
+
+const AREA_LINK: NavItem = {
+  label: "Seleccionar área",
+  description: "Toca para cambiar área",
+  path: "/select-area",
+  icon: "🏁",
+};
+
+const ADMIN_NAV_ITEMS: NavItem[] = [
   {
-    label: "Seleccionar área",
-    description: "Elige el módulo de trabajo",
-    path: "/select-area",
-    icon: "🏁",
-  },
-  {
-    label: "Panel administrador",
-    description: "Resumen y control",
+    label: "Dashboard",
+    description: "Resumen general",
     path: "/admin",
     icon: "📊",
+    exact: true,
   },
   {
-    label: "Punto de venta",
-    description: "Ventas en marcha",
-    path: "/sales",
+    label: "Inventario",
+    description: "Productos y niveles",
+    path: "/admin/inventory",
+    icon: "📦",
+  },
+  {
+    label: "Ventas",
+    description: "Reportes y métricas",
+    path: "/admin/sales",
+    icon: "💹",
+  },
+  {
+    label: "Personal",
+    description: "Roles y accesos",
+    path: "/admin/staff",
+    icon: "🧑‍🍳",
+  },
+  {
+    label: "Sucursales",
+    description: "Configuración de locales",
+    path: "/admin/branches",
+    icon: "📍",
+  },
+];
+
+const SALES_NAV_ITEMS: NavItem[] = [
+  {
+    label: "Mesas",
+    description: "Gestión en piso",
+    path: "/sales/tables",
+    icon: "🍽️",
+  },
+  {
+    label: "Ventas del día",
+    description: "Corte y totales",
+    path: "/sales/daily",
     icon: "🧾",
+  },
+  {
+    label: "Inventario",
+    description: "Ajustes en turno",
+    path: "/sales/inventory",
+    icon: "📦",
   },
 ];
 
@@ -72,6 +121,33 @@ const Layout = () => {
     navigate("/login");
   };
 
+  const areaNavLabel = location.pathname.startsWith("/admin")
+    ? "Administrador"
+    : location.pathname.startsWith("/sales")
+    ? "Ventas"
+    : "Seleccionar área";
+
+  const areaNavDescription = "Toca para cambiar área";
+
+  const currentArea = location.pathname.startsWith("/admin")
+    ? "admin"
+    : location.pathname.startsWith("/sales")
+    ? "sales"
+    : null;
+
+  const menuItems: NavItem[] = [
+    {
+      ...AREA_LINK,
+      label: areaNavLabel,
+      description: areaNavDescription,
+    },
+    ...(currentArea === "admin"
+      ? ADMIN_NAV_ITEMS
+      : currentArea === "sales"
+      ? SALES_NAV_ITEMS
+      : []),
+  ];
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
       <aside
@@ -110,29 +186,35 @@ const Layout = () => {
 
         <nav className="flex-1 overflow-y-auto px-3 py-6">
           <ul className="space-y-2">
-            {NAV_ITEMS.map((item) => (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `group flex items-center gap-4 rounded-2xl border border-transparent px-4 py-3 text-sm transition hover:border-slate-700 hover:bg-slate-800/50 ${
-                      isActive ? "border-[#fa7316]/60 bg-[#fa7316]/10 text-white" : "text-slate-300"
-                    }`
-                  }
-                  onClick={closeMobileSidebar}
-                >
-                  <span className="text-xl" aria-hidden>
-                    {item.icon}
-                  </span>
-                  {!isCollapsed && (
-                    <span className="flex flex-col">
-                      <span className="font-semibold text-white">{item.label}</span>
-                      <span className="text-xs text-slate-400">{item.description}</span>
+            {menuItems.map((item) => {
+              const isAreaLink = item.path === "/select-area";
+              return (
+                <li key={item.path}>
+                  <NavLink
+                    to={item.path}
+                    end={item.exact}
+                    className={({ isActive }) =>
+                      `group flex items-center gap-4 rounded-2xl border border-transparent px-4 py-3 text-sm transition hover:border-slate-700 hover:bg-slate-800/50 ${
+                        isActive ? "border-[#fa7316]/60 bg-[#fa7316]/10 text-white" : "text-slate-300"
+                      }`
+                    }
+                    onClick={closeMobileSidebar}
+                  >
+                    <span className="text-xl" aria-hidden>
+                      {item.icon}
                     </span>
-                  )}
-                </NavLink>
-              </li>
-            ))}
+                    {!isCollapsed && (
+                      <span className="flex flex-col">
+                        <span className="font-semibold text-white">{isAreaLink ? areaNavLabel : item.label}</span>
+                        <span className="text-xs text-slate-400">
+                          {isAreaLink ? areaNavDescription : item.description}
+                        </span>
+                      </span>
+                    )}
+                  </NavLink>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
@@ -206,7 +288,7 @@ const Layout = () => {
             <div>
               <p className="text-xs uppercase tracking-[0.34em] text-slate-500">Invento</p>
               <h1 className="text-lg font-semibold text-white">
-                {NAV_ITEMS.find((item) => item.path === location.pathname)?.label ?? "Panel"}
+                {menuItems.find((item) => item.path === location.pathname)?.label ?? "Panel"}
               </h1>
             </div>
           </div>

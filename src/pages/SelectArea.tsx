@@ -74,7 +74,7 @@ const SelectArea = () => {
       });
 
       if (result?.valid) {
-        const destination = selectedArea === "admin" ? "/admin" : "/sales";
+        const destination = selectedArea === "admin" ? "/admin" : "/sales/tables";
         navigate(destination, { state: { accessCode: joinedCode, area: selectedArea } });
         return;
       }
