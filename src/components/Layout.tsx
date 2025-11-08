@@ -28,6 +28,12 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     exact: true,
   },
   {
+    label: "Categorías",
+    description: "Clasifica tus productos",
+    path: "/admin/categories",
+    icon: "🏷️",
+  },
+  {
     label: "Inventario",
     description: "Productos y niveles",
     path: "/admin/inventory",

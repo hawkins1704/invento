@@ -19,8 +19,26 @@ export default defineSchema({
     name: v.string(),
     description: v.string(),
     price: v.number(),
-    image: v.string(),
-    category: v.string(),
+    image: v.id("_storage"),
+    categoryId: v.id("categories"),
+    createdAt: v.number(),
+  }).index("categoryId", ["categoryId"]),
+  categories: defineTable({
+    name: v.string(),
+    createdAt: v.number(),
+  }).index("name", ["name"]),
+  branches: defineTable({
+    name: v.string(),
+    address: v.string(),
+    tables: v.number(),
+    createdAt: v.number(),
+  }).index("name", ["name"]),
+  branchInventories: defineTable({
+    branchId: v.id("branches"),
+    productId: v.id("products"),
     stock: v.number(),
-  }),
+    updatedAt: v.number(),
+  })
+    .index("byBranch", ["branchId", "productId"])
+    .index("byProduct", ["productId", "branchId"]),
 })

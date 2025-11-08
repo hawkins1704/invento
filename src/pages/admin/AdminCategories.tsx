@@ -1,43 +1,27 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { useNavigate } from "react-router-dom";
 import type { ChangeEvent, FormEvent } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
-type BranchFormState = {
-  name: string;
-  address: string;
-  tables: string;
-};
-
-const DEFAULT_FORM: BranchFormState = {
+const DEFAULT_FORM = {
   name: "",
-  address: "",
-  tables: "0",
 };
 
-const AdminBranches = () => {
-  const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
-  const createBranch = useMutation(api.branches.create);
-  const navigate = useNavigate();
+const AdminCategories = () => {
+  const categories = useQuery(api.categories.list) as Doc<"categories">[] | undefined;
+  const createCategory = useMutation(api.categories.create);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formState, setFormState] = useState<BranchFormState>(DEFAULT_FORM);
+  const [formState, setFormState] = useState(DEFAULT_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const sortedBranches = useMemo(() => branches ?? [], [branches]);
+  const sortedCategories = useMemo(() => categories ?? [], [categories]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setFormState((previous) => ({ ...previous, [name]: value }));
-  };
-
-  const openForm = () => {
-    setIsFormOpen(true);
-    setFormState(DEFAULT_FORM);
-    setFormError(null);
   };
 
   const resetForm = () => {
@@ -50,29 +34,19 @@ const AdminBranches = () => {
     event.preventDefault();
     setFormError(null);
 
-    if (!formState.name.trim() || !formState.address.trim()) {
-      setFormError("Completa el nombre y la dirección de la sucursal.");
-      return;
-    }
-
-    const tables = Number(formState.tables);
-    if (Number.isNaN(tables) || tables < 0) {
-      setFormError("La cantidad de mesas debe ser un número positivo.");
+    if (!formState.name.trim()) {
+      setFormError("Ingresa un nombre para la categoría.");
       return;
     }
 
     try {
       setIsSubmitting(true);
-      await createBranch({
-        name: formState.name.trim(),
-        address: formState.address.trim(),
-        tables,
-      });
+      await createCategory({ name: formState.name.trim() });
       resetForm();
       setIsFormOpen(false);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "No se pudo crear la sucursal. Inténtalo de nuevo.";
+        error instanceof Error ? error.message : "No se pudo crear la categoría. Inténtalo de nuevo.";
       setFormError(message);
       setIsSubmitting(false);
     }
@@ -83,39 +57,42 @@ const AdminBranches = () => {
       <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
-            Sucursales
+            Categorías
           </div>
           <div>
-            <h1 className="text-3xl font-semibold">Locales del restaurante</h1>
+            <h1 className="text-3xl font-semibold">Clasificación de productos</h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-400">
-              Crea sucursales para asignar inventario, mesas y personal. Desde aquí podrás ingresar al inventario
-              específico de cada local.
+              Organiza tus productos con categorías claras para facilitar la búsqueda y los reportes. Crea nuevas
+              categorías o actualiza las existentes cuando sea necesario.
             </p>
           </div>
         </div>
         <div className="flex flex-col items-stretch gap-3 md:items-end">
           <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#fa7316]">
-            {sortedBranches.length} sucursales
+            {sortedCategories.length} categorías
           </span>
           <button
             type="button"
-            onClick={openForm}
+            onClick={() => {
+              setIsFormOpen(true);
+              resetForm();
+            }}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
           >
-            Agregar sucursal
+            Agregar categoría
             <span aria-hidden>＋</span>
           </button>
         </div>
       </header>
 
       <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-        {sortedBranches.length === 0 ? (
+        {sortedCategories.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
             <span className="text-4xl" aria-hidden>
-              🏬
+              🏷️
             </span>
             <p className="text-sm text-slate-400">
-              Todavía no hay sucursales registradas. Crea tu primer local para comenzar a gestionar inventario en piso.
+              Aún no tienes categorías creadas. Crea la primera para organizar tu inventario.
             </p>
           </div>
         ) : (
@@ -124,41 +101,16 @@ const AdminBranches = () => {
               <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.24em] text-slate-400">
                 <tr>
                   <th scope="col" className="px-6 py-4 font-semibold">
-                    Sucursal
+                    Categoría
                   </th>
                   <th scope="col" className="px-6 py-4 font-semibold">
-                    Dirección
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Mesas
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Acciones
+                    Creada
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
-                {sortedBranches.map((branch) => (
-                  <tr key={branch._id as unknown as string} className="transition hover:bg-slate-900/60">
-                    <td className="px-6 py-4 text-sm font-semibold text-white">{branch.name}</td>
-                    <td className="px-6 py-4 text-sm text-slate-300">{branch.address}</td>
-                    <td className="px-6 py-4 text-sm text-slate-300">{branch.tables}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate(`/admin/branches/${branch._id as unknown as string}/inventory`, {
-                              state: { branchName: branch.name },
-                            })
-                          }
-                          className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 transition hover:border-[#fa7316] hover:text-white"
-                        >
-                          Inventario
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                {sortedCategories.map((category) => (
+                  <CategoryRow key={category._id} category={category} />
                 ))}
               </tbody>
             </table>
@@ -168,7 +120,7 @@ const AdminBranches = () => {
 
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-          <div className="relative w-full max-w-2xl rounded-3xl border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
+          <div className="relative w-full max-w-lg rounded-3xl border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
             <button
               type="button"
               onClick={() => setIsFormOpen(false)}
@@ -179,54 +131,25 @@ const AdminBranches = () => {
             </button>
             <header className="mb-6 space-y-2">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
-                Nueva sucursal
+                Nueva categoría
               </span>
-              <h2 className="text-2xl font-semibold text-white">Crear sucursal</h2>
+              <h2 className="text-2xl font-semibold text-white">Crear categoría</h2>
               <p className="text-sm text-slate-400">
-                Define los datos principales de la sucursal. Podrás ajustar su inventario desde la vista dedicada.
+                Asigna un nombre descriptivo para que el equipo pueda identificarla fácilmente.
               </p>
             </header>
             <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <label htmlFor="name" className="text-sm font-medium text-slate-200">
-                  Nombre de la sucursal
+                  Nombre de categoría
                 </label>
                 <input
                   id="name"
                   name="name"
                   type="text"
                   required
+                  autoFocus
                   value={formState.name}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="address" className="text-sm font-medium text-slate-200">
-                  Dirección
-                </label>
-                <input
-                  id="address"
-                  name="address"
-                  type="text"
-                  required
-                  value={formState.address}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="tables" className="text-sm font-medium text-slate-200">
-                  Cantidad de mesas
-                </label>
-                <input
-                  id="tables"
-                  name="tables"
-                  type="number"
-                  min="0"
-                  step="1"
-                  required
-                  value={formState.tables}
                   onChange={handleChange}
                   className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 />
@@ -255,7 +178,7 @@ const AdminBranches = () => {
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Guardando..." : "Guardar sucursal"}
+                  {isSubmitting ? "Guardando..." : "Guardar categoría"}
                 </button>
               </div>
             </form>
@@ -266,5 +189,19 @@ const AdminBranches = () => {
   );
 };
 
-export default AdminBranches;
+const CategoryRow = ({ category }: { category: Doc<"categories"> }) => {
+  const formattedDate = new Intl.DateTimeFormat("es-PE", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(category.createdAt);
+
+  return (
+    <tr className="transition hover:bg-slate-900/60">
+      <td className="px-6 py-4 text-sm font-semibold text-white">{category.name}</td>
+      <td className="px-6 py-4 text-xs text-slate-500">{formattedDate}</td>
+    </tr>
+  );
+};
+
+export default AdminCategories;
 

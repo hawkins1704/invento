@@ -9,6 +9,8 @@ import AdminInventory from './pages/admin/AdminInventory'
 import AdminSales from './pages/admin/AdminSales'
 import AdminStaff from './pages/admin/AdminStaff'
 import AdminBranches from './pages/admin/AdminBranches'
+import BranchInventory from './pages/admin/BranchInventory'
+import AdminCategories from './pages/admin/AdminCategories'
 import SalesDashboard from './pages/SalesDashboard'
 import SalesTables from './pages/sales/SalesTables'
 import SalesDaily from './pages/sales/SalesDaily'
@@ -44,10 +46,14 @@ function App() {
                 <Route element={<Layout />}>
                     <Route path="admin">
                         <Route index element={<AdminDashboard />} />
+                        <Route path="categories" element={<AdminCategories />} />
                         <Route path="inventory" element={<AdminInventory />} />
                         <Route path="sales" element={<AdminSales />} />
                         <Route path="staff" element={<AdminStaff />} />
-                        <Route path="branches" element={<AdminBranches />} />
+                        <Route path="branches">
+                            <Route index element={<AdminBranches />} />
+                            <Route path=":branchId/inventory" element={<BranchInventory />} />
+                        </Route>
                     </Route>
                     <Route path="sales">
                         <Route index element={<SalesDashboard />} />

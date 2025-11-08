@@ -10,8 +10,12 @@
 
 import type * as access from "../access.js";
 import type * as auth from "../auth.js";
+import type * as branchInventory from "../branchInventory.js";
+import type * as branches from "../branches.js";
+import type * as categories from "../categories.js";
 import type * as customProfile from "../customProfile.js";
 import type * as http from "../http.js";
+import type * as products from "../products.js";
 
 import type {
   ApiFromModules,
@@ -30,8 +34,12 @@ import type {
 declare const fullApi: ApiFromModules<{
   access: typeof access;
   auth: typeof auth;
+  branchInventory: typeof branchInventory;
+  branches: typeof branches;
+  categories: typeof categories;
   customProfile: typeof customProfile;
   http: typeof http;
+  products: typeof products;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
