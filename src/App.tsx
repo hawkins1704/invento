@@ -9,6 +9,7 @@ import AdminInventory from './pages/admin/AdminInventory'
 import AdminProductDetail from './pages/admin/AdminProductDetail'
 import AdminSales from './pages/admin/AdminSales'
 import AdminStaff from './pages/admin/AdminStaff'
+import AdminStaffDetail from './pages/admin/AdminStaffDetail'
 import AdminBranches from './pages/admin/AdminBranches'
 import BranchDetails from './pages/admin/BranchDetails'
 import AdminCategories from './pages/admin/AdminCategories'
@@ -53,7 +54,10 @@ function App() {
                         <Route path="inventory" element={<AdminInventory />} />
                         <Route path="inventory/:productId" element={<AdminProductDetail />} />
                         <Route path="sales" element={<AdminSales />} />
-                        <Route path="staff" element={<AdminStaff />} />
+                        <Route path="staff">
+                            <Route index element={<AdminStaff />} />
+                            <Route path=":staffId" element={<AdminStaffDetail />} />
+                        </Route>
                         <Route path="branches">
                             <Route index element={<AdminBranches />} />
                             <Route path=":branchId" element={<BranchDetails />} />

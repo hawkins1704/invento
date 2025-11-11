@@ -8,13 +8,11 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 type BranchFormState = {
   name: string;
   address: string;
-  tables: string;
 };
 
 const DEFAULT_FORM: BranchFormState = {
   name: "",
   address: "",
-  tables: "0",
 };
 
 const AdminBranches = () => {
@@ -55,18 +53,11 @@ const AdminBranches = () => {
       return;
     }
 
-    const tables = Number(formState.tables);
-    if (Number.isNaN(tables) || tables < 0) {
-      setFormError("La cantidad de mesas debe ser un número positivo.");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       await createBranch({
         name: formState.name.trim(),
         address: formState.address.trim(),
-        tables,
       });
       resetForm();
       setIsFormOpen(false);
@@ -129,9 +120,6 @@ const AdminBranches = () => {
                   <th scope="col" className="px-6 py-4 font-semibold">
                     Dirección
                   </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Mesas
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
@@ -149,7 +137,6 @@ const AdminBranches = () => {
                     >
                       <td className="px-6 py-4 text-sm font-semibold text-white">{branch.name}</td>
                       <td className="px-6 py-4 text-sm text-slate-300">{branch.address}</td>
-                      <td className="px-6 py-4 text-sm text-slate-300">{branch.tables}</td>
                     </tr>
                   );
                 })}
@@ -208,23 +195,6 @@ const AdminBranches = () => {
                   className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 />
               </div>
-              <div className="space-y-2">
-                <label htmlFor="tables" className="text-sm font-medium text-slate-200">
-                  Cantidad de mesas
-                </label>
-                <input
-                  id="tables"
-                  name="tables"
-                  type="number"
-                  min="0"
-                  step="1"
-                  required
-                  value={formState.tables}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                />
-              </div>
-
               {formError && (
                 <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                   {formError}

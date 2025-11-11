@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import type { ChangeEvent, FormEvent } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 type CategorySummary = {
   category: Doc<"categories">;
@@ -20,14 +21,31 @@ type InventoryProduct = {
 type BranchFormState = {
   name: string;
   address: string;
-  tables: string;
 };
 
 const DEFAULT_BRANCH_FORM: BranchFormState = {
   name: "",
   address: "",
-  tables: "0",
 };
+
+type TableFormState = {
+  label: string;
+  capacity: string;
+  status: "available" | "occupied" | "reserved" | "out_of_service";
+};
+
+const DEFAULT_TABLE_FORM: TableFormState = {
+  label: "",
+  capacity: "",
+  status: "available",
+};
+
+const TABLE_STATUSES: Array<{ value: TableFormState["status"]; label: string }> = [
+  { value: "available", label: "Disponible" },
+  { value: "occupied", label: "Ocupada" },
+  { value: "reserved", label: "Reservada" },
+  { value: "out_of_service", label: "Fuera de servicio" },
+];
 
 const BranchDetails = () => {
   const params = useParams();
@@ -41,6 +59,10 @@ const BranchDetails = () => {
     api.branchInventory.categories,
     branchId ? { branchId } : "skip"
   ) as CategorySummary[] | undefined;
+  const tables = useQuery(
+    api.branchTables.list,
+    branchId ? { branchId } : "skip"
+  ) as Doc<"branchTables">[] | undefined;
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
@@ -52,6 +74,16 @@ const BranchDetails = () => {
   const [branchFormError, setBranchFormError] = useState<string | null>(null);
   const [isSavingBranch, setIsSavingBranch] = useState(false);
   const updateBranch = useMutation(api.branches.update);
+  const createTable = useMutation(api.branchTables.create);
+  const updateTable = useMutation(api.branchTables.update);
+  const removeTable = useMutation(api.branchTables.remove);
+
+  const [isTableModalOpen, setIsTableModalOpen] = useState(false);
+  const [tableForm, setTableForm] = useState<TableFormState>(DEFAULT_TABLE_FORM);
+  const [tableFormError, setTableFormError] = useState<string | null>(null);
+  const [isSavingTable, setIsSavingTable] = useState(false);
+  const [editingTableId, setEditingTableId] = useState<Id<"branchTables"> | null>(null);
+  const [tableToDelete, setTableToDelete] = useState<Doc<"branchTables"> | null>(null);
 
   useEffect(() => {
     if (!categories || categories.length === 0) {
@@ -91,6 +123,10 @@ const BranchDetails = () => {
     () => (branchId ? branches?.find((item) => item._id === branchId) ?? null : null),
     [branches, branchId]
   );
+  const branchTables = tables ?? [];
+  const totalTables = branchTables.length;
+  const availableTables = branchTables.filter((table) => (table.status ?? "available") === "available").length;
+  const occupiedTables = branchTables.filter((table) => table.status === "occupied").length;
   const branchName =
     (location.state as { branchName?: string } | null)?.branchName ?? branch?.name ?? "Sucursal";
 
@@ -104,13 +140,11 @@ const BranchDetails = () => {
         const next = {
           name: branch.name,
           address: branch.address,
-          tables: branch.tables.toString(),
         };
 
         if (
           previous.name === next.name &&
-          previous.address === next.address &&
-          previous.tables === next.tables
+          previous.address === next.address
         ) {
           return previous;
         }
@@ -119,12 +153,11 @@ const BranchDetails = () => {
       });
     } else if (
       branchForm.name !== DEFAULT_BRANCH_FORM.name ||
-      branchForm.address !== DEFAULT_BRANCH_FORM.address ||
-      branchForm.tables !== DEFAULT_BRANCH_FORM.tables
+      branchForm.address !== DEFAULT_BRANCH_FORM.address
     ) {
       setBranchForm({ ...DEFAULT_BRANCH_FORM });
     }
-  }, [branch, isEditingBranch, branchForm.name, branchForm.address, branchForm.tables]);
+  }, [branch, isEditingBranch, branchForm.name, branchForm.address]);
 
   if (!branchId) {
     return (
@@ -164,7 +197,9 @@ const BranchDetails = () => {
     );
   }
 
-  const formattedAddress = branch ? `${branch.address} · ${branch.tables} mesas` : "";
+  const formattedAddress = branch
+    ? `${branch.address}${totalTables > 0 ? ` · ${totalTables} mesa${totalTables === 1 ? "" : "s"}` : ""}`
+    : "";
 
   const handleStockChange = (productId: string, event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -216,7 +251,6 @@ const BranchDetails = () => {
       setBranchForm({
         name: branch.name,
         address: branch.address,
-        tables: branch.tables.toString(),
       });
     } else {
       setBranchForm(DEFAULT_BRANCH_FORM);
@@ -238,19 +272,12 @@ const BranchDetails = () => {
       return;
     }
 
-    const tables = Number(branchForm.tables);
-    if (Number.isNaN(tables) || tables < 0) {
-      setBranchFormError("La cantidad de mesas debe ser un número positivo.");
-      return;
-    }
-
     try {
       setIsSavingBranch(true);
       await updateBranch({
         branchId,
         name: branchForm.name.trim(),
         address: branchForm.address.trim(),
-        tables,
       });
       setIsEditingBranch(false);
     } catch (error) {
@@ -259,6 +286,80 @@ const BranchDetails = () => {
       setBranchFormError(message);
     } finally {
       setIsSavingBranch(false);
+    }
+  };
+
+  const handleTableFormChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = event.target;
+    setTableForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const handleTableFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!branchId) {
+      return;
+    }
+
+    setTableFormError(null);
+
+    const normalizedLabel = tableForm.label.trim();
+    if (!normalizedLabel) {
+      setTableFormError("Ingresa un nombre para la mesa.");
+      return;
+    }
+
+    let capacityValue: number | undefined;
+    if (tableForm.capacity.trim()) {
+      const parsed = Number(tableForm.capacity);
+      if (Number.isNaN(parsed) || parsed < 0) {
+        setTableFormError("La capacidad debe ser un número positivo.");
+        return;
+      }
+      capacityValue = Math.floor(parsed);
+    }
+
+    try {
+      setIsSavingTable(true);
+      if (editingTableId) {
+        await updateTable({
+          tableId: editingTableId,
+          label: normalizedLabel,
+          capacity: capacityValue,
+          status: tableForm.status,
+        });
+      } else {
+        await createTable({
+          branchId,
+          label: normalizedLabel,
+          capacity: capacityValue,
+        });
+      }
+      setIsTableModalOpen(false);
+      setEditingTableId(null);
+      setTableForm(DEFAULT_TABLE_FORM);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "No se pudo guardar la mesa. Inténtalo de nuevo.";
+      setTableFormError(message);
+    } finally {
+      setIsSavingTable(false);
+    }
+  };
+
+  const handleConfirmDeleteTable = async () => {
+    if (!tableToDelete) {
+      return;
+    }
+    try {
+      await removeTable({ tableId: tableToDelete._id });
+      setTableToDelete(null);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -309,7 +410,7 @@ const BranchDetails = () => {
 
         {isEditingBranch ? (
           <form className="mt-6 space-y-5" onSubmit={handleBranchFormSubmit}>
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-4 lg:grid-cols-2">
               <div className="space-y-2">
                 <label htmlFor="name" className="text-sm font-medium text-slate-200">
                   Nombre de la sucursal
@@ -334,22 +435,6 @@ const BranchDetails = () => {
                   type="text"
                   required
                   value={branchForm.address}
-                  onChange={handleBranchFormChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="tables" className="text-sm font-medium text-slate-200">
-                  Cantidad de mesas
-                </label>
-                <input
-                  id="tables"
-                  name="tables"
-                  type="number"
-                  min="0"
-                  step="1"
-                  required
-                  value={branchForm.tables}
                   onChange={handleBranchFormChange}
                   className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 />
@@ -384,22 +469,252 @@ const BranchDetails = () => {
             </div>
           </form>
         ) : (
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Nombre</span>
-              <p className="mt-2 text-lg font-semibold text-white">{branch?.name ?? "—"}</p>
+          <>
+            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Nombre</span>
+                <p className="mt-2 text-lg font-semibold text-white">{branch?.name ?? "—"}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5 lg:col-span-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Dirección</span>
+                <p className="mt-2 text-lg font-semibold text-white">{branch?.address ?? "—"}</p>
+              </div>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5 lg:col-span-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Dirección</span>
-              <p className="mt-2 text-lg font-semibold text-white">{branch?.address ?? "—"}</p>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              <SummaryStatCard title="Mesas registradas" value={totalTables.toString()} helper="Total de mesas configuradas." />
+              <SummaryStatCard
+                title="Disponibles"
+                value={availableTables.toString()}
+                helper="Mesas listas para asignar."
+              />
+              <SummaryStatCard
+                title="Ocupadas"
+                value={occupiedTables.toString()}
+                helper="Mesas con ventas activas."
+              />
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Mesas</span>
-              <p className="mt-2 text-lg font-semibold text-white">{branch?.tables ?? "—"}</p>
-            </div>
+          </>
+        )}
+      </section>
+
+      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Mesas de la sucursal</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Configura las mesas disponibles en esta sucursal y controla su capacidad y estado.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setEditingTableId(null);
+              setTableForm(DEFAULT_TABLE_FORM);
+              setTableFormError(null);
+              setIsTableModalOpen(true);
+            }}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
+            disabled={!branchId}
+          >
+            Registrar mesa
+          </button>
+        </div>
+
+        {branchTables.length === 0 ? (
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 px-6 py-12 text-center text-slate-400">
+            <span className="text-3xl" aria-hidden>
+              🍽️
+            </span>
+            <p className="max-w-sm text-sm">
+              Aún no has creado mesas para esta sucursal. Agrega mesas para que el punto de venta pueda asignar pedidos.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {branchTables.map((table) => (
+              <article
+                key={table._id as string}
+                className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-5 text-white shadow-inner shadow-black/20"
+              >
+                <header className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Mesa</p>
+                    <h3 className="text-xl font-semibold text-white">{table.label}</h3>
+                  </div>
+                  <TableStatusBadge status={table.status ?? "available"} />
+                </header>
+                <div className="space-y-2 text-sm text-slate-300">
+                  <p>
+                    Capacidad:{" "}
+                    <span className="font-semibold text-white">
+                      {table.capacity !== undefined ? `${table.capacity} persona${table.capacity === 1 ? "" : "s"}` : "Sin definir"}
+                    </span>
+                  </p>
+                  <p>
+                    Venta activa:{" "}
+                    <span className="font-semibold text-white">
+                      {table.currentSaleId ? "Sí" : "No"}
+                    </span>
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingTableId(table._id);
+                      setTableForm({
+                        label: table.label,
+                        capacity: table.capacity !== undefined ? table.capacity.toString() : "",
+                        status: table.status ?? "available",
+                      });
+                      setTableFormError(null);
+                      setIsTableModalOpen(true);
+                    }}
+                    className="inline-flex flex-1 items-center justify-center rounded-xl border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTableToDelete(table)}
+                    className="inline-flex items-center justify-center rounded-xl border border-red-500/40 px-3 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200"
+                    disabled={Boolean(table.currentSaleId)}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </article>
+            ))}
           </div>
         )}
       </section>
+
+      {isTableModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-10">
+          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
+          <div className="relative w-full max-w-lg rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+            <header className="flex items-center justify-between">
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  {editingTableId ? "Editar mesa" : "Nueva mesa"}
+                </span>
+                <h3 className="mt-2 text-2xl font-semibold text-white">
+                  {editingTableId ? "Actualizar información" : "Registrar nueva mesa"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTableModalOpen(false);
+                  setEditingTableId(null);
+                  setTableForm(DEFAULT_TABLE_FORM);
+                }}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-300 transition hover:text-white"
+                aria-label="Cerrar"
+              >
+                ✕
+              </button>
+            </header>
+
+            <form className="mt-6 space-y-4" onSubmit={handleTableFormSubmit}>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-200" htmlFor="label">
+                  Nombre de la mesa
+                </label>
+                <input
+                  id="label"
+                  name="label"
+                  type="text"
+                  autoFocus
+                  value={tableForm.label}
+                  onChange={handleTableFormChange}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                  placeholder="Ej. Terraza 1"
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-200" htmlFor="capacity">
+                    Capacidad (opcional)
+                  </label>
+                  <input
+                    id="capacity"
+                    name="capacity"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={tableForm.capacity}
+                    onChange={handleTableFormChange}
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                    placeholder="Número de personas"
+                  />
+                </div>
+                {editingTableId && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-200" htmlFor="status">
+                      Estado
+                    </label>
+                    <select
+                      id="status"
+                      name="status"
+                      value={tableForm.status}
+                      onChange={handleTableFormChange}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                    >
+                      {TABLE_STATUSES.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {tableFormError && (
+                <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                  {tableFormError}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsTableModalOpen(false);
+                    setEditingTableId(null);
+                    setTableForm(DEFAULT_TABLE_FORM);
+                    setTableFormError(null);
+                  }}
+                  className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                  disabled={isSavingTable}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                  disabled={isSavingTable}
+                >
+                  {isSavingTable ? "Guardando..." : editingTableId ? "Guardar cambios" : "Crear mesa"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <ConfirmDialog
+        isOpen={Boolean(tableToDelete)}
+        title="Eliminar mesa"
+        tone="danger"
+        description="¿Deseas eliminar esta mesa? Solo puedes eliminar mesas que no tengan ventas abiertas."
+        confirmLabel="Eliminar"
+        onCancel={() => setTableToDelete(null)}
+        onConfirm={handleConfirmDeleteTable}
+      />
 
       <section>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
@@ -530,6 +845,50 @@ const BranchDetails = () => {
         )}
       </section>
     </div>
+  );
+};
+
+const SummaryStatCard = ({
+  title,
+  value,
+  helper,
+}: {
+  title: string;
+  value: string;
+  helper: string;
+}) => (
+  <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
+    <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">{title}</span>
+    <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
+    <p className="mt-1 text-xs text-slate-400">{helper}</p>
+  </div>
+);
+
+const TableStatusBadge = ({ status }: { status: TableFormState["status"] }) => {
+  const config: Record<TableFormState["status"], { label: string; className: string }> = {
+    available: {
+      label: "Disponible",
+      className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+    },
+    occupied: {
+      label: "Ocupada",
+      className: "border-[#fa7316]/40 bg-[#fa7316]/10 text-[#fa7316]",
+    },
+    reserved: {
+      label: "Reservada",
+      className: "border-sky-500/40 bg-sky-500/10 text-sky-300",
+    },
+    out_of_service: {
+      label: "Fuera de servicio",
+      className: "border-red-500/40 bg-red-500/10 text-red-300",
+    },
+  };
+
+  const data = config[status];
+  return (
+    <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${data.className}`}>
+      {data.label}
+    </span>
   );
 };
 
