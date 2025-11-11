@@ -2,14 +2,10 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import type { FormEvent, ChangeEvent } from "react";
 import imageCompression from "browser-image-compression";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
-
-type ProductListItem = Doc<"products"> & {
-  imageUrl: string | null;
-  categoryName: string;
-  totalStock: number;
-};
+import type { ProductListItem } from "../../types/products";
 
 type ProductFormState = {
   name: string;
@@ -32,24 +28,20 @@ const DEFAULT_FORM: ProductFormState = {
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(value);
 
-const formatDateTime = (value: number) =>
-  new Intl.DateTimeFormat("es-PE", { dateStyle: "medium", timeStyle: "short" }).format(value);
-
 const AdminInventory = () => {
   const products = useQuery(api.products.list) as ProductListItem[] | undefined;
   const categories = useQuery(api.categories.list) as Doc<"categories">[] | undefined;
   const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
   const generateUploadUrl = useMutation(api.products.generateUploadUrl);
   const createProduct = useMutation(api.products.create);
+  const navigate = useNavigate();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formState, setFormState] = useState<ProductFormState>(DEFAULT_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const productCount = products?.length ?? 0;
-  const categoryCount = categories?.length ?? 0;
-  const branchCount = branches?.length ?? 0;
+
 
   const sortedProducts = useMemo(() => products ?? [], [products]);
 
@@ -58,15 +50,19 @@ const AdminInventory = () => {
     setFormState((previous) => ({ ...previous, [name]: value }));
   };
 
-  const updateStockField = (branchId: string, value: string) => {
-    setFormState((previous) => ({
-      ...previous,
-      stocks: {
-        ...previous.stocks,
-        [branchId]: value,
-      },
-    }));
-  };
+const updateStockField = (branchId: string, value: string) => {
+  const parsedValue = Number(value);
+  const sanitized =
+    Number.isNaN(parsedValue) || parsedValue < 0 ? "0" : String(Math.floor(parsedValue));
+
+  setFormState((previous) => ({
+    ...previous,
+    stocks: {
+      ...previous.stocks,
+      [branchId]: sanitized,
+    },
+  }));
+};
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
@@ -97,11 +93,6 @@ const AdminInventory = () => {
 
     if (!formState.categoryId) {
       setFormError("Selecciona una categoría para el producto.");
-      return;
-    }
-
-    if (!formState.imageFile) {
-      setFormError("Selecciona una imagen para el producto.");
       return;
     }
 
@@ -140,25 +131,31 @@ const AdminInventory = () => {
 
     try {
       setIsSubmitting(true);
-      const uploadUrl = await generateUploadUrl();
 
-      const compressedFile = await imageCompression(formState.imageFile, {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1280,
-        useWebWorker: true,
-      });
+      let storageId: Id<"_storage"> | undefined;
 
-      const uploadResponse = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": compressedFile.type },
-        body: compressedFile,
-      });
+      if (formState.imageFile) {
+        const uploadUrl = await generateUploadUrl();
 
-      if (!uploadResponse.ok) {
-        throw new Error("No se pudo subir la imagen, intenta nuevamente.");
+        const compressedFile = await imageCompression(formState.imageFile, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1280,
+          useWebWorker: true,
+        });
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": compressedFile.type },
+          body: compressedFile,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("No se pudo subir la imagen, intenta nuevamente.");
+        }
+
+        const response = (await uploadResponse.json()) as { storageId: Id<"_storage"> };
+        storageId = response.storageId;
       }
-
-      const { storageId } = (await uploadResponse.json()) as { storageId: Id<"_storage"> };
 
       await createProduct({
         name: formState.name.trim(),
@@ -166,16 +163,16 @@ const AdminInventory = () => {
         categoryId: formState.categoryId as Id<"categories">,
         price,
         stockByBranch,
-        image: storageId,
+        ...(storageId ? { image: storageId } : {}),
       });
 
       initializeForm();
       setIsFormOpen(false);
-      setIsSubmitting(false);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Ocurrió un problema creando el producto.";
       setFormError(message);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -198,17 +195,6 @@ const AdminInventory = () => {
           </div>
         </div>
         <div className="flex flex-col items-stretch gap-3 md:items-end">
-          <div className="inline-flex flex-wrap items-center gap-2 text-xs text-slate-400">
-            <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-1 font-semibold uppercase tracking-[0.18em] text-[#fa7316]">
-              {productCount} productos
-            </span>
-            <span className="rounded-full border border-white/10 px-4 py-1 font-semibold uppercase tracking-[0.18em] text-white/70">
-              {categoryCount} categorías
-            </span>
-            <span className="rounded-full border border-white/10 px-4 py-1 font-semibold uppercase tracking-[0.18em] text-white/70">
-              {branchCount} sucursales
-            </span>
-          </div>
           <button
             type="button"
             onClick={() => {
@@ -256,14 +242,19 @@ const AdminInventory = () => {
                   <th scope="col" className="px-6 py-4 font-semibold">
                     Stock total
                   </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Última actualización
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
                 {sortedProducts.map((product) => (
-                  <ProductRow key={product._id as unknown as string} product={product} />
+                  <ProductRow
+                    key={product._id as unknown as string}
+                    product={product}
+                    onSelect={(selected) =>
+                      navigate(`/admin/inventory/${selected._id}`, {
+                        state: { product: selected },
+                      })
+                    }
+                  />
                 ))}
               </tbody>
             </table>
@@ -315,7 +306,6 @@ const AdminInventory = () => {
                     <select
                       id="categoryId"
                       name="categoryId"
-                      required
                       value={formState.categoryId}
                       onChange={updateField}
                       className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
@@ -346,7 +336,6 @@ const AdminInventory = () => {
                 <textarea
                   id="description"
                   name="description"
-                  required
                   rows={3}
                   value={formState.description}
                   onChange={updateField}
@@ -379,12 +368,12 @@ const AdminInventory = () => {
                     name="image"
                     type="file"
                     accept="image/*"
-                    required
                     onChange={handleImageChange}
                     className="w-full cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
                   />
                   <p className="text-xs text-slate-500">
                     Se optimizará automáticamente antes de subirla. Tamaño recomendado máx. 1280px.
+                    Este campo es opcional.
                   </p>
                 </div>
               </div>
@@ -454,9 +443,26 @@ const AdminInventory = () => {
   );
 };
 
-const ProductRow = ({ product }: { product: ProductListItem }) => {
+const ProductRow = ({
+  product,
+  onSelect,
+}: {
+  product: ProductListItem;
+  onSelect: (product: ProductListItem) => void;
+}) => {
   return (
-    <tr className="transition hover:bg-slate-900/60">
+    <tr
+      className="cursor-pointer transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60"
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelect(product)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(product);
+        }
+      }}
+    >
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
@@ -475,7 +481,6 @@ const ProductRow = ({ product }: { product: ProductListItem }) => {
       <td className="px-6 py-4 text-sm text-slate-300">{product.categoryName}</td>
       <td className="px-6 py-4 text-sm text-white">{formatCurrency(product.price)}</td>
       <td className="px-6 py-4 text-sm text-slate-300">{product.totalStock}</td>
-      <td className="px-6 py-4 text-xs text-slate-500">{formatDateTime(product.createdAt)}</td>
     </tr>
   );
 };

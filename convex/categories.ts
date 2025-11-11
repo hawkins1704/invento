@@ -36,8 +36,71 @@ export const create = mutation({
 
     await ctx.db.insert("categories", {
       name: args.name.trim(),
-      createdAt: Date.now(),
     });
+  },
+});
+
+export const update = mutation({
+  args: {
+    categoryId: v.id("categories"),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new ConvexError("No autenticado");
+    }
+
+    const category = await ctx.db.get(args.categoryId);
+    if (!category) {
+      throw new ConvexError("Categoría no encontrada.");
+    }
+
+    const trimmedName = args.name.trim();
+    if (trimmedName.length === 0) {
+      throw new ConvexError("El nombre de la categoría no puede estar vacío.");
+    }
+
+    const duplicate = await ctx.db
+      .query("categories")
+      .withIndex("name", (q) => q.eq("name", trimmedName))
+      .first();
+
+    if (duplicate && duplicate._id !== args.categoryId) {
+      throw new ConvexError("Ya existe una categoría con ese nombre.");
+    }
+
+    await ctx.db.patch(args.categoryId, { name: trimmedName });
+  },
+});
+
+export const remove = mutation({
+  args: {
+    categoryId: v.id("categories"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new ConvexError("No autenticado");
+    }
+
+    const category = await ctx.db.get(args.categoryId);
+    if (!category) {
+      throw new ConvexError("Categoría no encontrada.");
+    }
+
+    const linkedProduct = await ctx.db
+      .query("products")
+      .withIndex("categoryId", (q) => q.eq("categoryId", args.categoryId))
+      .first();
+
+    if (linkedProduct) {
+      throw new ConvexError(
+        "No puedes eliminar esta categoría porque hay productos asociados."
+      );
+    }
+
+    await ctx.db.delete(args.categoryId);
   },
 });
 

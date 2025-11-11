@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import type { ChangeEvent, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
@@ -11,6 +12,7 @@ const DEFAULT_FORM = {
 const AdminCategories = () => {
   const categories = useQuery(api.categories.list) as Doc<"categories">[] | undefined;
   const createCategory = useMutation(api.categories.create);
+  const navigate = useNavigate();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formState, setFormState] = useState(DEFAULT_FORM);
@@ -68,9 +70,6 @@ const AdminCategories = () => {
           </div>
         </div>
         <div className="flex flex-col items-stretch gap-3 md:items-end">
-          <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#fa7316]">
-            {sortedCategories.length} categorías
-          </span>
           <button
             type="button"
             onClick={() => {
@@ -103,14 +102,19 @@ const AdminCategories = () => {
                   <th scope="col" className="px-6 py-4 font-semibold">
                     Categoría
                   </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Creada
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
                 {sortedCategories.map((category) => (
-                  <CategoryRow key={category._id} category={category} />
+                  <CategoryRow
+                    key={category._id}
+                    category={category}
+                    onSelect={(selected) =>
+                      navigate(`/admin/categories/${selected._id}`, {
+                        state: { category: selected },
+                      })
+                    }
+                  />
                 ))}
               </tbody>
             </table>
@@ -189,16 +193,27 @@ const AdminCategories = () => {
   );
 };
 
-const CategoryRow = ({ category }: { category: Doc<"categories"> }) => {
-  const formattedDate = new Intl.DateTimeFormat("es-PE", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(category.createdAt);
-
+const CategoryRow = ({
+  category,
+  onSelect,
+}: {
+  category: Doc<"categories">;
+  onSelect: (category: Doc<"categories">) => void;
+}) => {
   return (
-    <tr className="transition hover:bg-slate-900/60">
+    <tr
+      className="cursor-pointer transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60"
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelect(category)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(category);
+        }
+      }}
+    >
       <td className="px-6 py-4 text-sm font-semibold text-white">{category.name}</td>
-      <td className="px-6 py-4 text-xs text-slate-500">{formattedDate}</td>
     </tr>
   );
 };

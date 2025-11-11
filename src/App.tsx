@@ -6,11 +6,13 @@ import Layout from './components/Layout'
 import SelectArea from './pages/SelectArea'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminInventory from './pages/admin/AdminInventory'
+import AdminProductDetail from './pages/admin/AdminProductDetail'
 import AdminSales from './pages/admin/AdminSales'
 import AdminStaff from './pages/admin/AdminStaff'
 import AdminBranches from './pages/admin/AdminBranches'
-import BranchInventory from './pages/admin/BranchInventory'
+import BranchDetails from './pages/admin/BranchDetails'
 import AdminCategories from './pages/admin/AdminCategories'
+import AdminCategoryDetail from './pages/admin/AdminCategoryDetail'
 import SalesDashboard from './pages/SalesDashboard'
 import SalesTables from './pages/sales/SalesTables'
 import SalesDaily from './pages/sales/SalesDaily'
@@ -47,12 +49,14 @@ function App() {
                     <Route path="admin">
                         <Route index element={<AdminDashboard />} />
                         <Route path="categories" element={<AdminCategories />} />
+                        <Route path="categories/:categoryId" element={<AdminCategoryDetail />} />
                         <Route path="inventory" element={<AdminInventory />} />
+                        <Route path="inventory/:productId" element={<AdminProductDetail />} />
                         <Route path="sales" element={<AdminSales />} />
                         <Route path="staff" element={<AdminStaff />} />
                         <Route path="branches">
                             <Route index element={<AdminBranches />} />
-                            <Route path=":branchId/inventory" element={<BranchInventory />} />
+                            <Route path=":branchId" element={<BranchDetails />} />
                         </Route>
                     </Route>
                     <Route path="sales">

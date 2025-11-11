@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 
@@ -17,7 +17,19 @@ type InventoryProduct = {
   imageUrl: string | null;
 };
 
-const BranchInventory = () => {
+type BranchFormState = {
+  name: string;
+  address: string;
+  tables: string;
+};
+
+const DEFAULT_BRANCH_FORM: BranchFormState = {
+  name: "",
+  address: "",
+  tables: "0",
+};
+
+const BranchDetails = () => {
   const params = useParams();
   const branchIdParam = params.branchId;
   const branchId = branchIdParam ? (branchIdParam as Id<"branches">) : undefined;
@@ -31,6 +43,15 @@ const BranchInventory = () => {
   ) as CategorySummary[] | undefined;
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
+  const [savingProductId, setSavingProductId] = useState<string | null>(null);
+  const updateStock = useMutation(api.branchInventory.updateStock);
+
+  const [isEditingBranch, setIsEditingBranch] = useState(false);
+  const [branchForm, setBranchForm] = useState<BranchFormState>(DEFAULT_BRANCH_FORM);
+  const [branchFormError, setBranchFormError] = useState<string | null>(null);
+  const [isSavingBranch, setIsSavingBranch] = useState(false);
+  const updateBranch = useMutation(api.branches.update);
 
   useEffect(() => {
     if (!categories || categories.length === 0) {
@@ -57,10 +78,6 @@ const BranchInventory = () => {
         : "skip"
     ) ?? [];
 
-  const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
-  const [savingProductId, setSavingProductId] = useState<string | null>(null);
-  const updateStock = useMutation(api.branchInventory.updateStock);
-
   useEffect(() => {
     const initialDrafts = products.reduce<Record<string, string>>((accumulator, item) => {
       const key = item.product._id as unknown as string;
@@ -77,10 +94,42 @@ const BranchInventory = () => {
   const branchName =
     (location.state as { branchName?: string } | null)?.branchName ?? branch?.name ?? "Sucursal";
 
+  useEffect(() => {
+    if (isEditingBranch) {
+      return;
+    }
+
+    if (branch) {
+      setBranchForm((previous) => {
+        const next = {
+          name: branch.name,
+          address: branch.address,
+          tables: branch.tables.toString(),
+        };
+
+        if (
+          previous.name === next.name &&
+          previous.address === next.address &&
+          previous.tables === next.tables
+        ) {
+          return previous;
+        }
+
+        return next;
+      });
+    } else if (
+      branchForm.name !== DEFAULT_BRANCH_FORM.name ||
+      branchForm.address !== DEFAULT_BRANCH_FORM.address ||
+      branchForm.tables !== DEFAULT_BRANCH_FORM.tables
+    ) {
+      setBranchForm({ ...DEFAULT_BRANCH_FORM });
+    }
+  }, [branch, isEditingBranch, branchForm.name, branchForm.address, branchForm.tables]);
+
   if (!branchId) {
     return (
       <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
-        <h1 className="text-2xl font-semibold text-white">Inventario de sucursal</h1>
+        <h1 className="text-2xl font-semibold text-white">Sucursal no encontrada</h1>
         <p className="mt-2 text-sm text-slate-400">
           No se encontró el identificador de la sucursal. Regresa al listado e inténtalo nuevamente.
         </p>
@@ -94,6 +143,28 @@ const BranchInventory = () => {
       </div>
     );
   }
+
+  if (branches && branch === null) {
+    return (
+      <div className="space-y-6">
+        <header className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/branches")}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+          >
+            ← Volver
+          </button>
+          <h1 className="mt-4 text-3xl font-semibold text-white">Sucursal no disponible</h1>
+          <p className="mt-2 text-sm text-slate-400">
+            No pudimos encontrar la información de esta sucursal. Verifica el enlace o regresa al listado.
+          </p>
+        </header>
+      </div>
+    );
+  }
+
+  const formattedAddress = branch ? `${branch.address} · ${branch.tables} mesas` : "";
 
   const handleStockChange = (productId: string, event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -125,14 +196,71 @@ const BranchInventory = () => {
           stock: Math.floor(parsed),
         });
       }
-      setSavingProductId(null);
     } catch (error) {
       console.error(error);
+    } finally {
       setSavingProductId(null);
     }
   };
 
-  const formattedAddress = branch ? `${branch.address} · ${branch.tables} mesas` : "";
+  const handleBranchFormChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setBranchForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const resetBranchForm = () => {
+    if (branch) {
+      setBranchForm({
+        name: branch.name,
+        address: branch.address,
+        tables: branch.tables.toString(),
+      });
+    } else {
+      setBranchForm(DEFAULT_BRANCH_FORM);
+    }
+    setBranchFormError(null);
+    setIsSavingBranch(false);
+  };
+
+  const handleBranchFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!branchId) {
+      return;
+    }
+
+    setBranchFormError(null);
+
+    if (!branchForm.name.trim() || !branchForm.address.trim()) {
+      setBranchFormError("Completa el nombre y la dirección de la sucursal.");
+      return;
+    }
+
+    const tables = Number(branchForm.tables);
+    if (Number.isNaN(tables) || tables < 0) {
+      setBranchFormError("La cantidad de mesas debe ser un número positivo.");
+      return;
+    }
+
+    try {
+      setIsSavingBranch(true);
+      await updateBranch({
+        branchId,
+        name: branchForm.name.trim(),
+        address: branchForm.address.trim(),
+        tables,
+      });
+      setIsEditingBranch(false);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "No se pudo actualizar la sucursal. Inténtalo de nuevo.";
+      setBranchFormError(message);
+    } finally {
+      setIsSavingBranch(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -146,14 +274,132 @@ const BranchInventory = () => {
             ← Volver
           </button>
           <div>
-            <h1 className="text-3xl font-semibold text-white">Inventario · {branchName}</h1>
+            <h1 className="text-3xl font-semibold text-white">Sucursal · {branchName}</h1>
             {formattedAddress && <p className="mt-1 text-sm text-slate-400">{formattedAddress}</p>}
             <p className="mt-2 text-sm text-slate-400">
-              Selecciona una categoría para ajustar el stock disponible en esta sucursal.
+              Ajusta los datos de la sucursal y gestiona el inventario disponible en este local.
             </p>
           </div>
         </div>
       </header>
+
+      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+              Información de la sucursal
+            </h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Mantén actualizados el nombre, la dirección y la cantidad de mesas.
+            </p>
+          </div>
+          {!isEditingBranch && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsEditingBranch(true);
+                resetBranchForm();
+              }}
+              className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+            >
+              Editar información
+            </button>
+          )}
+        </div>
+
+        {isEditingBranch ? (
+          <form className="mt-6 space-y-5" onSubmit={handleBranchFormSubmit}>
+            <div className="grid gap-4 lg:grid-cols-3">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium text-slate-200">
+                  Nombre de la sucursal
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  value={branchForm.name}
+                  onChange={handleBranchFormChange}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                />
+              </div>
+              <div className="space-y-2 lg:col-span-2">
+                <label htmlFor="address" className="text-sm font-medium text-slate-200">
+                  Dirección
+                </label>
+                <input
+                  id="address"
+                  name="address"
+                  type="text"
+                  required
+                  value={branchForm.address}
+                  onChange={handleBranchFormChange}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="tables" className="text-sm font-medium text-slate-200">
+                  Cantidad de mesas
+                </label>
+                <input
+                  id="tables"
+                  name="tables"
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  value={branchForm.tables}
+                  onChange={handleBranchFormChange}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                />
+              </div>
+            </div>
+
+            {branchFormError && (
+              <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {branchFormError}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  resetBranchForm();
+                  setIsEditingBranch(false);
+                }}
+                className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                disabled={isSavingBranch}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isSavingBranch}
+              >
+                {isSavingBranch ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Nombre</span>
+              <p className="mt-2 text-lg font-semibold text-white">{branch?.name ?? "—"}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5 lg:col-span-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Dirección</span>
+              <p className="mt-2 text-lg font-semibold text-white">{branch?.address ?? "—"}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Mesas</span>
+              <p className="mt-2 text-lg font-semibold text-white">{branch?.tables ?? "—"}</p>
+            </div>
+          </div>
+        )}
+      </section>
 
       <section>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
@@ -168,7 +414,11 @@ const BranchInventory = () => {
                 key={categoryId}
                 type="button"
                 onClick={() => setSelectedCategoryId(categoryId)}
-                className={`flex flex-col gap-3 rounded-3xl border px-6 py-5 text-left transition ${isSelected ? "border-[#fa7316] bg-[#fa7316]/10 text-white" : "border-slate-800 bg-slate-900 text-slate-300 hover:border-[#fa7316]/50 hover:text-white"}`}
+                className={`flex flex-col gap-3 rounded-3xl border px-6 py-5 text-left transition ${
+                  isSelected
+                    ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
+                    : "border-slate-800 bg-slate-900 text-slate-300 hover:border-[#fa7316]/50 hover:text-white"
+                }`}
               >
                 <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                   {item.productCount} productos
@@ -222,9 +472,6 @@ const BranchInventory = () => {
                     Stock
                   </th>
                   <th scope="col" className="px-6 py-4 font-semibold">
-                    Actualizado
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
                     Acciones
                   </th>
                 </tr>
@@ -264,9 +511,6 @@ const BranchInventory = () => {
                           className="w-24 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                         />
                       </td>
-                      <td className="px-6 py-4 text-xs text-slate-500">
-                        {formatDateTime(item.product.createdAt)}
-                      </td>
                       <td className="px-6 py-4">
                         <button
                           type="button"
@@ -293,9 +537,6 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(value);
 }
 
-function formatDateTime(value: number) {
-  return new Intl.DateTimeFormat("es-PE", { dateStyle: "medium", timeStyle: "short" }).format(value);
-}
+export default BranchDetails;
 
-export default BranchInventory;
 

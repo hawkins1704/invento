@@ -74,11 +74,14 @@ export const productsByCategory = query({
           )
           .first();
 
+        const imageId = product.image ?? null;
+        const imageUrl = imageId ? await ctx.storage.getUrl(imageId) : null;
+
         return {
           product,
           stock: inventory?.stock ?? 0,
           inventoryId: inventory?._id ?? null,
-          imageUrl: (await ctx.storage.getUrl(product.image)) ?? null,
+          imageUrl,
         };
       })
     );
@@ -119,14 +122,12 @@ export const updateStock = mutation({
     if (existing) {
       await ctx.db.patch(existing._id, {
         stock: args.stock,
-        updatedAt: Date.now(),
       });
     } else {
       await ctx.db.insert("branchInventories", {
         branchId: args.branchId,
         productId: args.productId,
         stock: args.stock,
-        updatedAt: Date.now(),
       });
     }
   },
