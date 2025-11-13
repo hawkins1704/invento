@@ -1,8 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, FormEvent, useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
+import { useSalesShift, type ShiftSummary } from "../hooks/useSalesShift";
 
 const PRIMARY_COLOR = "#fa7316";
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(value);
 
 type NavItem = {
   label: string;
@@ -89,6 +96,136 @@ const Layout = () => {
   const { signOut } = useAuthActions();
   const profileButtonRef = useRef<HTMLButtonElement | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const {
+    branches: shiftBranches,
+    branchId: shiftBranchId,
+    branch: selectedShiftBranch,
+    activeShift: activeShiftSummary,
+    isLoadingShift,
+  } = useSalesShift();
+  const shiftStaff = useQuery(
+    shiftBranchId ? api.staff.list : "skip",
+    shiftBranchId ? { branchId: shiftBranchId as Id<"branches">, includeInactive: false } : "skip"
+  ) as Doc<"staff">[] | undefined;
+  const openShiftMutation = useMutation(api.shifts.open);
+  const closeShiftMutation = useMutation(api.shifts.close);
+  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
+  const [shiftMode, setShiftMode] = useState<"open" | "close">("open");
+  const [shiftOpeningCash, setShiftOpeningCash] = useState("");
+  const [shiftClosingCash, setShiftClosingCash] = useState("");
+  const [shiftNotes, setShiftNotes] = useState("");
+  const [shiftStaffId, setShiftStaffId] = useState<string>("");
+  const [shiftError, setShiftError] = useState<string | null>(null);
+  const [isProcessingShift, setIsProcessingShift] = useState(false);
+
+  const activeShift = activeShiftSummary?.shift ?? null;
+  const shiftExpectedCash = activeShiftSummary?.expectedCash ?? 0;
+  const shiftCashSalesTotal = activeShiftSummary?.cashSalesTotal ?? 0;
+
+  useEffect(() => {
+    if (!isShiftModalOpen) {
+      return;
+    }
+
+    if (shiftMode === "close") {
+      if (activeShift) {
+        setShiftClosingCash(shiftExpectedCash.toFixed(2));
+        setShiftStaffId(activeShift.staffId ? (activeShift.staffId as string) : "");
+      } else {
+        setShiftClosingCash("");
+        setShiftStaffId("");
+      }
+    } else {
+      setShiftOpeningCash("");
+      setShiftNotes("");
+      setShiftStaffId("");
+    }
+  }, [activeShift, isShiftModalOpen, shiftExpectedCash, shiftMode]);
+
+  const handleShiftButtonClick = () => {
+    if (!selectedShiftBranch) {
+      navigate("/sales/select-branch", { replace: true });
+      return;
+    }
+    const targetMode: "open" | "close" = activeShift ? "close" : "open";
+    setShiftMode(targetMode);
+    setShiftError(null);
+
+    if (targetMode === "close" && activeShiftSummary) {
+      setShiftClosingCash(activeShiftSummary.expectedCash.toFixed(2));
+      setShiftStaffId(activeShiftSummary.shift.staffId ? (activeShiftSummary.shift.staffId as string) : "");
+    } else {
+      setShiftOpeningCash("");
+      setShiftClosingCash("");
+      setShiftStaffId("");
+    }
+
+    setShiftNotes("");
+    setIsShiftModalOpen(true);
+  };
+
+  const handleSubmitOpenShift = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!shiftBranchId) {
+      setShiftError("Selecciona una sucursal para abrir el turno.");
+      return;
+    }
+
+    const amount = Number(shiftOpeningCash);
+    if (Number.isNaN(amount) || amount < 0) {
+      setShiftError("Ingresa un monto inicial válido.");
+      return;
+    }
+
+    setIsProcessingShift(true);
+    try {
+      await openShiftMutation({
+        branchId: shiftBranchId as Id<"branches">,
+        openingCash: Math.round(amount * 100) / 100,
+        staffId: shiftStaffId ? (shiftStaffId as Id<"staff">) : undefined,
+      });
+      setIsShiftModalOpen(false);
+      setShiftOpeningCash("");
+      setShiftStaffId("");
+      setShiftNotes("");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo abrir el turno.";
+      setShiftError(message);
+    } finally {
+      setIsProcessingShift(false);
+    }
+  };
+
+  const handleSubmitCloseShift = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!activeShiftSummary) {
+      setShiftError("No hay un turno abierto para esta sucursal.");
+      return;
+    }
+
+    const amount = Number(shiftClosingCash);
+    if (Number.isNaN(amount)) {
+      setShiftError("Ingresa el monto final en efectivo.");
+      return;
+    }
+
+    setIsProcessingShift(true);
+    try {
+      await closeShiftMutation({
+        shiftId: activeShiftSummary.shift._id,
+        actualCash: Math.round(amount * 100) / 100,
+        notes: shiftNotes.trim() ? shiftNotes.trim() : undefined,
+      });
+      setIsShiftModalOpen(false);
+      setShiftClosingCash("");
+      setShiftNotes("");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo cerrar el turno.";
+      setShiftError(message);
+    } finally {
+      setIsProcessingShift(false);
+    }
+  };
 
   const toggleSidebar = () => {
     setIsCollapsed((previous) => !previous);
@@ -141,6 +278,13 @@ const Layout = () => {
     ? "sales"
     : null;
 
+  const shiftButtonLabel = activeShift ? "Cerrar turno" : "Abrir turno";
+  const shiftButtonDescription = selectedShiftBranch ? selectedShiftBranch.name : "Sin sucursal";
+  const shiftButtonClasses = activeShift
+    ? "border-red-500/40 bg-red-500/10 text-red-200 hover:border-red-500/60"
+    : "border-emerald-500/40 bg-emerald-500/10 text-emerald-200 hover:border-emerald-500/60";
+  const shiftButtonDisabled = !selectedShiftBranch || isLoadingShift;
+
   const menuItems: NavItem[] = [
     {
       ...AREA_LINK,
@@ -192,33 +336,57 @@ const Layout = () => {
 
         <nav className="flex-1 overflow-y-auto px-3 py-6">
           <ul className="space-y-2">
-            {menuItems.map((item) => {
+            {menuItems.map((item, index) => {
               const isAreaLink = item.path === "/select-area";
               return (
-                <li key={item.path}>
-                  <NavLink
-                    to={item.path}
-                    end={item.exact}
-                    className={({ isActive }) =>
-                      `group flex items-center gap-4 rounded-2xl border border-transparent px-4 py-3 text-sm transition hover:border-slate-700 hover:bg-slate-800/50 ${
-                        isActive ? "border-[#fa7316]/60 bg-[#fa7316]/10 text-white" : "text-slate-300"
-                      }`
-                    }
-                    onClick={closeMobileSidebar}
-                  >
-                    <span className="text-xl" aria-hidden>
-                      {item.icon}
-                    </span>
-                    {!isCollapsed && (
-                      <span className="flex flex-col">
-                        <span className="font-semibold text-white">{isAreaLink ? areaNavLabel : item.label}</span>
-                        <span className="text-xs text-slate-400">
-                          {isAreaLink ? areaNavDescription : item.description}
-                        </span>
+                <Fragment key={item.path}>
+                  <li>
+                    <NavLink
+                      to={item.path}
+                      end={item.exact}
+                      className={({ isActive }) =>
+                        `group flex items-center gap-4 rounded-2xl border border-transparent px-4 py-3 text-sm transition hover:border-slate-700 hover:bg-slate-800/50 ${
+                          isActive ? "border-[#fa7316]/60 bg-[#fa7316]/10 text-white" : "text-slate-300"
+                        }`
+                      }
+                      onClick={closeMobileSidebar}
+                    >
+                      <span className="text-xl" aria-hidden>
+                        {item.icon}
                       </span>
-                    )}
-                  </NavLink>
-                </li>
+                      {!isCollapsed && (
+                        <span className="flex flex-col">
+                          <span className="font-semibold text-white">{isAreaLink ? areaNavLabel : item.label}</span>
+                          <span className="text-xs text-slate-400">
+                            {isAreaLink ? areaNavDescription : item.description}
+                          </span>
+                        </span>
+                      )}
+                    </NavLink>
+                  </li>
+                  {index === 0 && currentArea === "sales" && (
+                    <li key="shift-action">
+                      <button
+                        type="button"
+                        onClick={handleShiftButtonClick}
+                        disabled={shiftButtonDisabled}
+                        className={`group flex w-full items-center gap-4 rounded-2xl border px-4 py-3 text-sm transition ${
+                          shiftButtonDisabled ? "cursor-not-allowed opacity-50" : "hover:border-slate-700 hover:bg-slate-800/50"
+                        } ${shiftButtonClasses}`}
+                      >
+                        <span className="text-xl" aria-hidden>
+                          🕒
+                        </span>
+                        {!isCollapsed && (
+                          <span className="flex flex-col text-left">
+                            <span className="font-semibold text-white">{shiftButtonLabel}</span>
+                            <span className="text-xs text-slate-300">{shiftButtonDescription}</span>
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  )}
+                </Fragment>
               );
             })}
           </ul>
@@ -271,6 +439,232 @@ const Layout = () => {
           )}
         </div>
       </aside>
+
+      {isShiftModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
+          <div className="relative w-full max-w-2xl rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+            <button
+              type="button"
+              onClick={() => {
+                if (!isProcessingShift) {
+                  setIsShiftModalOpen(false);
+                  setShiftError(null);
+                }
+              }}
+              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-300 transition hover:text-white"
+              aria-label="Cerrar"
+            >
+              ✕
+            </button>
+
+            {shiftMode === "open" ? (
+              <form className="space-y-5 pt-6" onSubmit={handleSubmitOpenShift}>
+                <header className="space-y-2">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+                    Abrir turno
+                  </span>
+                  <h2 className="text-2xl font-semibold text-white">Registrar inicio de turno</h2>
+                  <p className="text-sm text-slate-400">
+                    Confirma la sucursal y el efectivo inicial con el que arranca el turno.
+                  </p>
+                </header>
+
+                <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Sucursal</p>
+                  <p className="mt-2 text-lg font-semibold text-white">{selectedShiftBranch?.name ?? "Sin sucursal"}</p>
+                  <p className="text-xs text-slate-500">{selectedShiftBranch?.address}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500" htmlFor="shift-staff">
+                    Responsable (opcional)
+                  </label>
+                  <select
+                    id="shift-staff"
+                    value={shiftStaffId}
+                    onChange={(event) => setShiftStaffId(event.target.value)}
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                  >
+                    <option value="">Sin asignar</option>
+                    {shiftStaff?.map((member) => (
+                      <option key={member._id as string} value={member._id as string}>
+                        {member.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500" htmlFor="shift-opening-cash">
+                    Caja inicial (efectivo)
+                  </label>
+                  <input
+                    id="shift-opening-cash"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={shiftOpeningCash}
+                    onChange={(event) => setShiftOpeningCash(event.target.value)}
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                    placeholder="0.00"
+                  />
+                </div>
+
+                {shiftError && (
+                  <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                    {shiftError}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isProcessingShift) {
+                        setIsShiftModalOpen(false);
+                        setShiftError(null);
+                      }
+                    }}
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                    disabled={isProcessingShift}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                    disabled={isProcessingShift}
+                  >
+                    {isProcessingShift ? "Guardando..." : "Abrir turno"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form className="space-y-5 pt-6" onSubmit={handleSubmitCloseShift}>
+                <header className="space-y-2">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+                    Cerrar turno
+                  </span>
+                  <h2 className="text-2xl font-semibold text-white">Finalizar turno</h2>
+                  <p className="text-sm text-slate-400">
+                    Revisa los importes y registra la caja real al finalizar el día.
+                  </p>
+                </header>
+
+                <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Sucursal</p>
+                  <p className="mt-2 text-lg font-semibold text-white">{selectedShiftBranch?.name ?? "Sin sucursal"}</p>
+                  <p className="text-xs text-slate-500">{selectedShiftBranch?.address}</p>
+                </div>
+
+                {activeShiftSummary ? (
+                  <>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+                        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Caja inicial</p>
+                        <p className="mt-2 text-lg font-semibold text-white">{formatCurrency(activeShiftSummary.shift.openingCash)}</p>
+                      </div>
+                      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+                        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Ventas en efectivo</p>
+                        <p className="mt-2 text-lg font-semibold text-white">{formatCurrency(shiftCashSalesTotal)}</p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-100">
+                      <p className="text-xs uppercase tracking-[0.24em]">Debería haber</p>
+                      <p className="mt-2 text-lg font-semibold">{formatCurrency(shiftExpectedCash)}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500" htmlFor="shift-closing-cash">
+                        Efectivo contado
+                      </label>
+                      <input
+                        id="shift-closing-cash"
+                        type="number"
+                        step="0.01"
+                        value={shiftClosingCash}
+                        onChange={(event) => setShiftClosingCash(event.target.value)}
+                        className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    {shiftClosingCash && (
+                      <div
+                        className={`rounded-2xl border px-4 py-3 text-sm ${
+                          Math.abs(Number(shiftClosingCash) - shiftExpectedCash) < 0.01
+                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                            : "border-red-500/40 bg-red-500/10 text-red-200"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>Diferencia</span>
+                          <span className="font-semibold">
+                            {formatCurrency(Number(shiftClosingCash || "0") - shiftExpectedCash)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs">
+                          {Math.abs(Number(shiftClosingCash) - shiftExpectedCash) < 0.01
+                            ? "El conteo coincide con lo esperado."
+                            : "Registra una nota con el motivo de la diferencia."}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500" htmlFor="shift-notes">
+                        Notas
+                      </label>
+                      <textarea
+                        id="shift-notes"
+                        rows={3}
+                        value={shiftNotes}
+                        onChange={(event) => setShiftNotes(event.target.value)}
+                        className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                        placeholder="Observaciones sobre la diferencia detectada"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-sm text-slate-300">
+                    No hay un turno abierto en esta sucursal. Selecciona otra sucursal o abre un turno para continuar.
+                  </div>
+                )}
+
+                {shiftError && (
+                  <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                    {shiftError}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isProcessingShift) {
+                        setIsShiftModalOpen(false);
+                        setShiftError(null);
+                      }
+                    }}
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                    disabled={isProcessingShift}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                    disabled={isProcessingShift || !activeShiftSummary}
+                  >
+                    {isProcessingShift ? "Guardando..." : "Cerrar turno"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {isMobileOpen && (
         <div

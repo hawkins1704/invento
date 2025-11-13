@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useConvex } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import CodePinInput from "../components/CodePinInput";
+import { AREA_STORAGE_KEY, BRANCH_STORAGE_KEY } from "../hooks/useSalesShift";
 
 type AreaKey = "admin" | "sales";
 
@@ -30,7 +31,13 @@ const AREAS: Array<{
 ];
 
 const SelectArea = () => {
-  const [selectedArea, setSelectedArea] = useState<AreaKey | null>(null);
+  const [selectedArea, setSelectedArea] = useState<AreaKey | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+    const stored = window.localStorage.getItem(AREA_STORAGE_KEY) as AreaKey | null;
+    return stored ?? null;
+  });
   const [code, setCode] = useState<string[]>(() => Array(4).fill(""));
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,6 +53,9 @@ const SelectArea = () => {
 
   const handleAreaSelect = (area: AreaKey) => {
     setSelectedArea(area);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(AREA_STORAGE_KEY, area);
+    }
     setCode(Array(4).fill(""));
     setError(null);
   };
@@ -74,8 +84,17 @@ const SelectArea = () => {
       });
 
       if (result?.valid) {
-        const destination = selectedArea === "admin" ? "/admin" : "/sales/tables";
-        navigate(destination, { state: { accessCode: joinedCode, area: selectedArea } });
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(AREA_STORAGE_KEY, selectedArea);
+        }
+        if (selectedArea === "admin") {
+          navigate("/admin", { state: { accessCode: joinedCode, area: selectedArea } });
+        } else {
+          const storedBranch =
+            typeof window !== "undefined" ? window.localStorage.getItem(BRANCH_STORAGE_KEY) : null;
+          const destination = storedBranch ? "/sales/tables" : "/sales/select-branch";
+          navigate(destination, { state: { accessCode: joinedCode, area: selectedArea } });
+        }
         return;
       }
 

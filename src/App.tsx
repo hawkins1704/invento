@@ -18,6 +18,7 @@ import SalesDashboard from './pages/SalesDashboard'
 import SalesTables from './pages/sales/SalesTables'
 import SalesDaily from './pages/sales/SalesDaily'
 import SalesInventory from './pages/sales/SalesInventory'
+import SalesSelectBranch from './pages/sales/SalesSelectBranch'
 
 
 function App() {
@@ -65,6 +66,7 @@ function App() {
                     </Route>
                     <Route path="sales">
                         <Route index element={<SalesDashboard />} />
+                        <Route path="select-branch" element={<SalesSelectBranch />} />
                         <Route path="tables" element={<SalesTables />} />
                         <Route path="daily" element={<SalesDaily />} />
                         <Route path="inventory" element={<SalesInventory />} />

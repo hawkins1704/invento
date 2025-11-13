@@ -1,10 +1,12 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { api } from "../../../convex/_generated/api";
 import type { ProductListItem } from "../../types/products";
 import { formatCurrency, formatDateTime, formatDuration } from "../../utils/format";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import SalesShiftGuard from "../../components/SalesShiftGuard";
+import type { ShiftSummary } from "../../hooks/useSalesShift";
 
 type LiveSale = {
   sale: Doc<"sales">;
@@ -22,21 +24,17 @@ type EditableItem = {
   notes?: string;
 };
 
-const SalesTables = () => {
-  const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
-  const [selectedBranchId, setSelectedBranchId] = useState<Id<"branches"> | null>(null);
+type SalesTablesContentProps = {
+  branch: Doc<"branches">;
+  shiftSummary: ShiftSummary;
+};
 
-  useEffect(() => {
-    if (!branches || branches.length === 0) {
-      return;
-    }
-
-    if (selectedBranchId === null) {
-      setSelectedBranchId(branches[0]._id);
-    } else if (!branches.some((branch) => branch._id === selectedBranchId)) {
-      setSelectedBranchId(branches[0]._id);
-    }
-  }, [branches, selectedBranchId]);
+const SalesTablesContent = ({
+  branch,
+  shiftSummary,
+}: SalesTablesContentProps) => {
+  const selectedBranchId = branch._id as Id<"branches">;
+  const hasActiveShift = Boolean(shiftSummary);
 
   const tables = useQuery(
     api.branchTables.list,
@@ -49,6 +47,7 @@ const SalesTables = () => {
   ) as LiveSale[] | undefined;
 
   const products = useQuery(api.products.list) as ProductListItem[] | undefined;
+  const categories = useQuery(api.categories.list) as Doc<"categories">[] | undefined;
 
   const staffMembers = useQuery(
     api.staff.list,
@@ -101,6 +100,9 @@ const SalesTables = () => {
   }, [selectedSale, selectedSaleId]);
 
   const openCreateModal = (table: Doc<"branchTables"> | null) => {
+    if (!hasActiveShift) {
+      return;
+    }
     setTableForNewSale(table);
     setIsCreateOpen(true);
   };
@@ -124,7 +126,8 @@ const SalesTables = () => {
   const branchLiveSales = liveSales ?? [];
 
   const summary = useMemo(() => {
-    return branchLiveSales.reduce(
+    const list = liveSales ?? [];
+    return list.reduce(
       (accumulator, entry) => {
         accumulator.totalSales += 1;
         accumulator.totalAmount += entry.sale.total;
@@ -132,7 +135,7 @@ const SalesTables = () => {
       },
       { totalSales: 0, totalAmount: 0 }
     );
-  }, [branchLiveSales]);
+  }, [liveSales]);
 
   return (
     <div className="space-y-8">
@@ -150,27 +153,14 @@ const SalesTables = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <select
-            value={selectedBranchId ? (selectedBranchId as string) : ""}
-            onChange={(event) => {
-              const value = event.target.value;
-              setSelectedBranchId(value ? (value as Id<"branches">) : null);
-            }}
-            className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-            disabled={!branches || branches.length === 0}
-          >
-            {(!branches || branches.length === 0) && <option value="">Sin sucursales</option>}
-            {branches?.map((branch) => (
-              <option key={branch._id} value={branch._id as string}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
+          <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-2 text-sm font-semibold text-[#fa7316]">
+            {branch.name}
+          </span>
           <button
             type="button"
             onClick={() => openCreateModal(null)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
-            disabled={!selectedBranchId}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={!hasActiveShift}
           >
             Nueva venta
           </button>
@@ -202,7 +192,7 @@ const SalesTables = () => {
             type="button"
             onClick={() => openCreateModal(null)}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
-            disabled={!selectedBranchId}
+            disabled={!hasActiveShift}
           >
             Venta sin mesa
           </button>
@@ -274,7 +264,7 @@ const SalesTables = () => {
                       type="button"
                       onClick={() => openCreateModal(table)}
                       className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
-                      disabled={table.status === "out_of_service" || !selectedBranchId}
+                      disabled={table.status === "out_of_service" || !hasActiveShift}
                     >
                       Abrir pedido
                     </button>
@@ -365,7 +355,7 @@ const SalesTables = () => {
                     onClick={() => openCloseDialog(entry.sale._id)}
                     className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/50 px-3 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200"
                   >
-                    Cerrar
+                    Concluir
                   </button>
                   <button
                     type="button"
@@ -386,6 +376,7 @@ const SalesTables = () => {
           branchId={selectedBranchId}
           table={tableForNewSale}
           products={products ?? []}
+          categories={categories ?? []}
           staffMembers={staffMembers ?? []}
           onClose={closeCreateModal}
           onCreate={async (payload) => {
@@ -401,6 +392,7 @@ const SalesTables = () => {
           branchId={selectedBranchId}
           tables={branchTables}
           products={products ?? []}
+          categories={categories ?? []}
           staffMembers={staffMembers ?? []}
           onClose={() => setSelectedSaleId(null)}
           onSaveItems={async (saleId, items) => {
@@ -547,6 +539,7 @@ const NewSaleModal = ({
   branchId,
   table,
   products,
+  categories,
   staffMembers,
   onClose,
   onCreate,
@@ -554,6 +547,7 @@ const NewSaleModal = ({
   branchId: Id<"branches">;
   table: Doc<"branchTables"> | null;
   products: ProductListItem[];
+  categories: Doc<"categories">[];
   staffMembers: Doc<"staff">[];
   onClose: () => void;
   onCreate: (payload: {
@@ -573,13 +567,34 @@ const NewSaleModal = ({
   const [staffId, setStaffId] = useState<Id<"staff"> | "">("");
   const [notes, setNotes] = useState("");
   const [search, setSearch] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
   const [items, setItems] = useState<EditableItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const categoryOptions = useMemo(
+    () => [
+      { key: "all", label: "Todas" },
+      ...categories.map((category) => ({
+        key: category._id as string,
+        label: category.name,
+      })),
+    ],
+    [categories]
+  );
 
   const availableProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return products.filter((product) => product.name.toLowerCase().includes(query));
-  }, [products, search]);
+    return products.filter((product) => {
+      const matchesSearch = product.name.toLowerCase().includes(query);
+      const matchesCategory =
+        selectedCategoryId === "all" ||
+        (product.categoryId as unknown as string) === selectedCategoryId;
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, search, selectedCategoryId]);
+
+  useEffect(() => {
+    setSelectedCategoryId("all");
+  }, [categories]);
 
   const addProduct = (product: ProductListItem) => {
     setItems((previous) => {
@@ -686,8 +701,102 @@ const NewSaleModal = ({
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr,0.9fr]">
-          <div className="space-y-5">
+        <div className="flex flex-col gap-6 lg:flex-row">
+          <div className="flex flex-1 flex-col gap-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Categorías</h3>
+                <span className="text-xs text-slate-400">{categories.length} en catálogo</span>
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                {categoryOptions.map((category) => {
+                  const isActive = selectedCategoryId === category.key;
+                  return (
+                    <button
+                      key={category.key}
+                      type="button"
+                      onClick={() => setSelectedCategoryId(category.key)}
+                      className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] transition ${
+                        isActive
+                          ? "border-[#fa7316] bg-[#fa7316]/10 text-white shadow-inner shadow-[#fa7316]/30"
+                          : "border-slate-700 bg-slate-950/40 text-slate-300 hover:border-[#fa7316]/40 hover:text-white"
+                      }`}
+                    >
+                      {category.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar productos"
+                className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+              />
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
+                {availableProducts.length}
+              </span>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+                {availableProducts.map((product) => {
+                  const availableStock =
+                    product.stockByBranch.find((item) => item.branchId === branchId)?.stock ?? 0;
+                  const isOutOfStock = availableStock <= 0;
+                  return (
+                    <button
+                      key={product._id}
+                      type="button"
+                      onClick={() => addProduct(product)}
+                      className={`flex h-full flex-col gap-2 rounded-2xl border p-4 text-left text-sm transition ${
+                        isOutOfStock
+                          ? "cursor-not-allowed border-red-500/40 bg-red-500/10 text-red-200"
+                          : "border-slate-800 bg-slate-900/60 text-slate-200 hover:border-[#fa7316] hover:text-white"
+                      }`}
+                      disabled={isOutOfStock}
+                    >
+                      <div className="space-y-1">
+                        <p className={`text-xs uppercase tracking-[0.24em] ${isOutOfStock ? "text-red-200" : "text-slate-500"}`}>
+                          {product.categoryName}
+                        </p>
+                        <p className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} line-clamp-2`}>
+                          {product.name}
+                        </p>
+                        <p className={`text-xs ${isOutOfStock ? "text-red-200/80" : "text-slate-400"} line-clamp-3`}>
+                          {product.description}
+                        </p>
+                      </div>
+                      <div
+                        className={`mt-auto flex items-center justify-between text-xs ${
+                          isOutOfStock ? "text-red-200" : "text-slate-400"
+                        }`}
+                      >
+                        <span>Stock: {availableStock}</span>
+                        <span className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"}`}>
+                          {formatCurrency(product.price)}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {availableProducts.length === 0 && (
+                <div className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm text-slate-400">
+                  <span className="text-3xl" aria-hidden>
+                    🔍
+                  </span>
+                  <p>No se encontraron productos para los filtros seleccionados.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex w-full flex-col gap-4 lg:w-[360px]">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
               <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
                 Personal asignado
@@ -718,17 +827,17 @@ const NewSaleModal = ({
 
             <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Productos seleccionados</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Resumen de pedido</h3>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
                   {items.length} items
                 </span>
               </div>
               {items.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/50 p-6 text-center text-sm text-slate-400">
-                  Agrega productos desde el listado para construir el ticket.
+                  Selecciona productos para construir el ticket.
                 </div>
               ) : (
-                <ul className="space-y-3">
+                <ul className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
                   {items.map((item) => (
                     <li
                       key={item.productId}
@@ -783,51 +892,12 @@ const NewSaleModal = ({
                 </ul>
               )}
             </div>
-          </div>
 
-          <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Catálogo</h3>
-              <span className="text-xs text-slate-400">{availableProducts.length} resultados</span>
-            </div>
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar productos"
-              className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-            />
-
-            <div className="max-h-[420px] space-y-3 overflow-y-auto pr-2">
-              {availableProducts.map((product) => {
-                const availableStock =
-                  product.stockByBranch.find((item) => item.branchId === branchId)?.stock ?? 0;
-                return (
-                  <button
-                    key={product._id}
-                    type="button"
-                    onClick={() => addProduct(product)}
-                    className="w-full rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-left text-sm text-slate-200 transition hover:border-[#fa7316] hover:text-white"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-white">{product.name}</p>
-                      <span className="text-sm text-slate-300">{formatCurrency(product.price)}</span>
-                    </div>
-                    <p className="mt-1 text-xs text-slate-400 line-clamp-2">{product.description}</p>
-                    <p className="mt-2 text-xs text-slate-500">Stock sucursal: {availableStock}</p>
-                  </button>
-                );
-              })}
-              {availableProducts.length === 0 && (
-                <div className="rounded-xl border border-dashed border-slate-700 p-6 text-center text-sm text-slate-400">
-                  No se encontraron productos con ese término.
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <span className="text-sm uppercase tracking-[0.24em] text-slate-500">Total</span>
-              <span className="text-xl font-semibold text-white">{formatCurrency(total)}</span>
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
+              <div className="flex items-center justify-between uppercase tracking-[0.24em] text-slate-400">
+                <span>Total</span>
+                <span className="text-xl font-semibold text-white">{formatCurrency(total)}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -860,6 +930,7 @@ const SaleEditorDrawer = ({
   branchId,
   tables,
   products,
+  categories,
   staffMembers,
   onClose,
   onSaveItems,
@@ -871,6 +942,7 @@ const SaleEditorDrawer = ({
   branchId: Id<"branches">;
   tables: Doc<"branchTables">[];
   products: ProductListItem[];
+  categories: Doc<"categories">[];
   staffMembers: Doc<"staff">[];
   onClose: () => void;
   onSaveItems: (
@@ -896,7 +968,6 @@ const SaleEditorDrawer = ({
   ) => void;
   onCancelSale: (saleId: Id<"sales">) => void;
 }) => {
-  const [activeTab, setActiveTab] = useState<"items" | "details">("items");
   const [items, setItems] = useState<EditableItem[]>(() =>
     sale.items.map((item) => {
       const product = products.find((productItem) => productItem._id === item.productId);
@@ -911,7 +982,18 @@ const SaleEditorDrawer = ({
     })
   );
 
-  const [selectedProductId, setSelectedProductId] = useState<Id<"products"> | "">("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
+  const categoryOptions = useMemo(
+    () => [
+      { key: "all", label: "Todas" },
+      ...categories.map((category) => ({
+        key: category._id as string,
+        label: category.name,
+      })),
+    ],
+    [categories]
+  );
   const [saleNotes, setSaleNotes] = useState(sale.sale.notes ?? "");
   const [selectedTableId, setSelectedTableId] = useState<Id<"branchTables"> | "">(
     sale.sale.tableId ? (sale.sale.tableId as Id<"branchTables">) : ""
@@ -921,6 +1003,21 @@ const SaleEditorDrawer = ({
   );
   const [isSavingItems, setIsSavingItems] = useState(false);
   const [isUpdatingDetails, setIsUpdatingDetails] = useState(false);
+
+  const filteredProducts = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return products.filter((product) => {
+      const matchesSearch = product.name.toLowerCase().includes(query);
+      const matchesCategory =
+        selectedCategoryId === "all" ||
+        (product.categoryId as unknown as string) === selectedCategoryId;
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchTerm, selectedCategoryId]);
+
+  useEffect(() => {
+    setSelectedCategoryId("all");
+  }, [categories]);
 
   useEffect(() => {
     setItems(
@@ -948,20 +1045,12 @@ const SaleEditorDrawer = ({
     }, 0);
   }, [items]);
 
-  const addItem = () => {
-    if (!selectedProductId) {
-      return;
-    }
-    const product = products.find((productItem) => productItem._id === selectedProductId);
-    if (!product) {
-      return;
-    }
-
+  const addItem = (product: ProductListItem) => {
     setItems((previous) => {
-      const existing = previous.find((item) => item.productId === selectedProductId);
+      const existing = previous.find((item) => item.productId === product._id);
       if (existing) {
         return previous.map((item) =>
-          item.productId === selectedProductId ? { ...item, quantity: item.quantity + 1 } : item
+          item.productId === product._id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
       return [
@@ -975,7 +1064,6 @@ const SaleEditorDrawer = ({
         },
       ];
     });
-    setSelectedProductId("");
   };
 
   const updateItemQuantity = (productId: Id<"products">, quantity: number) => {
@@ -1025,7 +1113,7 @@ const SaleEditorDrawer = ({
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-3xl overflow-y-auto border-l border-slate-800 bg-slate-950/95 p-6 text-white shadow-xl shadow-black/50">
+    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-7xl overflow-y-auto border-l border-slate-800 bg-slate-950/95 p-6 text-white shadow-xl shadow-black/50">
       <header className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
@@ -1043,76 +1131,182 @@ const SaleEditorDrawer = ({
         </button>
       </header>
 
-      <div className="mt-6 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => setActiveTab("items")}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-            activeTab === "items"
-              ? "bg-[#fa7316] text-white shadow-lg shadow-[#fa7316]/40"
-              : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
-          }`}
-        >
-          Productos
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("details")}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-            activeTab === "details"
-              ? "bg-[#fa7316] text-white shadow-lg shadow-[#fa7316]/40"
-              : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
-          }`}
-        >
-          Detalles
-        </button>
-      </div>
-
-      {activeTab === "items" ? (
-        <div className="mt-6 space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
-            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-              Agregar producto
-              <div className="flex items-center gap-2">
-                <select
-                  value={selectedProductId}
-                  onChange={(event) => setSelectedProductId(event.target.value as Id<"products"> | "")}
-                  className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-                >
-                  <option value="">Selecciona un producto</option>
-                  {products.map((product) => (
-                    <option key={product._id} value={product._id as string}>
-                      {product.name} · {formatCurrency(product.price)}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={addItem}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
-                  disabled={!selectedProductId}
-                >
-                  Agregar
-                </button>
-              </div>
-            </label>
+      <div className="mt-6 flex flex-col gap-6 lg:flex-row">
+        <div className="flex flex-1 flex-col gap-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Catálogo</h3>
+              <span className="text-xs text-slate-400">{filteredProducts.length} resultados</span>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {categoryOptions.map((category) => {
+                const isActive = selectedCategoryId === category.key;
+                return (
+                  <button
+                    key={category.key}
+                    type="button"
+                    onClick={() => setSelectedCategoryId(category.key)}
+                    className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] transition ${
+                      isActive
+                        ? "border-[#fa7316] bg-[#fa7316]/10 text-white shadow-inner shadow-[#fa7316]/30"
+                        : "border-slate-700 bg-slate-950/40 text-slate-300 hover:border-[#fa7316]/40 hover:text-white"
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="space-y-3">
-            {items.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-700 p-6 text-center text-sm text-slate-400">
-                Aún no hay productos en este pedido. Agrega productos para comenzar.
+          <div className="flex items-center gap-2">
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Buscar productos"
+              className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+            />
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
+              {filteredProducts.length}
+            </span>
+          </div>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-3">
+            {filteredProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm text-slate-400">
+                <span className="text-3xl" aria-hidden>
+                  🔍
+                </span>
+                <p>No se encontraron productos para los filtros seleccionados.</p>
               </div>
             ) : (
-              <Fragment>
-                {items.map((item) => (
-                  <div
-                    key={item.productId}
-                    className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-200"
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3">
+                {filteredProducts.map((product) => {
+                  const availableStock =
+                    product.stockByBranch.find((item) => item.branchId === branchId)?.stock ?? 0;
+                  const isOutOfStock = availableStock <= 0;
+                  return (
+                    <button
+                      key={product._id}
+                      type="button"
+                      onClick={() => addItem(product)}
+                      className={`flex h-full flex-col gap-2 rounded-2xl border p-4 text-left text-sm transition ${
+                        isOutOfStock
+                          ? "cursor-not-allowed border-red-500/40 bg-red-500/10 text-red-200"
+                          : "border-slate-800 bg-slate-900/60 text-slate-200 hover:border-[#fa7316] hover:text-white"
+                      }`}
+                      disabled={isOutOfStock}
+                    >
+                      <div className="space-y-1">
+                        <p className={`text-xs uppercase tracking-[0.24em] ${isOutOfStock ? "text-red-200" : "text-slate-500"}`}>
+                          {product.categoryName}
+                        </p>
+                        <p className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} line-clamp-2`}>
+                          {product.name}
+                        </p>
+                        <p className={`text-xs ${isOutOfStock ? "text-red-200/80" : "text-slate-400"} line-clamp-3`}>
+                          {product.description}
+                        </p>
+                      </div>
+                      <div
+                        className={`mt-auto flex items-center justify-between text-xs ${
+                          isOutOfStock ? "text-red-200" : "text-slate-400"
+                        }`}
+                      >
+                        <span>Stock: {availableStock}</span>
+                        <span className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"}`}>
+                          {formatCurrency(product.price)}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex w-full flex-col gap-4 lg:w-[380px]">
+          <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+              Mesa asignada
+              <select
+                value={selectedTableId}
+                onChange={(event) => setSelectedTableId(event.target.value as Id<"branchTables"> | "")}
+                className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+              >
+                <option value="">Sin mesa</option>
+                {tables.map((table) => (
+                  <option
+                    key={table._id}
+                    value={table._id as string}
+                    disabled={Boolean(table.currentSaleId) && table._id !== sale.sale.tableId}
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    {table.label}
+                    {table.currentSaleId && table._id !== sale.sale.tableId ? " · Ocupada" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+              Personal asignado
+              <select
+                value={selectedStaffId}
+                onChange={(event) => setSelectedStaffId(event.target.value as Id<"staff"> | "")}
+                className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+              >
+                <option value="">Sin asignar</option>
+                {staffMembers.map((member) => (
+                  <option key={member._id} value={member._id as string}>
+                    {member.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+              Notas del pedido
+              <textarea
+                value={saleNotes}
+                onChange={(event) => setSaleNotes(event.target.value)}
+                rows={3}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Comentarios especiales o instrucciones"
+              />
+            </label>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={saveDetails}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isUpdatingDetails}
+              >
+                {isUpdatingDetails ? "Guardando..." : "Guardar detalles"}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Resumen</h3>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
+                {items.length} items
+              </span>
+            </div>
+            {items.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/50 p-6 text-center text-sm text-slate-400">
+                Aún no hay productos en este pedido. Selecciona productos desde el catálogo.
+              </div>
+            ) : (
+              <ul className="max-h-[260px] space-y-3 overflow-y-auto pr-1">
+                {items.map((item) => (
+                  <li
+                    key={item.productId}
+                    className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-200"
+                  >
+                    <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-base font-semibold text-white">{item.productName}</p>
+                        <p className="font-semibold text-white">{item.productName}</p>
                         <p className="text-xs text-slate-400">{formatCurrency(item.unitPrice)} c/u</p>
                       </div>
                       <button
@@ -1170,108 +1364,47 @@ const SaleEditorDrawer = ({
                         />
                       </label>
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </Fragment>
+              </ul>
             )}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={saveItems}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isSavingItems}
+              >
+                {isSavingItems ? "Guardando..." : "Guardar productos"}
+              </button>
+            </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-sm text-slate-200">
-            <div className="flex items-center justify-between uppercase tracking-[0.24em] text-slate-400">
-              <span>Total actualizado</span>
+          <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs uppercase tracking-[0.24em] text-slate-500">Total</span>
               <span className="text-xl font-semibold text-white">{formatCurrency(total)}</span>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-3 md:flex-row md:justify-end">
-            <button
-              type="button"
-              onClick={saveItems}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={isSavingItems}
-            >
-              {isSavingItems ? "Guardando..." : "Guardar cambios"}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="mt-6 space-y-5">
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-              Mesa asignada
-              <select
-                value={selectedTableId}
-                onChange={(event) => setSelectedTableId(event.target.value as Id<"branchTables"> | "")}
-                className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-              >
-                <option value="">Sin mesa</option>
-                {tables.map((table) => (
-                  <option key={table._id} value={table._id as string} disabled={Boolean(table.currentSaleId) && table._id !== sale.sale.tableId}>
-                    {table.label}
-                    {table.currentSaleId && table._id !== sale.sale.tableId ? " · Ocupada" : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-              Personal
-              <select
-                value={selectedStaffId}
-                onChange={(event) => setSelectedStaffId(event.target.value as Id<"staff"> | "")}
-                className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-              >
-                <option value="">Sin asignar</option>
-                {staffMembers.map((member) => (
-                  <option key={member._id} value={member._id as string}>
-                    {member.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-            Notas del pedido
-            <textarea
-              value={saleNotes}
-              onChange={(event) => setSaleNotes(event.target.value)}
-              rows={4}
-              className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-              placeholder="Comentarios sobre la mesa, cliente o instrucciones especiales"
-            />
-          </label>
-
-          <div className="flex flex-col gap-3 md:flex-row md:justify-end">
-            <button
-              type="button"
-              onClick={saveDetails}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={isUpdatingDetails}
-            >
-              {isUpdatingDetails ? "Guardando..." : "Actualizar detalles"}
-            </button>
-          </div>
-
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-200">
-            <div className="flex items-center justify-between">
-              <span>Creada</span>
-              <span className="font-semibold text-white">{formatDateTime(sale.sale.openedAt)}</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between">
-              <span>Tiempo en mesa</span>
-              <span className="font-semibold text-white">{formatDuration(sale.sale.openedAt, Date.now())}</span>
+            <div className="grid gap-2 text-sm text-slate-300">
+              <div className="flex items-center justify-between">
+                <span>Creada</span>
+                <span className="font-semibold text-white">{formatDateTime(sale.sale.openedAt)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Tiempo en mesa</span>
+                <span className="font-semibold text-white">{formatDuration(sale.sale.openedAt, Date.now())}</span>
+              </div>
             </div>
           </div>
 
           <div className="flex flex-col gap-3 md:flex-row md:justify-between">
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
                 onClick={() => onCloseSale(sale.sale._id, "cash", saleNotes)}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200"
               >
-                Cerrar con efectivo
+                Concluir venta
               </button>
               <button
                 type="button"
@@ -1290,7 +1423,7 @@ const SaleEditorDrawer = ({
             </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -1345,6 +1478,14 @@ const StatusBadge = ({
     </span>
   );
 };
+
+const SalesTables = () => (
+  <SalesShiftGuard>
+    {({ branch, activeShift }) => (
+      <SalesTablesContent branch={branch} shiftSummary={activeShift} />
+    )}
+  </SalesShiftGuard>
+);
 
 export default SalesTables;
 

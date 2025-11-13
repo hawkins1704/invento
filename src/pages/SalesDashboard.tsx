@@ -1,4 +1,15 @@
-const SalesDashboard = () => {
+import type { Doc } from "../../convex/_generated/dataModel";
+import SalesShiftGuard from "../components/SalesShiftGuard";
+import type { ShiftSummary } from "../hooks/useSalesShift";
+import { formatCurrency, formatDateTime } from "../utils/format";
+
+const SalesDashboardContent = ({
+  branch,
+  activeShift,
+}: {
+  branch: Doc<"branches">;
+  activeShift: ShiftSummary;
+}) => {
   const tips = [
     {
       title: "Registra tu primera venta",
@@ -10,6 +21,8 @@ const SalesDashboard = () => {
     },
   ];
 
+  const { shift, cashSalesTotal, expectedCash } = activeShift;
+
   return (
     <div className="space-y-10">
       <header className="flex flex-col gap-5 rounded-3xl border border-slate-800 bg-slate-900/50 p-8">
@@ -17,16 +30,23 @@ const SalesDashboard = () => {
           Punto de venta
         </div>
         <div className="flex flex-col gap-3">
-          <h1 className="text-3xl font-semibold text-white">Área de ventas</h1>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-3xl font-semibold text-white">Área de ventas</h1>
+            <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-2 text-sm font-semibold text-[#fa7316]">
+              {branch.name}
+            </span>
+          </div>
           <p className="max-w-2xl text-sm text-slate-400">
-            Abre una mesa, agrega productos al pedido y mantén el inventario sincronizado con la operación del día. Aquí verás tus tickets activos y los cortes de caja.
+            Abre una mesa, agrega productos al pedido y mantén el inventario sincronizado con la operación del día. Aquí
+            verás tus tickets activos y los cortes de caja.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
           <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-3 py-1 font-semibold uppercase tracking-[0.18em] text-[#fa7316]">
-            Sucursal pendiente
+            Turno abierto
           </span>
-          <span>Selecciona una sucursal para comenzar a vender.</span>
+          <span>{branch.name}</span>
+          <span>Inicio: {formatDateTime(shift.openedAt)}</span>
         </div>
       </header>
 
@@ -68,21 +88,19 @@ const SalesDashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold text-white">Control de caja</h2>
-            <p className="text-xs text-slate-500">Registra el inicio y cierre del día una vez que abras la sucursal.</p>
+            <p className="text-xs text-slate-500">Valores acumulados durante el turno actual.</p>
           </div>
-          <button
-            type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-slate-300 hover:border-[#fa7316] hover:text-[#fa7316]"
-          >
-            Ver historial
-          </button>
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {["Apertura", "Ventas del día", "Cierre"].map((label) => (
-            <div key={label} className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4">
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{label}</p>
-              <p className="mt-3 text-2xl font-semibold text-white">$ 0.00</p>
-              <p className="mt-2 text-xs text-slate-500">Pendiente de registrar</p>
+          {[
+            { label: "Apertura", value: formatCurrency(shift.openingCash) },
+            { label: "Ventas en efectivo", value: formatCurrency(cashSalesTotal) },
+            { label: "Caja estimada", value: formatCurrency(expectedCash) },
+          ].map((item) => (
+            <div key={item.label} className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{item.label}</p>
+              <p className="mt-3 text-2xl font-semibold text-white">{item.value}</p>
+              <p className="mt-2 text-xs text-slate-500">Actualizado con datos del turno.</p>
             </div>
           ))}
         </div>
@@ -90,6 +108,12 @@ const SalesDashboard = () => {
     </div>
   );
 };
+
+const SalesDashboard = () => (
+  <SalesShiftGuard>
+    {(props) => <SalesDashboardContent {...props} />}
+  </SalesShiftGuard>
+);
 
 export default SalesDashboard;
 

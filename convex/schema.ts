@@ -102,4 +102,20 @@ export default defineSchema({
     notes: v.optional(v.string()),
     createdAt: v.number(),
   }).index("bySale", ["saleId"]),
+  shifts: defineTable({
+    branchId: v.id("branches"),
+    staffId: v.optional(v.id("staff")),
+    openedAt: v.number(),
+    closedAt: v.optional(v.number()),
+    openingCash: v.number(),
+    closingExpectedCash: v.optional(v.number()),
+    closingActualCash: v.optional(v.number()),
+    closingDiff: v.optional(v.number()),
+    notes: v.optional(v.string()),
+    status: v.union(v.literal("open"), v.literal("closed")),
+    updatedAt: v.number(),
+  })
+    .index("byBranchStatus", ["branchId", "status", "openedAt"])
+    .index("byBranch", ["branchId", "openedAt"])
+    .index("byStaff", ["staffId", "openedAt"]),
 })
