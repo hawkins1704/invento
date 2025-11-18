@@ -19,10 +19,7 @@ const SalesDailyContent = ({
               Corte diario
             </div>
             <h1 className="mt-3 text-3xl font-semibold">Ventas del día</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400">
-              Resumen del turno en curso con totales por método de pago. Por ahora sólo se contabilizan ventas en
-              efectivo para el cierre de caja.
-            </p>
+         
           </div>
           <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-2 text-sm font-semibold text-[#fa7316]">
             {branch.name}

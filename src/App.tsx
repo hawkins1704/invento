@@ -19,6 +19,7 @@ import SalesTables from './pages/sales/SalesTables'
 import SalesDaily from './pages/sales/SalesDaily'
 import SalesInventory from './pages/sales/SalesInventory'
 import SalesSelectBranch from './pages/sales/SalesSelectBranch'
+import EditProfile from './pages/EditProfile'
 
 
 function App() {
@@ -71,6 +72,7 @@ function App() {
                         <Route path="daily" element={<SalesDaily />} />
                         <Route path="inventory" element={<SalesInventory />} />
                     </Route>
+                    <Route path="profile" element={<EditProfile />} />
                 </Route>
             </Routes>
         </Router>

@@ -12,6 +12,7 @@ type ProductEditFormState = {
     name: string;
     description: string;
     categoryId: string;
+    unitValue: string;
     price: string;
     stocks: Record<string, string>;
     imageFile: File | null;
@@ -21,6 +22,7 @@ const DEFAULT_FORM: ProductEditFormState = {
     name: "",
     description: "",
     categoryId: "",
+    unitValue: "",
     price: "",
     stocks: {},
     imageFile: null,
@@ -46,6 +48,7 @@ const AdminProductDetail = () => {
     const branches = useQuery(api.branches.list) as
         | Doc<"branches">[]
         | undefined;
+    const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
 
     const generateUploadUrl = useMutation(api.products.generateUploadUrl);
     const updateProduct = useMutation(api.products.update);
@@ -63,6 +66,7 @@ const AdminProductDetail = () => {
     const [pendingAction, setPendingAction] = useState<
         "delete-product" | "remove-image" | null
     >(null);
+    const [lastEditedField, setLastEditedField] = useState<"unitValue" | "price" | null>(null);
 
     const productFromState = location.state?.product;
 
@@ -71,20 +75,47 @@ const AdminProductDetail = () => {
             return undefined;
         }
 
-        if (
-            productFromState &&
-            (productFromState._id as unknown as string) === productId
-        ) {
+        // Siempre priorizar la query si está disponible (datos frescos de la BD)
+        // Solo usar productFromState como fallback si la query aún no está lista
+        const productFromQuery = products?.find(
+            (item) => (item._id as unknown as string) === productId
+        );
+
+        if (productFromQuery) {
+            return productFromQuery;
+        }
+
+        // Fallback: usar productFromState solo si la query no está lista
+        if (productFromState && (productFromState._id as unknown as string) === productId) {
             return productFromState;
         }
 
-        return products?.find(
-            (item) => (item._id as unknown as string) === productId
-        );
+        return undefined;
     }, [productFromState, productId, products]);
 
+    const IGVPercentage = currentUser?.IGVPercentage ?? 18;
+    
+    // Función para redondear a 2 decimales (centavos)
+    const roundToCents = (value: number): number => {
+        return Math.round(value * 100) / 100;
+    };
+    
+    // Calcular valores basado en qué campo fue editado
+    const unitValue = useMemo(() => {
+        if (lastEditedField === "price") {
+            const price = Number(formState.price) || 0;
+            const calculated = price / (1 + IGVPercentage / 100);
+            return roundToCents(calculated);
+        }
+        return roundToCents(Number(formState.unitValue) || 0);
+    }, [formState.unitValue, formState.price, lastEditedField, IGVPercentage]);
+
+    const igv = useMemo(() => {
+        return roundToCents((unitValue * IGVPercentage) / 100);
+    }, [unitValue, IGVPercentage]);
+
     useEffect(() => {
-        if (!product || !branches) {
+        if (!product || !branches || !currentUser) {
             return;
         }
 
@@ -100,17 +131,60 @@ const AdminProductDetail = () => {
             {}
         );
 
-        setFormState({
-            name: product.name,
-            description: product.description,
-            categoryId: product.categoryId as unknown as string,
-            price: product.price.toString(),
-            stocks: initialStocks,
-            imageFile: null,
+        // Función para redondear a 2 decimales
+        const roundToCents = (val: number): number => Math.round(val * 100) / 100;
+        
+        // Si el producto tiene unitValue, usarlo directamente
+        // Si no, calcularlo desde el price
+        const productIGVPercentage = currentUser?.IGVPercentage ?? 18;
+        let productUnitValue: number;
+        let productPrice: number;
+        
+        if (product.unitValue !== undefined && product.unitValue !== null) {
+            // El producto ya tiene unitValue guardado, usarlo
+            productUnitValue = roundToCents(product.unitValue);
+            const productIGV = roundToCents((productUnitValue * productIGVPercentage) / 100);
+            productPrice = roundToCents(productUnitValue + productIGV);
+        } else {
+            // Producto antiguo sin unitValue, calcular desde price
+            productPrice = roundToCents(product.price);
+            productUnitValue = roundToCents(productPrice / (1 + (productIGVPercentage / 100)));
+        }
+        
+        // Solo actualizar el formulario si los valores han cambiado
+        // para evitar limpiar el successMessage después de guardar
+        setFormState((previous) => {
+            const newUnitValue = productUnitValue.toFixed(2);
+            const newPrice = productPrice.toFixed(2);
+            
+            // Si los valores son diferentes, actualizar
+            if (
+                previous.unitValue !== newUnitValue ||
+                previous.price !== newPrice ||
+                previous.name !== product.name ||
+                previous.description !== product.description ||
+                previous.categoryId !== (product.categoryId as unknown as string)
+            ) {
+                return {
+                    name: product.name,
+                    description: product.description,
+                    categoryId: product.categoryId as unknown as string,
+                    unitValue: newUnitValue,
+                    price: newPrice,
+                    stocks: initialStocks,
+                    imageFile: previous.imageFile, // Mantener el archivo si existe
+                };
+            }
+            // Si no hay cambios, mantener el estado actual (incluyendo stocks si no cambiaron)
+            return {
+                ...previous,
+                stocks: initialStocks, // Actualizar stocks siempre
+            };
         });
+        setLastEditedField(null);
         setCurrentImageUrl(product.imageUrl);
         setFormError(null);
-        setSuccessMessage(null);
+        // NO limpiar successMessage aquí - solo se limpia cuando hay cambios reales en el producto
         setPreviewImageUrl((previous) => {
             if (previous) {
                 URL.revokeObjectURL(previous);
@@ -118,7 +192,7 @@ const AdminProductDetail = () => {
             return null;
         });
         setIsImageRemoved(false);
-    }, [branches, product]);
+    }, [branches, product, currentUser]);
 
     const updateField = (
         event: ChangeEvent<
@@ -126,7 +200,29 @@ const AdminProductDetail = () => {
         >
     ) => {
         const { name, value } = event.target;
-        setFormState((previous) => ({ ...previous, [name]: value }));
+        setLastEditedField(name === "unitValue" || name === "price" ? name : null);
+        setFormState((previous) => {
+            const updated = { ...previous, [name]: value };
+            
+            // Función para redondear a 2 decimales
+            const roundToCents = (val: number): number => Math.round(val * 100) / 100;
+            
+            // Si se editó unitValue, actualizar price calculado
+            if (name === "unitValue") {
+                const newUnitValue = roundToCents(Number(value) || 0);
+                const newIGV = roundToCents((newUnitValue * IGVPercentage) / 100);
+                const newPrice = roundToCents(newUnitValue + newIGV);
+                updated.price = newPrice.toFixed(2);
+            }
+            // Si se editó price, actualizar unitValue calculado
+            else if (name === "price") {
+                const newPrice = roundToCents(Number(value) || 0);
+                const newUnitValue = roundToCents(newPrice / (1 + IGVPercentage / 100));
+                updated.unitValue = newUnitValue.toFixed(2);
+            }
+            
+            return updated;
+        });
     };
 
     const updateStockField = (branchId: string, value: string) => {
@@ -225,9 +321,13 @@ const AdminProductDetail = () => {
             return;
         }
 
-        const price = Number(formState.price);
-        if (Number.isNaN(price) || price < 0) {
-            setFormError("Ingresa un precio válido.");
+        // Función para redondear a 2 decimales
+        const roundToCents = (val: number): number => Math.round(val * 100) / 100;
+        
+        // Siempre usar el valor unitario del estado (ya está calculado correctamente)
+        const finalUnitValue = roundToCents(Number(formState.unitValue));
+        if (Number.isNaN(finalUnitValue) || finalUnitValue < 0) {
+            setFormError("Ingresa un valor unitario válido.");
             return;
         }
 
@@ -301,7 +401,7 @@ const AdminProductDetail = () => {
                 name: formState.name.trim(),
                 description: formState.description.trim(),
                 categoryId: formState.categoryId as Id<"categories">,
-                price,
+                unitValue: finalUnitValue,
                 stockByBranch,
                 image: storageId,
                 removeImage: shouldRemoveImage ? true : undefined,
@@ -509,13 +609,48 @@ const AdminProductDetail = () => {
                         />
                     </div>
 
-                    <div className="grid gap-5 md:grid-cols-2">
+                    <div className="grid gap-5 md:grid-cols-3">
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="unitValue"
+                                className="text-sm font-medium text-slate-200"
+                            >
+                                Valor Unitario
+                            </label>
+                            <input
+                                id="unitValue"
+                                name="unitValue"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                required
+                                value={formState.unitValue}
+                                onChange={updateField}
+                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="igv"
+                                className="text-sm font-medium text-slate-200"
+                            >
+                                IGV ({IGVPercentage}%)
+                            </label>
+                            <input
+                                id="igv"
+                                name="igv"
+                                type="number"
+                                disabled
+                                value={igv.toFixed(2)}
+                                className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-400 cursor-not-allowed"
+                            />
+                        </div>
                         <div className="space-y-2">
                             <label
                                 htmlFor="price"
                                 className="text-sm font-medium text-slate-200"
                             >
-                                Precio
+                                Precio Unitario
                             </label>
                             <input
                                 id="price"
@@ -529,27 +664,27 @@ const AdminProductDetail = () => {
                                 className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label
-                                htmlFor="image"
-                                className="text-sm font-medium text-slate-200"
-                            >
-                                Imagen del producto
-                            </label>
-                            <input
-                                id="image"
-                                name="image"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageChange}
-                                className="w-full cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
-                            />
-                            <p className="text-xs text-slate-500">
-                                Si no seleccionas una nueva imagen, se mantendrá
-                                la actual. Tamaño recomendado máx. 1280px. Este
-                                campo es opcional.
-                            </p>
-                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label
+                            htmlFor="image"
+                            className="text-sm font-medium text-slate-200"
+                        >
+                            Imagen del producto
+                        </label>
+                        <input
+                            id="image"
+                            name="image"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="w-full cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
+                        />
+                        <p className="text-xs text-slate-500">
+                            Si no seleccionas una nueva imagen, se mantendrá
+                            la actual. Tamaño recomendado máx. 1280px. Este
+                            campo es opcional.
+                        </p>
                     </div>
 
                     <div className="space-y-3">
@@ -570,8 +705,7 @@ const AdminProductDetail = () => {
                                                 {branch.name}
                                             </p>
                                             <p className="text-xs text-slate-500">
-                                                {branch.address} ·{" "}
-                                                {branch.tables} mesas
+                                                {branch.address}
                                             </p>
                                             <input
                                                 type="number"
@@ -680,9 +814,7 @@ const AdminProductDetail = () => {
                                     {formState.description}
                                 </p>
                                 <p className="text-sm font-semibold text-[#fa7316]">
-                                    {formatCurrency(
-                                        Number(formState.price) || 0
-                                    )}
+                                    {formatCurrency(Number(formState.price) || 0)}
                                 </p>
                             </div>
                         </div>

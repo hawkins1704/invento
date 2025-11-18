@@ -99,15 +99,7 @@ export function SignIn() {
               Administra sucursales, controla inventarios y registra ventas en tiempo real con una interfaz hecha para restaurantes.
             </p>
           </div>
-          <div className="relative z-10 flex flex-col items-start gap-3 self-center rounded-2xl bg-white/10 p-6 backdrop-blur">
-            <span className="text-sm font-medium uppercase tracking-wider text-white/80">
-              Vista previa
-            </span>
-            <p className="text-lg font-semibold text-white">Dashboard centralizado</p>
-            <span className="text-sm text-white/70">
-              Reportes de ventas, inventario y control de caja en segundos.
-            </span>
-          </div>
+          
         </aside>
         <main className="flex flex-1 items-center justify-center bg-slate-950 px-6 py-16 sm:px-10">
           <div className="w-full max-w-md">

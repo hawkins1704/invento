@@ -11,6 +11,7 @@ type ProductFormState = {
   name: string;
   description: string;
   categoryId: string;
+  unitValue: string;
   price: string;
   stocks: Record<string, string>;
   imageFile: File | null;
@@ -20,6 +21,7 @@ const DEFAULT_FORM: ProductFormState = {
   name: "",
   description: "",
   categoryId: "",
+  unitValue: "",
   price: "",
   stocks: {},
   imageFile: null,
@@ -32,6 +34,7 @@ const AdminInventory = () => {
   const products = useQuery(api.products.list) as ProductListItem[] | undefined;
   const categories = useQuery(api.categories.list) as Doc<"categories">[] | undefined;
   const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
+  const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
   const generateUploadUrl = useMutation(api.products.generateUploadUrl);
   const createProduct = useMutation(api.products.create);
   const navigate = useNavigate();
@@ -40,6 +43,36 @@ const AdminInventory = () => {
   const [formState, setFormState] = useState<ProductFormState>(DEFAULT_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [lastEditedField, setLastEditedField] = useState<"unitValue" | "price" | null>(null);
+
+  const IGVPercentage = currentUser?.IGVPercentage ?? 18;
+  
+  // Función para redondear a 2 decimales (centavos)
+  const roundToCents = (value: number): number => {
+    return Math.round(value * 100) / 100;
+  };
+  
+  // Calcular valores basado en qué campo fue editado
+  const unitValue = useMemo(() => {
+    if (lastEditedField === "price") {
+      const price = Number(formState.price) || 0;
+      const calculated = price / (1 + IGVPercentage / 100);
+      return roundToCents(calculated);
+    }
+    return roundToCents(Number(formState.unitValue) || 0);
+  }, [formState.unitValue, formState.price, lastEditedField, IGVPercentage]);
+
+  const igv = useMemo(() => {
+    return roundToCents((unitValue * IGVPercentage) / 100);
+  }, [unitValue, IGVPercentage]);
+
+  const calculatedPrice = useMemo(() => {
+    if (lastEditedField === "unitValue") {
+      // Prioridad: valor unitario + IGV (redondeado)
+      return roundToCents(unitValue + igv);
+    }
+    return roundToCents(Number(formState.price) || 0);
+  }, [unitValue, igv, formState.price, lastEditedField]);
 
 
 
@@ -47,7 +80,29 @@ const AdminInventory = () => {
 
   const updateField = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
-    setFormState((previous) => ({ ...previous, [name]: value }));
+    setLastEditedField(name === "unitValue" || name === "price" ? name : null);
+    setFormState((previous) => {
+      const updated = { ...previous, [name]: value };
+      
+      // Función para redondear a 2 decimales
+      const roundToCents = (val: number): number => Math.round(val * 100) / 100;
+      
+      // Si se editó unitValue, actualizar price calculado
+      if (name === "unitValue") {
+        const newUnitValue = roundToCents(Number(value) || 0);
+        const newIGV = roundToCents((newUnitValue * IGVPercentage) / 100);
+        const newPrice = roundToCents(newUnitValue + newIGV);
+        updated.price = newPrice.toFixed(2);
+      }
+      // Si se editó price, actualizar unitValue calculado
+      else if (name === "price") {
+        const newPrice = roundToCents(Number(value) || 0);
+        const newUnitValue = roundToCents(newPrice / (1 + IGVPercentage / 100));
+        updated.unitValue = newUnitValue.toFixed(2);
+      }
+      
+      return updated;
+    });
   };
 
 const updateStockField = (branchId: string, value: string) => {
@@ -84,6 +139,7 @@ const updateStockField = (branchId: string, value: string) => {
       categoryId: initialCategory,
       stocks: initialStocks,
     });
+    setLastEditedField(null);
     setFormError(null);
   };
 
@@ -101,9 +157,13 @@ const updateStockField = (branchId: string, value: string) => {
       return;
     }
 
-    const price = Number(formState.price);
-    if (Number.isNaN(price) || price < 0) {
-      setFormError("Ingresa un precio válido.");
+    // Función para redondear a 2 decimales
+    const roundToCents = (val: number): number => Math.round(val * 100) / 100;
+    
+    // Siempre usar el valor unitario del estado (ya está calculado correctamente)
+    const finalUnitValue = roundToCents(Number(formState.unitValue));
+    if (Number.isNaN(finalUnitValue) || finalUnitValue < 0) {
+      setFormError("Ingresa un valor unitario válido.");
       return;
     }
 
@@ -161,7 +221,7 @@ const updateStockField = (branchId: string, value: string) => {
         name: formState.name.trim(),
         description: formState.description.trim(),
         categoryId: formState.categoryId as Id<"categories">,
-        price,
+        unitValue: finalUnitValue,
         stockByBranch,
         ...(storageId ? { image: storageId } : {}),
       });
@@ -342,10 +402,39 @@ const updateStockField = (branchId: string, value: string) => {
                   className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 />
               </div>
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-5 md:grid-cols-3">
+                <div className="space-y-2">
+                  <label htmlFor="unitValue" className="text-sm font-medium text-slate-200">
+                    Valor Unitario
+                  </label>
+                  <input
+                    id="unitValue"
+                    name="unitValue"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={formState.unitValue}
+                    onChange={updateField}
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="igv" className="text-sm font-medium text-slate-200">
+                    IGV ({IGVPercentage}%)
+                  </label>
+                  <input
+                    id="igv"
+                    name="igv"
+                    type="number"
+                    disabled
+                    value={igv.toFixed(2)}
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-400 cursor-not-allowed"
+                  />
+                </div>
                 <div className="space-y-2">
                   <label htmlFor="price" className="text-sm font-medium text-slate-200">
-                    Precio
+                    Precio Unitario
                   </label>
                   <input
                     id="price"
@@ -359,23 +448,23 @@ const updateStockField = (branchId: string, value: string) => {
                     className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="image" className="text-sm font-medium text-slate-200">
-                    Imagen del producto
-                  </label>
-                  <input
-                    id="image"
-                    name="image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="w-full cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
-                  />
-                  <p className="text-xs text-slate-500">
-                    Se optimizará automáticamente antes de subirla. Tamaño recomendado máx. 1280px.
-                    Este campo es opcional.
-                  </p>
-                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="image" className="text-sm font-medium text-slate-200">
+                  Imagen del producto
+                </label>
+                <input
+                  id="image"
+                  name="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
+                />
+                <p className="text-xs text-slate-500">
+                  Se optimizará automáticamente antes de subirla. Tamaño recomendado máx. 1280px.
+                  Este campo es opcional.
+                </p>
               </div>
 
               <div className="space-y-3">

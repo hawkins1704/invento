@@ -81,8 +81,8 @@ export const useSalesShift = () => {
   }, [branchesQuery, branchIdState, setBranchId]);
 
   const activeShift = useQuery(
-    branchIdState ? api.shifts.active : "skip",
-    branchIdState ? { branchId: branchIdState as Id<"branches"> } : "skip"
+    api.shifts.active,
+    branchIdState ? ({ branchId: branchIdState as Id<"branches"> } as const) : "skip"
   ) as ActiveShiftResult;
 
   const isLoadingShift = branchIdState !== "" && activeShift === undefined;
@@ -94,7 +94,7 @@ export const useSalesShift = () => {
     return activeShift;
   }, [activeShift]);
 
-  const branches = branchesQuery ?? [];
+  const branches = useMemo(() => branchesQuery ?? [], [branchesQuery]);
   const branch = useMemo(() => {
     if (!branchIdState) {
       return null;

@@ -21,7 +21,6 @@ type EditableItem = {
   unitPrice: number;
   quantity: number;
   discountAmount: number;
-  notes?: string;
 };
 
 type SalesTablesContentProps = {
@@ -48,6 +47,13 @@ const SalesTablesContent = ({
 
   const products = useQuery(api.products.list) as ProductListItem[] | undefined;
   const categories = useQuery(api.categories.list) as Doc<"categories">[] | undefined;
+  const productMap = useMemo(() => {
+    const map = new Map<string, ProductListItem>();
+    (products ?? []).forEach((product) => {
+      map.set(product._id as string, product);
+    });
+    return map;
+  }, [products]);
 
   const staffMembers = useQuery(
     api.staff.list,
@@ -146,9 +152,7 @@ const SalesTablesContent = ({
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold">Mesas y pedidos</h1>
-            <p className="max-w-2xl text-sm text-slate-300">
-              Abre mesas, registra pedidos y da seguimiento a los tickets abiertos antes de cerrarlos.
-            </p>
+          
           </div>
         </div>
 
@@ -156,14 +160,7 @@ const SalesTablesContent = ({
           <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-2 text-sm font-semibold text-[#fa7316]">
             {branch.name}
           </span>
-          <button
-            type="button"
-            onClick={() => openCreateModal(null)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={!hasActiveShift}
-          >
-            Nueva venta
-          </button>
+         
         </div>
       </header>
 
@@ -330,14 +327,27 @@ const SalesTablesContent = ({
                         Pendiente de agregar productos
                       </li>
                     ) : (
-                      entry.items.map((item) => (
-                        <li key={item._id} className="flex items-center justify-between rounded-xl bg-slate-950/40 px-3 py-2">
-                          <span className="text-slate-300">
-                            {item.quantity} × {formatCurrency(item.unitPrice)}
-                          </span>
-                          <span className="font-semibold text-white">{formatCurrency(item.totalPrice)}</span>
-                        </li>
-                      ))
+                      entry.items.map((item) => {
+                        const product = productMap.get(item.productId as string);
+                        return (
+                          <li
+                            key={item._id}
+                            className="flex items-center justify-between gap-3 rounded-xl bg-slate-950/40 px-3 py-2"
+                          >
+                            <div className="flex flex-col">
+                              <span className="text-sm font-semibold text-white">
+                                {product?.name ?? "Producto"}
+                              </span>
+                              <span className="text-xs text-slate-400">
+                                {item.quantity} × {formatCurrency(item.unitPrice)}
+                              </span>
+                            </div>
+                            <span className="text-sm font-semibold text-white">
+                              {formatCurrency(item.totalPrice)}
+                            </span>
+                          </li>
+                        );
+                      })
                     )}
                   </ul>
                 </div>
@@ -663,7 +673,6 @@ const NewSaleModal = ({
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       discountAmount: item.discountAmount > 0 ? item.discountAmount : undefined,
-      notes: item.notes?.trim() || undefined,
     }));
 
     setIsSubmitting(true);
@@ -681,9 +690,9 @@ const NewSaleModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 py-10">
       <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
-      <div className="relative flex w-full max-w-5xl flex-col gap-6 rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+      <div className="relative flex w-full max-w-5xl flex-col gap-6 rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 max-h-[90vh] overflow-hidden">
         <header className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Nueva venta</h2>
@@ -696,13 +705,11 @@ const NewSaleModal = ({
               ✕
             </button>
           </div>
-          <p className="text-sm text-slate-300">
-            Selecciona productos y asigna un responsable para registrar la venta en curso.
-          </p>
+        
         </header>
 
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <div className="flex flex-1 flex-col gap-4">
+        <div className="flex flex-1 flex-col gap-6 overflow-hidden lg:flex-row lg:gap-8">
+          <div className="flex flex-1 flex-col gap-4 overflow-y-auto pr-1 lg:pr-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Categorías</h3>
@@ -796,7 +803,7 @@ const NewSaleModal = ({
             </div>
           </div>
 
-          <div className="flex w-full flex-col gap-4 lg:w-[360px]">
+          <div className="flex w-full flex-col gap-4 lg:w-[360px] lg:flex-shrink-0 lg:self-start lg:sticky lg:top-0">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
               <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
                 Personal asignado
@@ -952,7 +959,6 @@ const SaleEditorDrawer = ({
       quantity: number;
       unitPrice: number;
       discountAmount?: number;
-      notes?: string;
     }>
   ) => Promise<void>;
   onUpdateDetails: (payload: {
@@ -977,7 +983,6 @@ const SaleEditorDrawer = ({
         unitPrice: item.unitPrice,
         quantity: item.quantity,
         discountAmount: item.discountAmount ?? 0,
-        notes: item.notes ?? undefined,
       };
     })
   );
@@ -1029,7 +1034,6 @@ const SaleEditorDrawer = ({
           unitPrice: item.unitPrice,
           quantity: item.quantity,
           discountAmount: item.discountAmount ?? 0,
-          notes: item.notes ?? undefined,
         };
       })
     );
@@ -1090,7 +1094,6 @@ const SaleEditorDrawer = ({
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           discountAmount: item.discountAmount > 0 ? item.discountAmount : undefined,
-          notes: item.notes?.trim() || undefined,
         }))
       );
     } finally {
@@ -1318,7 +1321,7 @@ const SaleEditorDrawer = ({
                         ✕
                       </button>
                     </div>
-                    <div className="mt-3 grid gap-3 md:grid-cols-3">
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
                       <label className="flex flex-col gap-1 text-xs uppercase tracking-[0.24em] text-slate-500">
                         Cantidad
                         <input
@@ -1345,22 +1348,6 @@ const SaleEditorDrawer = ({
                             )
                           }
                           className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1 text-xs uppercase tracking-[0.24em] text-slate-500">
-                        Nota
-                        <input
-                          type="text"
-                          value={item.notes ?? ""}
-                          onChange={(event) =>
-                            setItems((previous) =>
-                              previous.map((line) =>
-                                line.productId === item.productId ? { ...line, notes: event.target.value } : line
-                              )
-                            )
-                          }
-                          className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-                          placeholder="Instrucción especial"
                         />
                       </label>
                     </div>

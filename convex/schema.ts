@@ -14,10 +14,18 @@ export default defineSchema({
     isAnonymous: v.optional(v.boolean()),
     administratorCode: v.optional(v.string()),
     salesCode: v.optional(v.string()),
+    IGVPercentage: v.optional(v.union(v.literal(10), v.literal(18))),
+    personaId: v.optional(v.string()),
+    personaToken: v.optional(v.string()),
+    companyName: v.optional(v.string()),
+    ruc: v.optional(v.string()),
+    companyLogo: v.optional(v.id("_storage")),
   }).index("email", ["email"]),
   products: defineTable({
     name: v.string(),
     description: v.string(),
+    unitValue: v.optional(v.number()),
+    igv: v.optional(v.number()),
     price: v.number(),
     image: v.optional(v.id("_storage")),
     categoryId: v.id("categories"),
@@ -87,6 +95,7 @@ export default defineSchema({
       )
     ),
     notes: v.optional(v.string()),
+    documentId: v.optional(v.string()),
     updatedAt: v.number(),
   })
     .index("byBranchStatus", ["branchId", "status", "openedAt"])

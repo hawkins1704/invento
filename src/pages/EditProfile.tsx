@@ -1,0 +1,468 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "convex/react";
+import type { ChangeEvent, FormEvent } from "react";
+import imageCompression from "browser-image-compression";
+import { api } from "../../convex/_generated/api";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
+
+type ProfileFormState = {
+  name: string;
+  administratorCode: string;
+  salesCode: string;
+  companyName: string;
+  ruc: string;
+  companyLogoFile: File | null;
+  personaId: string;
+  personaToken: string;
+  IGVPercentage: "10" | "18" | "";
+};
+
+const DEFAULT_FORM: ProfileFormState = {
+  name: "",
+  administratorCode: "",
+  salesCode: "",
+  companyName: "",
+  ruc: "",
+  companyLogoFile: null,
+  personaId: "",
+  personaToken: "",
+  IGVPercentage: "",
+};
+
+const EditProfile = () => {
+  const navigate = useNavigate();
+  const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
+  const updateProfile = useMutation(api.users.updateProfile);
+  const generateUploadUrl = useMutation(api.users.generateUploadUrl);
+
+  const [formState, setFormState] = useState<ProfileFormState>(DEFAULT_FORM);
+  const [currentCompanyLogoUrl, setCurrentCompanyLogoUrl] = useState<string | null>(null);
+  const [previewCompanyLogoUrl, setPreviewCompanyLogoUrl] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isCompanyLogoRemoved, setIsCompanyLogoRemoved] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      setFormState({
+        name: currentUser.name ?? "",
+        administratorCode: currentUser.administratorCode ?? "",
+        salesCode: currentUser.salesCode ?? "",
+        companyName: currentUser.companyName ?? "",
+        ruc: (currentUser as any).ruc ?? "",
+        companyLogoFile: null,
+        personaId: currentUser.personaId ?? "",
+        personaToken: currentUser.personaToken ?? "",
+        IGVPercentage: currentUser.IGVPercentage?.toString() ?? "",
+      });
+      setCurrentCompanyLogoUrl(
+        (currentUser as any).companyLogoUrl ?? null
+      );
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    return () => {
+      if (previewCompanyLogoUrl) {
+        URL.revokeObjectURL(previewCompanyLogoUrl);
+      }
+    };
+  }, [previewCompanyLogoUrl]);
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
+    setFormState((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const handleCompanyLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setFormState((previous) => ({ ...previous, companyLogoFile: file }));
+    setPreviewCompanyLogoUrl((previous) => {
+      if (previous) {
+        URL.revokeObjectURL(previous);
+      }
+      return file ? URL.createObjectURL(file) : null;
+    });
+    setIsCompanyLogoRemoved(false);
+  };
+
+  const handleRemoveCompanyLogo = () => {
+    setFormState((previous) => ({ ...previous, companyLogoFile: null }));
+    setPreviewCompanyLogoUrl((previous) => {
+      if (previous) {
+        URL.revokeObjectURL(previous);
+      }
+      return null;
+    });
+    setCurrentCompanyLogoUrl(null);
+    setIsCompanyLogoRemoved(true);
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError(null);
+    setSuccessMessage(null);
+
+    try {
+      setIsSubmitting(true);
+
+      let companyLogoStorageId: Id<"_storage"> | undefined;
+      const shouldRemoveCompanyLogo = isCompanyLogoRemoved && !formState.companyLogoFile;
+
+      if (formState.companyLogoFile) {
+        const uploadUrl = await generateUploadUrl();
+        const compressedFile = await imageCompression(formState.companyLogoFile, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1280,
+          useWebWorker: true,
+        });
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": compressedFile.type },
+          body: compressedFile,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("No se pudo subir el logo de la empresa, intenta nuevamente.");
+        }
+
+        const result = (await uploadResponse.json()) as {
+          storageId: Id<"_storage">;
+        };
+        companyLogoStorageId = result.storageId;
+      }
+
+      await updateProfile({
+        name: formState.name.trim() || undefined,
+        administratorCode: formState.administratorCode.trim() || undefined,
+        salesCode: formState.salesCode.trim() || undefined,
+        companyName: formState.companyName.trim() || undefined,
+        ruc: formState.ruc.trim() || undefined,
+        companyLogo: companyLogoStorageId,
+        removeCompanyLogo: shouldRemoveCompanyLogo ? true : undefined,
+        personaId: formState.personaId.trim() || undefined,
+        personaToken: formState.personaToken.trim() || undefined,
+        IGVPercentage: formState.IGVPercentage
+          ? (Number(formState.IGVPercentage) as 10 | 18)
+          : undefined,
+      });
+
+      setSuccessMessage("Perfil actualizado correctamente.");
+      setFormState((previous) => ({ ...previous, companyLogoFile: null }));
+      setPreviewCompanyLogoUrl((previous) => {
+        if (previous) {
+          URL.revokeObjectURL(previous);
+        }
+        return null;
+      });
+      setIsCompanyLogoRemoved(false);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No fue posible actualizar el perfil.";
+      setFormError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (currentUser === undefined) {
+    return (
+      <div className="flex flex-1 items-center justify-center text-slate-400">
+        Cargando información del perfil...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white transition hover:bg-white/10"
+          >
+            ← Volver
+          </button>
+          <div>
+            <h1 className="text-3xl font-semibold">Editar perfil</h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-400">
+              Actualiza la configuración de tu perfil de usuario, datos de la empresa y facturación.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <form
+        className="space-y-8 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20"
+        onSubmit={handleSubmit}
+      >
+        {/* DATOS DEL USUARIO */}
+        <section className="space-y-5">
+          <div className="border-b border-slate-700 pb-3">
+            <h2 className="text-xl font-semibold">Datos del Usuario</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Información personal y códigos de acceso.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="space-y-2">
+              <label
+                htmlFor="name"
+                className="text-sm font-medium text-slate-200"
+              >
+                Nombre
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                value={formState.name}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Tu nombre completo"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="administratorCode"
+                className="text-sm font-medium text-slate-200"
+              >
+                Código de Administrador
+              </label>
+              <input
+                id="administratorCode"
+                name="administratorCode"
+                type="text"
+                value={formState.administratorCode}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Código de administrador"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="salesCode"
+                className="text-sm font-medium text-slate-200"
+              >
+                Código de Ventas
+              </label>
+              <input
+                id="salesCode"
+                name="salesCode"
+                type="text"
+                value={formState.salesCode}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Código de ventas"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* DATOS DE LA EMPRESA */}
+        <section className="space-y-5">
+          <div className="border-b border-slate-700 pb-3">
+            <h2 className="text-xl font-semibold">Datos de la Empresa</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Información de tu empresa y logo corporativo.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="space-y-2">
+              <label
+                htmlFor="companyName"
+                className="text-sm font-medium text-slate-200"
+              >
+                Nombre de la Empresa
+              </label>
+              <input
+                id="companyName"
+                name="companyName"
+                type="text"
+                value={formState.companyName}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Razón social o nombre comercial"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="ruc"
+                className="text-sm font-medium text-slate-200"
+              >
+                RUC
+              </label>
+              <input
+                id="ruc"
+                name="ruc"
+                type="text"
+                value={formState.ruc}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Número de RUC"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="companyLogo"
+              className="text-sm font-medium text-slate-200"
+            >
+              Logo de la Empresa
+            </label>
+            <input
+              id="companyLogo"
+              name="companyLogo"
+              type="file"
+              accept="image/*"
+              onChange={handleCompanyLogoChange}
+              className="w-full cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
+            />
+            <p className="text-xs text-slate-500">
+              Si no seleccionas una nueva imagen, se mantendrá la actual. Tamaño recomendado máx. 1280px.
+            </p>
+
+            {(previewCompanyLogoUrl || currentCompanyLogoUrl) && (
+              <div className="mt-4 flex items-center gap-4">
+                <div className="h-24 w-24 overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+                  <img
+                    src={previewCompanyLogoUrl ?? currentCompanyLogoUrl ?? ""}
+                    alt="Logo de la empresa"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveCompanyLogo}
+                  className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-200 transition hover:border-red-500/60 hover:text-red-100"
+                  disabled={isSubmitting}
+                >
+                  <span aria-hidden>🗑️</span>
+                  Quitar logo
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* DATOS DE FACTURACIÓN */}
+        <section className="space-y-5">
+          <div className="border-b border-slate-700 pb-3">
+            <h2 className="text-xl font-semibold">Datos de Facturación</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Configuración para la emisión de comprobantes electrónicos con APISUNAT.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="space-y-2">
+              <label
+                htmlFor="personaId"
+                className="text-sm font-medium text-slate-200"
+              >
+                Persona ID
+              </label>
+              <input
+                id="personaId"
+                name="personaId"
+                type="text"
+                value={formState.personaId}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="ID de persona en APISUNAT"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="personaToken"
+                className="text-sm font-medium text-slate-200"
+              >
+                Persona Token
+              </label>
+              <input
+                id="personaToken"
+                name="personaToken"
+                type="text"
+                value={formState.personaToken}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Token de autenticación APISUNAT"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="IGVPercentage"
+                className="text-sm font-medium text-slate-200"
+              >
+                Porcentaje de IGV
+              </label>
+              <select
+                id="IGVPercentage"
+                name="IGVPercentage"
+                value={formState.IGVPercentage}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+              >
+                <option value="">Selecciona un porcentaje</option>
+                <option value="10">10%</option>
+                <option value="18">18%</option>
+              </select>
+              <p className="text-xs text-slate-500">
+                Este porcentaje se utilizará para calcular el IGV de los productos
+                que crees o edites.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {formError && (
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            {formError}
+          </div>
+        )}
+        {successMessage && (
+          <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+            {successMessage}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Guardando cambios..." : "Guardar cambios"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default EditProfile;

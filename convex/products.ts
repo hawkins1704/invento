@@ -67,7 +67,7 @@ export const create = mutation({
     name: v.string(),
     description: v.string(),
     categoryId: v.id("categories"),
-    price: v.number(),
+    unitValue: v.number(),
     stockByBranch: v.array(
       v.object({
         branchId: v.id("branches"),
@@ -81,6 +81,22 @@ export const create = mutation({
     if (userId === null) {
       throw new ConvexError("No autenticado");
     }
+
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new ConvexError("Usuario no encontrado.");
+    }
+
+    const IGVPercentage = user.IGVPercentage ?? 18; // Default a 18% si no está configurado
+    
+    // Función para redondear a 2 decimales (centavos)
+    const roundToCents = (value: number): number => {
+      return Math.round(value * 100) / 100;
+    };
+    
+    const unitValue = roundToCents(args.unitValue);
+    const igv = roundToCents((unitValue * IGVPercentage) / 100);
+    const price = roundToCents(unitValue + igv);
 
     const category = await ctx.db.get(args.categoryId);
     if (!category) {
@@ -104,6 +120,8 @@ export const create = mutation({
 
     const productId = await ctx.db.insert("products", {
       ...productData,
+      igv,
+      price,
       ...(image ? { image } : {}),
     });
 
@@ -125,7 +143,7 @@ export const update = mutation({
     name: v.string(),
     description: v.string(),
     categoryId: v.id("categories"),
-    price: v.number(),
+    unitValue: v.number(),
     stockByBranch: v.array(
       v.object({
         branchId: v.id("branches"),
@@ -141,6 +159,11 @@ export const update = mutation({
       throw new ConvexError("No autenticado");
     }
 
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new ConvexError("Usuario no encontrado.");
+    }
+
     const product = await ctx.db.get(args.productId);
     if (!product) {
       throw new ConvexError("Producto no encontrado.");
@@ -150,6 +173,17 @@ export const update = mutation({
     if (!category) {
       throw new ConvexError("Categoría no encontrada.");
     }
+
+    const IGVPercentage = user.IGVPercentage ?? 18; // Default a 18% si no está configurado
+    
+    // Función para redondear a 2 decimales (centavos)
+    const roundToCents = (value: number): number => {
+      return Math.round(value * 100) / 100;
+    };
+    
+    const unitValue = roundToCents(args.unitValue);
+    const igv = roundToCents((unitValue * IGVPercentage) / 100);
+    const price = roundToCents(unitValue + igv);
 
     const branchIds = new Set(args.stockByBranch.map((item) => item.branchId));
     if (branchIds.size !== args.stockByBranch.length) {
@@ -180,7 +214,9 @@ export const update = mutation({
       name: args.name,
       description: args.description,
       categoryId: args.categoryId,
-      price: args.price,
+      unitValue,
+      igv,
+      price,
       ...(imageField !== undefined ? { image: imageField } : { image: undefined }),
     });
 

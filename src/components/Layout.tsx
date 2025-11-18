@@ -1,11 +1,22 @@
-import { Fragment, FormEvent, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { useSalesShift, type ShiftSummary } from "../hooks/useSalesShift";
-
+import { useSalesShift } from "../hooks/useSalesShift";
+import { HiOutlineSwitchHorizontal } from "react-icons/hi";
+import { RiDashboardFill } from "react-icons/ri";
+import { FaTags } from "react-icons/fa";
+import { FaBoxArchive } from "react-icons/fa6";
+import { PiMoney } from "react-icons/pi";
+import { BsFillPeopleFill } from "react-icons/bs";
+import { BiSolidStore } from "react-icons/bi";
+import { FaRegClock } from "react-icons/fa";
+import { MdOutlineDinnerDining } from "react-icons/md";
+import { IoLogInOutline } from "react-icons/io5";
+import { FaRegUser } from "react-icons/fa";
 const PRIMARY_COLOR = "#fa7316";
 
 const formatCurrency = (value: number) =>
@@ -15,7 +26,7 @@ type NavItem = {
   label: string;
   description: string;
   path: string;
-  icon: string;
+  icon: React.ReactNode;
   exact?: boolean;
 };
 
@@ -23,7 +34,7 @@ const AREA_LINK: NavItem = {
   label: "Seleccionar área",
   description: "Toca para cambiar área",
   path: "/select-area",
-  icon: "🏁",
+  icon: <HiOutlineSwitchHorizontal color={PRIMARY_COLOR} />,
 };
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
@@ -31,38 +42,38 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     label: "Dashboard",
     description: "Resumen general",
     path: "/admin",
-    icon: "📊",
+    icon: <RiDashboardFill  color={PRIMARY_COLOR} />,
     exact: true,
   },
   {
     label: "Categorías",
     description: "Clasifica tus productos",
     path: "/admin/categories",
-    icon: "🏷️",
+    icon: <FaTags color={PRIMARY_COLOR} />,
   },
   {
     label: "Inventario",
     description: "Productos y niveles",
     path: "/admin/inventory",
-    icon: "📦",
+    icon: <FaBoxArchive color={PRIMARY_COLOR} />,
   },
   {
     label: "Ventas",
     description: "Reportes y métricas",
     path: "/admin/sales",
-    icon: "💹",
+    icon: <PiMoney color={PRIMARY_COLOR} />,
   },
   {
     label: "Personal",
     description: "Roles y accesos",
     path: "/admin/staff",
-    icon: "🧑‍🍳",
+    icon: <BsFillPeopleFill color={PRIMARY_COLOR} />,
   },
   {
     label: "Sucursales",
     description: "Configuración de locales",
     path: "/admin/branches",
-    icon: "📍",
+    icon: <BiSolidStore color={PRIMARY_COLOR} />,
   },
 ];
 
@@ -71,19 +82,19 @@ const SALES_NAV_ITEMS: NavItem[] = [
     label: "Mesas",
     description: "Gestión en piso",
     path: "/sales/tables",
-    icon: "🍽️",
+    icon: <MdOutlineDinnerDining color={PRIMARY_COLOR} />,
   },
   {
     label: "Ventas del día",
     description: "Corte y totales",
     path: "/sales/daily",
-    icon: "🧾",
+    icon: <PiMoney color={PRIMARY_COLOR} />,
   },
   {
     label: "Inventario",
     description: "Ajustes en turno",
     path: "/sales/inventory",
-    icon: "📦",
+    icon: <FaBoxArchive color={PRIMARY_COLOR} />,
   },
 ];
 
@@ -97,15 +108,16 @@ const Layout = () => {
   const profileButtonRef = useRef<HTMLButtonElement | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const {
-    branches: shiftBranches,
     branchId: shiftBranchId,
     branch: selectedShiftBranch,
     activeShift: activeShiftSummary,
     isLoadingShift,
   } = useSalesShift();
   const shiftStaff = useQuery(
-    shiftBranchId ? api.staff.list : "skip",
-    shiftBranchId ? { branchId: shiftBranchId as Id<"branches">, includeInactive: false } : "skip"
+    api.staff.list,
+    shiftBranchId
+      ? ({ branchId: shiftBranchId as Id<"branches">, includeInactive: false } as const)
+      : "skip"
   ) as Doc<"staff">[] | undefined;
   const openShiftMutation = useMutation(api.shifts.open);
   const closeShiftMutation = useMutation(api.shifts.close);
@@ -374,9 +386,7 @@ const Layout = () => {
                           shiftButtonDisabled ? "cursor-not-allowed opacity-50" : "hover:border-slate-700 hover:bg-slate-800/50"
                         } ${shiftButtonClasses}`}
                       >
-                        <span className="text-xl" aria-hidden>
-                          🕒
-                        </span>
+                       <FaRegClock color={PRIMARY_COLOR} />
                         {!isCollapsed && (
                           <span className="flex flex-col text-left">
                             <span className="font-semibold text-white">{shiftButtonLabel}</span>
@@ -422,10 +432,14 @@ const Layout = () => {
               <button
                 type="button"
                 className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800/80"
-                onClick={() => setIsProfileMenuOpen(false)}
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  navigate("/profile");
+                }}
               >
                 Editar perfil
-                <span aria-hidden>⚙️</span>
+                <FaRegUser color={PRIMARY_COLOR} />
+
               </button>
               <button
                 type="button"
@@ -433,7 +447,7 @@ const Layout = () => {
                 onClick={handleSignOut}
               >
                 Cerrar sesión
-                <span aria-hidden>⎋</span>
+                <IoLogInOutline color={PRIMARY_COLOR} />
               </button>
             </div>
           )}
@@ -442,7 +456,7 @@ const Layout = () => {
 
       {isShiftModalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-          <div className="relative w-full max-w-2xl rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+          <div className="relative w-full max-w-xl rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
             <button
               type="button"
               onClick={() => {
@@ -457,7 +471,8 @@ const Layout = () => {
               ✕
             </button>
 
-            {shiftMode === "open" ? (
+            <div className="max-h-[90vh] overflow-y-auto pr-1">
+              {shiftMode === "open" ? (
               <form className="space-y-5 pt-6" onSubmit={handleSubmitOpenShift}>
                 <header className="space-y-2">
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
@@ -662,6 +677,7 @@ const Layout = () => {
                 </div>
               </form>
             )}
+            </div>
           </div>
         </div>
       )}

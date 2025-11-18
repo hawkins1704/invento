@@ -5,7 +5,8 @@ import { useConvex } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import CodePinInput from "../components/CodePinInput";
 import { AREA_STORAGE_KEY, BRANCH_STORAGE_KEY } from "../hooks/useSalesShift";
-
+import { PiMoney } from "react-icons/pi";
+import { RiAdminLine } from "react-icons/ri";
 type AreaKey = "admin" | "sales";
 
 const AREAS: Array<{
@@ -31,6 +32,7 @@ const AREAS: Array<{
 ];
 
 const SelectArea = () => {
+  const PRIMARY_COLOR = "#fa7316";
   const [selectedArea, setSelectedArea] = useState<AreaKey | null>(() => {
     if (typeof window === "undefined") {
       return null;
@@ -118,13 +120,7 @@ const SelectArea = () => {
     <div className="min-h-screen bg-slate-950">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-16 text-white">
         <header className="space-y-4">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-sm font-medium uppercase tracking-[0.18em] text-white">
-            Selecciona el área
-          </span>
           <h1 className="text-4xl font-semibold text-white">¿Dónde vas a trabajar hoy?</h1>
-          <p className="max-w-2xl text-sm text-slate-400">
-            Elige el módulo correspondiente a tus tareas. Necesitarás ingresar el código de acceso configurado en tu perfil para continuar.
-          </p>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -150,30 +146,13 @@ const SelectArea = () => {
                       {area.badge}
                     </span>
                     <span className="text-3xl" aria-hidden>
-                      {area.key === "admin" ? "🛠️" : "🧾"}
+                      {area.key === "admin" ? <RiAdminLine color={PRIMARY_COLOR} /> : <PiMoney color={PRIMARY_COLOR} />}
                     </span>
                   </div>
                   <div className="space-y-2">
                     <h2 className="text-2xl font-semibold text-white">{area.title}</h2>
-                    <p className="text-sm leading-relaxed text-slate-400">{area.description}</p>
                   </div>
-                  <span
-                    className={`inline-flex items-center gap-2 text-sm font-semibold ${
-                      isSelected ? "text-[#fa7316]" : "text-slate-400"
-                    }`}
-                  >
-                    {isSelected ? "Seleccionado" : "Seleccionar"}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className={`h-5 w-5 transition ${isSelected ? "translate-x-1" : "group-hover:translate-x-1"}`}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                    </svg>
-                  </span>
+                  
                 </div>
               </button>
             );
@@ -195,16 +174,11 @@ const SelectArea = () => {
                   : "Cada módulo requiere un código único. Selecciona una tarjeta para habilitar el ingreso."}
               </p>
             </div>
-            <div className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#fa7316]">
-              Seguridad activa
-            </div>
+          
           </div>
 
           <div className="grid gap-6 md:grid-cols-[auto,1fr] md:items-center">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 px-5 py-4 text-sm text-slate-400">
-              <p className="font-semibold text-white">Área seleccionada</p>
-              <p>{selectedArea ? (selectedArea === "admin" ? "Administrador" : "Ventas") : "Pendiente"}</p>
-            </div>
+           
 
             <CodePinInput
               label={selectedAreaLabel}
@@ -223,9 +197,7 @@ const SelectArea = () => {
           )}
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-slate-500">
-              El código es personal e intransferible. Los accesos quedan registrados para auditoría.
-            </p>
+            
             <button
               type="submit"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-60"
