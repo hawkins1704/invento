@@ -17,6 +17,7 @@ import { FaRegClock } from "react-icons/fa";
 import { MdOutlineDinnerDining } from "react-icons/md";
 import { IoLogInOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
+import { FaFileInvoice } from "react-icons/fa6";
 const PRIMARY_COLOR = "#fa7316";
 
 const formatCurrency = (value: number) =>
@@ -62,6 +63,12 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     description: "Reportes y métricas",
     path: "/admin/sales",
     icon: <PiMoney color={PRIMARY_COLOR} />,
+  },
+  {
+    label: "Documentos Emitidos",
+    description: "Facturas y boletas",
+    path: "/admin/documents",
+    icon: <FaFileInvoice color={PRIMARY_COLOR} />,
   },
   {
     label: "Personal",

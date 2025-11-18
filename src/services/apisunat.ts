@@ -1,9 +1,12 @@
+import axios from "axios";
+import type { AxiosInstance } from "axios";
 import type {
   EmitDocumentRequest,
   EmitDocumentResponse,
-  ListDocumentsResponse,
   APISUNATDocument,
   APISUNATError,
+  ListDocumentsParams,
+  PDFFormat,
 } from "../types/apisunat";
 
 // URL base de la API de APISUNAT
@@ -13,10 +16,15 @@ const APISUNAT_BASE_URL = "https://back.apisunat.com";
  * Cliente HTTP para interactuar con la API de APISUNAT
  */
 class APISUNATClient {
-  private baseUrl: string;
+  private axiosInstance: AxiosInstance;
 
   constructor(baseUrl: string = APISUNAT_BASE_URL) {
-    this.baseUrl = baseUrl;
+    this.axiosInstance = axios.create({
+      baseURL: baseUrl,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   }
 
   /**
@@ -30,29 +38,17 @@ class APISUNATClient {
     document: EmitDocumentRequest
   ): Promise<EmitDocumentResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/sendBill`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(document),
-      });
-
-      if (!response.ok) {
-        const errorData: APISUNATError = await response.json().catch(() => ({
-          error: "UNKNOWN_ERROR",
-          message: `Error HTTP ${response.status}`,
-          statusCode: response.status,
-        }));
-
-        throw new Error(errorData.message || errorData.error || "Error al emitir documento");
-      }
-
-      const data: EmitDocumentResponse = await response.json();
+      const { data } = await this.axiosInstance.post<EmitDocumentResponse>(
+        "/sendBill",
+        document
+      );
       return data;
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
+      if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data as APISUNATError | undefined;
+        throw new Error(
+          errorData?.message || errorData?.error || error.message || "Error al emitir documento"
+        );
       }
       throw new Error("Error de conexión con APISUNAT");
     }
@@ -60,38 +56,63 @@ class APISUNATClient {
 
   /**
    * Obtiene todos los documentos emitidos
-   * Endpoint: GET /documents
+   * Endpoint: GET /documents/getAll
    * 
+   * @param personaId ID de la empresa
    * @param personaToken Token de autenticación
-   * @returns Lista de documentos
+   * @param params Parámetros opcionales para filtros y paginación
+   * @returns Array de documentos
    */
   async listDocuments(
-    personaToken: string
-  ): Promise<ListDocumentsResponse> {
+    personaId: string,
+    personaToken: string,
+    params?: ListDocumentsParams
+  ): Promise<APISUNATDocument[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/documents`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${personaToken}`,
-        },
+      const queryParams = new URLSearchParams({
+        personaId,
+        personaToken,
       });
 
-      if (!response.ok) {
-        const errorData: APISUNATError = await response.json().catch(() => ({
-          error: "UNKNOWN_ERROR",
-          message: `Error HTTP ${response.status}`,
-          statusCode: response.status,
-        }));
-
-        throw new Error(errorData.message || errorData.error || "Error al listar documentos");
+      // Agregar parámetros opcionales
+      if (params?.limit !== undefined) {
+        queryParams.append("limit", params.limit.toString());
+      }
+      if (params?.skip !== undefined) {
+        queryParams.append("skip", params.skip.toString());
+      }
+      if (params?.from !== undefined) {
+        queryParams.append("from", params.from.toString());
+      }
+      if (params?.to !== undefined) {
+        queryParams.append("to", params.to.toString());
+      }
+      if (params?.status) {
+        queryParams.append("status", params.status);
+      }
+      if (params?.type) {
+        queryParams.append("type", params.type);
+      }
+      if (params?.order) {
+        queryParams.append("order", params.order);
+      }
+      if (params?.serie) {
+        queryParams.append("serie", params.serie);
+      }
+      if (params?.number) {
+        queryParams.append("number", params.number);
       }
 
-      const data: ListDocumentsResponse = await response.json();
+      const { data } = await this.axiosInstance.get<APISUNATDocument[]>(
+        `/documents/getAll?${queryParams.toString()}`
+      );
       return data;
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
+      if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data as APISUNATError | undefined;
+        throw new Error(
+          errorData?.message || errorData?.error || error.message || "Error al listar documentos"
+        );
       }
       throw new Error("Error de conexión con APISUNAT");
     }
@@ -110,132 +131,63 @@ class APISUNATClient {
     personaToken: string
   ): Promise<APISUNATDocument> {
     try {
-      const response = await fetch(`${this.baseUrl}/documents/${documentId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${personaToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData: APISUNATError = await response.json().catch(() => ({
-          error: "UNKNOWN_ERROR",
-          message: `Error HTTP ${response.status}`,
-          statusCode: response.status,
-        }));
-
-        throw new Error(errorData.message || errorData.error || "Error al obtener documento");
-      }
-
-      const data: APISUNATDocument = await response.json();
+      const { data } = await this.axiosInstance.get<APISUNATDocument>(
+        `/documents/${documentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${personaToken}`,
+          },
+        }
+      );
       return data;
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
+      if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data as APISUNATError | undefined;
+        throw new Error(
+          errorData?.message || errorData?.error || error.message || "Error al obtener documento"
+        );
       }
       throw new Error("Error de conexión con APISUNAT");
     }
   }
 
-  /**
-   * Descarga el XML de un documento
-   * Endpoint: GET /documents/:documentId/xml
-   * 
-   * @param documentId ID del documento
-   * @param personaToken Token de autenticación
-   * @returns Blob del archivo XML
-   */
-  async downloadXML(
-    documentId: string,
-    personaToken: string
-  ): Promise<Blob> {
-    try {
-      const response = await fetch(`${this.baseUrl}/documents/${documentId}/xml`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${personaToken}`,
-        },
-      });
 
-      if (!response.ok) {
-        throw new Error(`Error al descargar XML: ${response.status}`);
-      }
-
-      return await response.blob();
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error("Error de conexión con APISUNAT");
-    }
-  }
 
   /**
    * Descarga el PDF de un documento
-   * Endpoint: GET /documents/:documentId/pdf
+   * Endpoint: GET /documents/:documentId/getPDF/:format/:fileName[.pdf]
    * 
    * @param documentId ID del documento
+   * @param format Formato del PDF (A4, A5, ticket58mm, ticket80mm)
+   * @param fileName Nombre del archivo (con o sin .pdf)
    * @param personaToken Token de autenticación
    * @returns Blob del archivo PDF
    */
   async downloadPDF(
     documentId: string,
-    personaToken: string
+    format: PDFFormat,
+    fileName: string,
   ): Promise<Blob> {
     try {
-      const response = await fetch(`${this.baseUrl}/documents/${documentId}/pdf`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${personaToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error al descargar PDF: ${response.status}`);
-      }
-
-      return await response.blob();
+      // Asegurar que el fileName termine en .pdf
+      const fileNameWithExtension = fileName.endsWith(".pdf") ? fileName : `${fileName}.pdf`;
+      console.log(`/documents/${documentId}/getPDF/${format}/${fileNameWithExtension}`);
+      const { data } = await this.axiosInstance.get(
+        `/documents/${documentId}/getPDF/${format}/${fileNameWithExtension}`,
+   
+      );
+      console.log("DATA PDF", data);
+      return data;
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.message || "Error al descargar PDF");
       }
       throw new Error("Error de conexión con APISUNAT");
     }
   }
 
-  /**
-   * Descarga el CDR (Constancia de Recepción) de un documento
-   * Endpoint: GET /documents/:documentId/cdr
-   * 
-   * @param documentId ID del documento
-   * @param personaToken Token de autenticación
-   * @returns Blob del archivo CDR
-   */
-  async downloadCDR(
-    documentId: string,
-    personaToken: string
-  ): Promise<Blob> {
-    try {
-      const response = await fetch(`${this.baseUrl}/documents/${documentId}/cdr`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${personaToken}`,
-        },
-      });
 
-      if (!response.ok) {
-        throw new Error(`Error al descargar CDR: ${response.status}`);
-      }
 
-      return await response.blob();
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error("Error de conexión con APISUNAT");
-    }
-  }
 }
 
 // Instancia singleton del cliente

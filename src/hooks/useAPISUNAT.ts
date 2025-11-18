@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { apisunatClient } from "../services/apisunat";
 import type {
   EmitDocumentRequest,
   EmitDocumentResponse,
-  ListDocumentsResponse,
   APISUNATDocument,
+  ListDocumentsParams,
+  PDFFormat,
 } from "../types/apisunat";
 
 /**
@@ -51,14 +52,18 @@ export function useAPISUNAT() {
   /**
    * Obtiene todos los documentos emitidos
    */
-  const listDocuments = async (
-    personaToken: string
-  ): Promise<ListDocumentsResponse | null> => {
+  const listDocuments = useCallback(async (
+    personaId: string,
+    personaToken: string,
+    params?: ListDocumentsParams
+  ): Promise<APISUNATDocument[] | null> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await apisunatClient.listDocuments(personaToken);
+      const response = await apisunatClient.listDocuments(personaId, personaToken, params);
+
+      console.log(response);
       return response;
     } catch (err) {
       const errorMessage =
@@ -68,7 +73,7 @@ export function useAPISUNAT() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   /**
    * Obtiene un documento específico por ID
@@ -121,13 +126,15 @@ export function useAPISUNAT() {
    */
   const downloadPDF = async (
     documentId: string,
+    format: PDFFormat,
+    fileName: string,
     personaToken: string
   ): Promise<Blob | null> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const blob = await apisunatClient.downloadPDF(documentId, personaToken);
+      const blob = await apisunatClient.downloadPDF(documentId, format, fileName, personaToken);
       return blob;
     } catch (err) {
       const errorMessage =

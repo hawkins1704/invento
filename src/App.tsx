@@ -14,6 +14,7 @@ import AdminBranches from './pages/admin/AdminBranches'
 import BranchDetails from './pages/admin/BranchDetails'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminCategoryDetail from './pages/admin/AdminCategoryDetail'
+import AdminDocuments from './pages/admin/AdminDocuments'
 import SalesDashboard from './pages/SalesDashboard'
 import SalesTables from './pages/sales/SalesTables'
 import SalesDaily from './pages/sales/SalesDaily'
@@ -56,6 +57,7 @@ function App() {
                         <Route path="inventory" element={<AdminInventory />} />
                         <Route path="inventory/:productId" element={<AdminProductDetail />} />
                         <Route path="sales" element={<AdminSales />} />
+                        <Route path="documents" element={<AdminDocuments />} />
                         <Route path="staff">
                             <Route index element={<AdminStaff />} />
                             <Route path=":staffId" element={<AdminStaffDetail />} />
