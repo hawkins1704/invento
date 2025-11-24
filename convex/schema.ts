@@ -20,6 +20,10 @@ export default defineSchema({
     companyName: v.optional(v.string()),
     ruc: v.optional(v.string()),
     companyLogo: v.optional(v.id("_storage")),
+    companyAddress: v.optional(v.string()),
+    companyDistrict: v.optional(v.string()),
+    companyProvince: v.optional(v.string()),
+    companyDepartment: v.optional(v.string()),
   }).index("email", ["email"]),
   products: defineTable({
     name: v.string(),
@@ -76,6 +80,7 @@ export default defineSchema({
     tableId: v.optional(v.id("branchTables")),
     staffId: v.optional(v.id("staff")),
     creatorUserId: v.optional(v.id("users")),
+    customerId: v.optional(v.id("customers")),
     status: v.union(
       v.literal("open"),
       v.literal("closed"),
@@ -96,6 +101,7 @@ export default defineSchema({
     ),
     notes: v.optional(v.string()),
     documentId: v.optional(v.string()),
+    documentType: v.optional(v.union(v.literal("01"), v.literal("03"))),
     updatedAt: v.number(),
   })
     .index("byBranchStatus", ["branchId", "status", "openedAt"])
@@ -127,4 +133,16 @@ export default defineSchema({
     .index("byBranchStatus", ["branchId", "status", "openedAt"])
     .index("byBranch", ["branchId", "openedAt"])
     .index("byStaff", ["staffId", "openedAt"]),
+  customers: defineTable({
+    documentType: v.union(v.literal("RUC"), v.literal("DNI")),
+    documentNumber: v.string(),
+    name: v.string(),
+    address: v.optional(v.string()),
+    district: v.optional(v.string()),
+    province: v.optional(v.string()),
+    department: v.optional(v.string()),
+    email: v.optional(v.string()),
+    phone: v.optional(v.string()),
+  })
+    .index("byDocument", ["documentType", "documentNumber"]),
 })

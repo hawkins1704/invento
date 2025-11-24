@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server"
 import { v, ConvexError } from "convex/values"
 import { getAuthUserId } from "@convex-dev/auth/server"
+import type { Id } from "./_generated/dataModel"
 
 const normalize = (value: string) => value.trim()
 
@@ -17,7 +18,7 @@ export const list = query({
 
     const includeInactive = args.includeInactive ?? false
     const staffQuery = args.branchId
-      ? ctx.db.query("staff").withIndex("byBranch", (q) => q.eq("branchId", args.branchId))
+      ? ctx.db.query("staff").withIndex("byBranch", (q) => q.eq("branchId", args.branchId as Id<"branches">))
       : ctx.db.query("staff")
 
     const result = await staffQuery.collect()

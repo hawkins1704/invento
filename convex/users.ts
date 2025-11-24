@@ -50,6 +50,10 @@ export const updateProfile = mutation({
     personaId: v.optional(v.string()),
     personaToken: v.optional(v.string()),
     IGVPercentage: v.optional(v.union(v.literal(10), v.literal(18))),
+    companyAddress: v.optional(v.string()),
+    companyDistrict: v.optional(v.string()),
+    companyProvince: v.optional(v.string()),
+    companyDepartment: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -102,6 +106,18 @@ export const updateProfile = mutation({
     }
     if (args.IGVPercentage !== undefined) {
       updates.IGVPercentage = args.IGVPercentage;
+    }
+    if (args.companyAddress !== undefined) {
+      updates.companyAddress = args.companyAddress.trim() || undefined;
+    }
+    if (args.companyDistrict !== undefined) {
+      updates.companyDistrict = args.companyDistrict.trim() || undefined;
+    }
+    if (args.companyProvince !== undefined) {
+      updates.companyProvince = args.companyProvince.trim() || undefined;
+    }
+    if (args.companyDepartment !== undefined) {
+      updates.companyDepartment = args.companyDepartment.trim() || undefined;
     }
 
     await ctx.db.patch(userId, updates);

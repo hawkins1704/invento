@@ -1,4 +1,4 @@
-const HIGHLIGHT_COLOR = "#fa7316";
+
 
 const metricCards = [
   {

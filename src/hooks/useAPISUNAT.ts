@@ -98,28 +98,7 @@ export function useAPISUNAT() {
     }
   };
 
-  /**
-   * Descarga el XML de un documento
-   */
-  const downloadXML = async (
-    documentId: string,
-    personaToken: string
-  ): Promise<Blob | null> => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const blob = await apisunatClient.downloadXML(documentId, personaToken);
-      return blob;
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Error al descargar XML";
-      setError(errorMessage);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+ 
 
   /**
    * Descarga el PDF de un documento
@@ -128,13 +107,12 @@ export function useAPISUNAT() {
     documentId: string,
     format: PDFFormat,
     fileName: string,
-    personaToken: string
   ): Promise<Blob | null> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const blob = await apisunatClient.downloadPDF(documentId, format, fileName, personaToken);
+      const blob = await apisunatClient.downloadPDF(documentId, format, fileName);
       return blob;
     } catch (err) {
       const errorMessage =
@@ -146,36 +124,13 @@ export function useAPISUNAT() {
     }
   };
 
-  /**
-   * Descarga el CDR de un documento
-   */
-  const downloadCDR = async (
-    documentId: string,
-    personaToken: string
-  ): Promise<Blob | null> => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const blob = await apisunatClient.downloadCDR(documentId, personaToken);
-      return blob;
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Error al descargar CDR";
-      setError(errorMessage);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
 
   return {
     emitDocument,
     listDocuments,
     getDocument,
-    downloadXML,
     downloadPDF,
-    downloadCDR,
     isLoading,
     error,
     clearError: () => setError(null),

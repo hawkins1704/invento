@@ -16,6 +16,10 @@ type ProfileFormState = {
   personaId: string;
   personaToken: string;
   IGVPercentage: "10" | "18" | "";
+  companyAddress: string;
+  companyDistrict: string;
+  companyProvince: string;
+  companyDepartment: string;
 };
 
 const DEFAULT_FORM: ProfileFormState = {
@@ -28,6 +32,10 @@ const DEFAULT_FORM: ProfileFormState = {
   personaId: "",
   personaToken: "",
   IGVPercentage: "",
+  companyAddress: "",
+  companyDistrict: "",
+  companyProvince: "",
+  companyDepartment: "",
 };
 
 const EditProfile = () => {
@@ -55,7 +63,11 @@ const EditProfile = () => {
         companyLogoFile: null,
         personaId: currentUser.personaId ?? "",
         personaToken: currentUser.personaToken ?? "",
-        IGVPercentage: currentUser.IGVPercentage?.toString() ?? "",
+        IGVPercentage: currentUser.IGVPercentage ? (currentUser.IGVPercentage.toString() as "10" | "18") : "",
+        companyAddress: (currentUser as any).companyAddress ?? "",
+        companyDistrict: (currentUser as any).companyDistrict ?? "",
+        companyProvince: (currentUser as any).companyProvince ?? "",
+        companyDepartment: (currentUser as any).companyDepartment ?? "",
       });
       setCurrentCompanyLogoUrl(
         (currentUser as any).companyLogoUrl ?? null
@@ -151,6 +163,10 @@ const EditProfile = () => {
         IGVPercentage: formState.IGVPercentage
           ? (Number(formState.IGVPercentage) as 10 | 18)
           : undefined,
+        companyAddress: formState.companyAddress.trim() || undefined,
+        companyDistrict: formState.companyDistrict.trim() || undefined,
+        companyProvince: formState.companyProvince.trim() || undefined,
+        companyDepartment: formState.companyDepartment.trim() || undefined,
       });
 
       setSuccessMessage("Perfil actualizado correctamente.");
@@ -428,6 +444,90 @@ const EditProfile = () => {
                 Este porcentaje se utilizará para calcular el IGV de los productos
                 que crees o edites.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* DIRECCIÓN DE LA EMPRESA */}
+        <section className="space-y-5">
+          <div className="border-b border-slate-700 pb-3">
+            <h2 className="text-xl font-semibold">Dirección de la Empresa</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Dirección completa de la empresa para los comprobantes electrónicos.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="companyAddress"
+              className="text-sm font-medium text-slate-200"
+            >
+              Dirección
+            </label>
+            <input
+              id="companyAddress"
+              name="companyAddress"
+              type="text"
+              value={formState.companyAddress}
+              onChange={handleChange}
+              className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+              placeholder="Ej: AV. UNIVERSITARIA NRO. 1699 URB. SANTA EMMA"
+            />
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-3">
+            <div className="space-y-2">
+              <label
+                htmlFor="companyDistrict"
+                className="text-sm font-medium text-slate-200"
+              >
+                Distrito
+              </label>
+              <input
+                id="companyDistrict"
+                name="companyDistrict"
+                type="text"
+                value={formState.companyDistrict}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Ej: LIMA"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="companyProvince"
+                className="text-sm font-medium text-slate-200"
+              >
+                Provincia
+              </label>
+              <input
+                id="companyProvince"
+                name="companyProvince"
+                type="text"
+                value={formState.companyProvince}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Ej: LIMA"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="companyDepartment"
+                className="text-sm font-medium text-slate-200"
+              >
+                Departamento
+              </label>
+              <input
+                id="companyDepartment"
+                name="companyDepartment"
+                type="text"
+                value={formState.companyDepartment}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Ej: LIMA"
+              />
             </div>
           </div>
         </section>

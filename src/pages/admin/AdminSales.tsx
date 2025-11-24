@@ -21,7 +21,7 @@ const PERIOD_OPTIONS: Array<{ key: PeriodKey; label: string }> = [
   { key: "month", label: "Últimos 30 días" },
 ];
 
-const PRIMARY_COLOR = "#fa7316";
+
 
 const computePeriodRange = (period: PeriodKey) => {
   const now = new Date();

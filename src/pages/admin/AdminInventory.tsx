@@ -66,13 +66,7 @@ const AdminInventory = () => {
     return roundToCents((unitValue * IGVPercentage) / 100);
   }, [unitValue, IGVPercentage]);
 
-  const calculatedPrice = useMemo(() => {
-    if (lastEditedField === "unitValue") {
-      // Prioridad: valor unitario + IGV (redondeado)
-      return roundToCents(unitValue + igv);
-    }
-    return roundToCents(Number(formState.price) || 0);
-  }, [unitValue, igv, formState.price, lastEditedField]);
+ 
 
 
 
@@ -480,7 +474,7 @@ const updateStockField = (branchId: string, value: string) => {
                         >
                           <p className="text-sm font-semibold text-white">{branch.name}</p>
                           <p className="text-xs text-slate-500">
-                            {branch.address} · {branch.tables} mesas
+                            {branch.address}
                           </p>
                           <input
                             type="number"

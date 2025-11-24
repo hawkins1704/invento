@@ -482,6 +482,8 @@ export const close = mutation({
     saleId: v.id("sales"),
     paymentMethod: paymentMethodSchema,
     notes: v.optional(v.string()),
+    customerId: v.optional(v.id("customers")),
+    documentType: v.optional(v.union(v.literal("01"), v.literal("03"))),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx)
@@ -490,6 +492,19 @@ export const close = mutation({
     }
 
     const sale = await ensureSaleOpen(ctx, args.saleId)
+
+    // Validar que si se emite factura, tenga cliente
+    if (args.documentType === "01" && !args.customerId) {
+      throw new ConvexError("Para emitir una factura es necesario registrar los datos del cliente.")
+    }
+
+    // Validar que el cliente existe si se proporciona
+    if (args.customerId) {
+      const customer = await ctx.db.get(args.customerId)
+      if (!customer) {
+        throw new ConvexError("El cliente seleccionado no existe.")
+      }
+    }
 
     const totals = await recalcTotals(ctx, sale._id)
     await adjustInventoryForSale(ctx, sale)
@@ -502,6 +517,8 @@ export const close = mutation({
       discounts: totals.discounts > 0 ? totals.discounts : undefined,
       subtotal: totals.subtotal,
       total: totals.total,
+      customerId: args.customerId,
+      documentType: args.documentType,
       updatedAt: now(),
     })
 

@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server"
 import { v, ConvexError } from "convex/values"
 import { getAuthUserId } from "@convex-dev/auth/server"
+import type { Id } from "./_generated/dataModel"
 
 const normalizeLabel = (label: string) => label.trim()
 
@@ -17,7 +18,7 @@ export const list = query({
     const tablesQuery = args.branchId
       ? ctx.db
           .query("branchTables")
-          .withIndex("byBranch", (q) => q.eq("branchId", args.branchId))
+          .withIndex("byBranch", (q) => q.eq("branchId", args.branchId as Id<"branches">))
       : ctx.db.query("branchTables")
 
     const tables = await tablesQuery.collect()
@@ -60,7 +61,7 @@ export const create = mutation({
     const existing = await ctx.db
       .query("branchTables")
       .withIndex("byBranch", (q) =>
-        q.eq("branchId", args.branchId).eq("label", normalizedLabel)
+        q.eq("branchId", args.branchId as Id<"branches">).eq("label", normalizedLabel)
       )
       .first()
 
@@ -116,7 +117,7 @@ export const update = mutation({
       const duplicate = await ctx.db
         .query("branchTables")
         .withIndex("byBranch", (q) =>
-          q.eq("branchId", table.branchId).eq("label", normalizedLabel)
+          q.eq("branchId", table.branchId as Id<"branches">).eq("label", normalizedLabel)
         )
         .first()
 

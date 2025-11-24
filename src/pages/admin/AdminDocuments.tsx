@@ -118,7 +118,6 @@ const AdminDocuments = () => {
         selectedDocument.id,
         selectedFormat,
         selectedDocument.fileName,
-        currentUser.personaToken
       );
 
       if (blob) {

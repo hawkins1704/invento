@@ -160,7 +160,6 @@ class APISUNATClient {
    * @param documentId ID del documento
    * @param format Formato del PDF (A4, A5, ticket58mm, ticket80mm)
    * @param fileName Nombre del archivo (con o sin .pdf)
-   * @param personaToken Token de autenticación
    * @returns Blob del archivo PDF
    */
   async downloadPDF(
