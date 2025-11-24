@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mutation, query } from "./_generated/server"
 import { v, ConvexError } from "convex/values"
 import { getAuthUserId } from "@convex-dev/auth/server"
-
+import type { Id } from "./_generated/dataModel"
 const itemInputSchema = v.object({
   productId: v.id("products"),
   quantity: v.number(),
@@ -135,14 +136,14 @@ const ensureStaffForBranch = async (ctx: any, branchId: string, staffId?: string
 const loadSaleItems = async (ctx: any, saleId: string) => {
   return ctx.db
     .query("saleItems")
-    .withIndex("bySale", (q) => q.eq("saleId", saleId))
+    .withIndex("bySale", (q: any) => q.eq("saleId", saleId))
     .collect()
 }
 
 const recalcTotals = async (ctx: any, saleId: string) => {
   const items = await loadSaleItems(ctx, saleId)
   const totals = calculateTotals(
-    items.map((item) => ({
+    items.map((item: any) => ({
       productId: item.productId as string,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
@@ -163,10 +164,10 @@ const adjustInventoryForSale = async (ctx: any, sale: any) => {
   const items = await loadSaleItems(ctx, sale._id)
 
   await Promise.all(
-    items.map(async (item) => {
+    items.map(async (item: any) => {
       const inventory = await ctx.db
         .query("branchInventories")
-        .withIndex("byBranch", (q) =>
+        .withIndex("byBranch", (q: any) =>
           q.eq("branchId", sale.branchId).eq("productId", item.productId)
         )
         .first()
@@ -365,7 +366,7 @@ export const create = mutation({
       validatedItems.map((item) =>
         ctx.db.insert("saleItems", {
           saleId,
-          productId: item.productId,
+          productId: item.productId as Id<"products">,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           discountAmount: item.discountAmount ?? 0,
@@ -400,13 +401,13 @@ export const setItems = mutation({
     const timestamp = now()
 
     const existingItems = await loadSaleItems(ctx, sale._id)
-    await Promise.all(existingItems.map((item) => ctx.db.delete(item._id)))
+    await Promise.all(existingItems.map((item: any) => ctx.db.delete(item._id)))
 
     await Promise.all(
       validatedItems.map((item) =>
         ctx.db.insert("saleItems", {
           saleId: sale._id,
-          productId: item.productId,
+          productId: item.productId as Id<"products">,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           discountAmount: item.discountAmount ?? 0,
