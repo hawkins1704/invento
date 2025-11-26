@@ -6,6 +6,8 @@ import type {
   APISUNATDocument,
   ListDocumentsParams,
   PDFFormat,
+  LastDocumentRequest,
+  LastDocumentResponse,
 } from "../types/apisunat";
 
 /**
@@ -26,6 +28,28 @@ import type {
 export function useAPISUNAT() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Obtiene el último número correlativo para un documento
+   */
+  const getLastDocument = useCallback(async (
+    request: LastDocumentRequest
+  ): Promise<LastDocumentResponse | null> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await apisunatClient.getLastDocument(request);
+      return response;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Error desconocido al obtener número correlativo";
+      setError(errorMessage);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   /**
    * Emite un documento (factura o boleta)
@@ -63,7 +87,7 @@ export function useAPISUNAT() {
     try {
       const response = await apisunatClient.listDocuments(personaId, personaToken, params);
 
-      console.log(response);
+      // console.log(response);
       return response;
     } catch (err) {
       const errorMessage =
@@ -127,6 +151,7 @@ export function useAPISUNAT() {
   
 
   return {
+    getLastDocument,
     emitDocument,
     listDocuments,
     getDocument,

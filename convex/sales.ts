@@ -12,7 +12,7 @@ const itemInputSchema = v.object({
 })
 
 const paymentMethodSchema = v.optional(
-  v.union(v.literal("cash"), v.literal("card"), v.literal("transfer"), v.literal("other"))
+  v.union(v.literal("Contado"), v.literal("Tarjeta"), v.literal("Transferencia"), v.literal("Otros"))
 )
 
 type ItemInput = {
@@ -552,6 +552,29 @@ export const cancel = mutation({
     if (sale.tableId) {
       await releaseTable(ctx, sale.tableId, sale._id)
     }
+  },
+})
+
+export const updateDocumentId = mutation({
+  args: {
+    saleId: v.id("sales"),
+    documentId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+
+    const sale = await ctx.db.get(args.saleId)
+    if (!sale) {
+      throw new ConvexError("La venta no existe")
+    }
+
+    await ctx.db.patch(args.saleId, {
+      documentId: args.documentId,
+      updatedAt: now(),
+    })
   },
 })
 

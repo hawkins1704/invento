@@ -216,6 +216,28 @@ export interface EmitDocumentResponse {
 }
 
 /**
+ * Request para obtener el último número correlativo
+ */
+export interface LastDocumentRequest {
+  personaId: string;
+  personaToken: string;
+  type: DocumentType; // "01" o "03"
+  serie: string; // 4 caracteres
+}
+
+/**
+ * Response al obtener el último número correlativo
+ */
+export interface LastDocumentResponse {
+  personaId: string;
+  production: boolean;
+  type: DocumentType;
+  serie: string;
+  lastNumber: string; // 8 dígitos con ceros a la izquierda
+  suggestedNumber: string; // 8 dígitos con ceros a la izquierda
+}
+
+/**
  * Documento completo obtenido de APISUNAT (según getAll)
  */
 export interface APISUNATDocument {

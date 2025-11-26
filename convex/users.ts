@@ -49,7 +49,10 @@ export const updateProfile = mutation({
     removeCompanyLogo: v.optional(v.boolean()),
     personaId: v.optional(v.string()),
     personaToken: v.optional(v.string()),
+    serieBoleta: v.optional(v.string()),
+    serieFactura: v.optional(v.string()),
     IGVPercentage: v.optional(v.union(v.literal(10), v.literal(18))),
+    companyCommercialName: v.optional(v.string()),
     companyAddress: v.optional(v.string()),
     companyDistrict: v.optional(v.string()),
     companyProvince: v.optional(v.string()),
@@ -78,7 +81,7 @@ export const updateProfile = mutation({
       companyLogoField = undefined;
     }
 
-    const updates: Record<string, any> = {};
+    const updates: Record<string, unknown> = {};
 
     if (args.name !== undefined) {
       updates.name = args.name.trim() || undefined;
@@ -104,8 +107,20 @@ export const updateProfile = mutation({
     if (args.personaToken !== undefined) {
       updates.personaToken = args.personaToken.trim() || undefined;
     }
+    if (args.serieBoleta !== undefined) {
+      updates.serieBoleta = args.serieBoleta.trim() || undefined;
+    }
+    if (args.serieFactura !== undefined) {
+      updates.serieFactura = args.serieFactura.trim() || undefined;
+    }
     if (args.IGVPercentage !== undefined) {
       updates.IGVPercentage = args.IGVPercentage;
+    }
+    if (args.companyName !== undefined) {
+      updates.companyName = args.companyName.trim() || undefined;
+    }
+    if (args.companyCommercialName !== undefined) {
+      updates.companyCommercialName = args.companyCommercialName.trim() || undefined;
     }
     if (args.companyAddress !== undefined) {
       updates.companyAddress = args.companyAddress.trim() || undefined;

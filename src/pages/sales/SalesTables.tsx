@@ -7,13 +7,17 @@ import {
     formatCurrency,
     formatDateTime,
     formatDuration,
+    buildSunatFileName,
 } from "../../utils/format";
+import { buildDocumentBody } from "../../utils/sunat";
+import { useAPISUNAT } from "../../hooks/useAPISUNAT";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import CloseSaleDialog from "../../components/CloseSaleDialog";
 import SalesShiftGuard from "../../components/SalesShiftGuard";
 import type { ShiftSummary } from "../../hooks/useSalesShift";
 import { MdDeleteOutline } from "react-icons/md";
 import { FaRegEdit } from "react-icons/fa";
+import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 
 type LiveSale = {
     sale: Doc<"sales">;
@@ -25,6 +29,7 @@ type LiveSale = {
 type EditableItem = {
     productId: Id<"products">;
     productName: string;
+    imageUrl: string | null;
     unitPrice: number;
     quantity: number;
     discountAmount: number;
@@ -73,12 +78,16 @@ const SalesTablesContent = ({
             : { includeInactive: false }
     ) as Doc<"staff">[] | undefined;
 
+    const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
+
     const createSale = useMutation(api.sales.create);
     const setSaleItems = useMutation(api.sales.setItems);
     const updateSaleDetails = useMutation(api.sales.updateDetails);
     const closeSaleMutation = useMutation(api.sales.close);
     const cancelSaleMutation = useMutation(api.sales.cancel);
     const createCustomer = useMutation(api.customers.create);
+    const updateSaleDocumentId = useMutation(api.sales.updateDocumentId);
+    const { getLastDocument, emitDocument } = useAPISUNAT();
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [tableForNewSale, setTableForNewSale] =
@@ -92,11 +101,13 @@ const SalesTablesContent = ({
     const [isProcessingCancel, setIsProcessingCancel] = useState(false);
     const [closeState, setCloseState] = useState<{
         saleId: Id<"sales"> | null;
-        paymentMethod: "cash" | "card" | "transfer" | "other";
+        saleData: LiveSale | null;
+        paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros";
         notes: string;
     }>({
         saleId: null,
-        paymentMethod: "cash",
+        saleData: null,
+        paymentMethod: "Contado",
         notes: "",
     });
     const [cancelState, setCancelState] = useState<{
@@ -136,7 +147,8 @@ const SalesTablesContent = ({
     };
 
     const openCloseDialog = (saleId: Id<"sales">) => {
-        setCloseState({ saleId, paymentMethod: "cash", notes: "" });
+        const saleData = liveSales?.find((s) => s.sale._id === saleId) ?? null;
+        setCloseState({ saleId, saleData, paymentMethod: "Contado", notes: "" });
         setIsClosingSale(true);
     };
 
@@ -496,8 +508,8 @@ const SalesTablesContent = ({
                     onUpdateDetails={async (payload) => {
                         await updateSaleDetails(payload);
                     }}
-                    onCloseSale={(saleId, paymentMethod, notes) => {
-                        setCloseState({ saleId, paymentMethod, notes });
+                    onCloseSale={(saleId, saleData, paymentMethod, notes) => {
+                        setCloseState({ saleId, saleData, paymentMethod, notes });
                         setIsClosingSale(true);
                     }}
                     onCancelSale={(saleId) => {
@@ -518,33 +530,12 @@ const SalesTablesContent = ({
                     setIsProcessingClose(false);
                     setCloseState({
                         saleId: null,
-                        paymentMethod: "cash",
+                        saleData: null,
+                        paymentMethod: "Contado",
                         notes: "",
                     });
                 }}
-                onCloseWithoutEmit={async (paymentMethod, notes) => {
-                    if (!closeState.saleId) {
-                        return;
-                    }
-                    setIsProcessingClose(true);
-                    try {
-                        await closeSaleMutation({
-                            saleId: closeState.saleId,
-                            paymentMethod,
-                            notes,
-                        });
-                        setIsClosingSale(false);
-                        setCloseState({
-                            saleId: null,
-                            paymentMethod: "cash",
-                            notes: "",
-                        });
-                        setSelectedSaleId(null);
-                    } finally {
-                        setIsProcessingClose(false);
-                    }
-                }}
-                onEmitBoleta={async (customerData, paymentMethod, notes) => {
+                onCloseWithoutEmit={async (customerData, paymentMethod, notes) => {
                     if (!closeState.saleId) {
                         return;
                     }
@@ -560,14 +551,147 @@ const SalesTablesContent = ({
                                 documentNumber: customerData.documentNumber,
                                 name: customerData.name,
                                 address: customerData.address || undefined,
-                                district: customerData.district || undefined,
-                                province: customerData.province || undefined,
-                                department:
-                                    customerData.department || undefined,
                                 email: customerData.email || undefined,
                                 phone: customerData.phone || undefined,
                             });
                         }
+
+                        await closeSaleMutation({
+                            saleId: closeState.saleId,
+                            paymentMethod,
+                            notes,
+                            customerId,
+                        });
+                        setIsClosingSale(false);
+                        setCloseState({
+                            saleId: null,
+                            saleData: null,
+                            paymentMethod: "Contado",
+                            notes: "",
+                        });
+                        setSelectedSaleId(null);
+                    } finally {
+                        setIsProcessingClose(false);
+                    }
+                }}
+                onEmitBoleta={async (customerData, paymentMethod, notes, customerEmail) => {
+                    if (!closeState.saleId || !closeState.saleData) {
+                        throw new Error("No se encontraron los datos de la venta");
+                    }
+                    setIsProcessingClose(true);
+                    try {
+                        let customerId: Id<"customers"> | undefined;
+
+                        if (customerData) {
+                            customerId = await createCustomer({
+                                documentType: customerData.documentType as
+                                    | "RUC"
+                                    | "DNI",
+                                documentNumber: customerData.documentNumber,
+                                name: customerData.name,
+                                address: customerData.address || undefined,
+                                email: customerData.email || undefined,
+                                phone: customerData.phone || undefined,
+                            });
+                        }
+
+                        // PASO 1: Validar que tenemos los datos necesarios del usuario
+                        if (!currentUser?.personaId || !currentUser?.personaToken || !currentUser?.ruc || !currentUser?.serieBoleta) {
+                            throw new Error("Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Boleta");
+                        }
+
+                        // PASO 2: Obtener el número correlativo desde SUNAT
+                        const lastDocResponse = await getLastDocument({
+                            personaId: currentUser.personaId,
+                            personaToken: currentUser.personaToken,
+                            type: "03", // Boleta
+                            serie: currentUser.serieBoleta,
+                        });
+
+                        if (!lastDocResponse) {
+                            throw new Error("No se pudo obtener el número correlativo desde SUNAT");
+                        }
+
+                        // PASO 3: Construir el fileName
+                        const fileName = buildSunatFileName(
+                            currentUser.ruc,
+                            "03", // Boleta
+                            currentUser.serieBoleta,
+                            lastDocResponse.suggestedNumber
+                        );
+
+                        // PASO 4 - Construir documentBody (estructura UBL completa)
+                        // Crear mapeo de productos (productId -> productName)
+                        const productsNameMap = new Map<string, string>();
+                        (products ?? []).forEach((product) => {
+                            productsNameMap.set(product._id as string, product.name);
+                        });
+
+                        const documentBody = buildDocumentBody({
+                            documentType: "03", // Boleta
+                            serie: currentUser.serieBoleta,
+                            correlativo: lastDocResponse.suggestedNumber,
+                            saleData: {
+                                sale: {
+                                    total: closeState.saleData.sale.total,
+                                },
+                                items: closeState.saleData.items.map((item) => ({
+                                    productId: item.productId as string,
+                                    quantity: item.quantity,
+                                    unitPrice: item.unitPrice,
+                                    discountAmount: item.discountAmount,
+                                })),
+                            },
+                            customerData: customerData
+                                ? {
+                                      documentType: customerData.documentType as "RUC" | "DNI",
+                                      documentNumber: customerData.documentNumber,
+                                      name: customerData.name,
+                                      address: customerData.address || undefined,
+                                  }
+                                : null,
+                            userData: {
+                                ruc: currentUser.ruc!,
+                                companyName: currentUser.companyName,
+                                companyCommercialName: currentUser.companyCommercialName,
+                                companyAddress: currentUser.companyAddress,
+                                companyDistrict: currentUser.companyDistrict,
+                                companyProvince: currentUser.companyProvince,
+                                companyDepartment: currentUser.companyDepartment,
+                                IGVPercentage: currentUser.IGVPercentage || 18,
+                            },
+                            products: productsNameMap,
+                            notes: notes,
+                        });
+
+                        // PASO 5 - customerEmail ya viene del formulario (opcional)
+                        // Si el usuario marcó "Enviar comprobante por correo" y hay email, se pasa al endpoint
+                        // Si no se marca el checkbox o no hay email, customerEmail será undefined
+
+                        // PASO 6 - Emitir el documento a SUNAT
+                        const emitResponse = await emitDocument({
+                            personaId: currentUser.personaId,
+                            personaToken: currentUser.personaToken,
+                            fileName,
+                            documentBody,
+                            ...(customerEmail && { customerEmail }),
+                        });
+                        
+                        if (!emitResponse) {
+                            throw new Error("Error al emitir documento en SUNAT");
+                        }
+
+                        // PASO 7 - Guardar el documentId en la venta
+                        await updateSaleDocumentId({
+                            saleId: closeState.saleId,
+                            documentId: emitResponse.documentId,
+                        });
+
+                        console.log("fileName generado:", fileName);
+                        console.log("saleData disponible:", closeState.saleData);
+                        console.log("documentBody:", documentBody);
+                        console.log("customerEmail:", customerEmail || "No se enviará correo");
+                        console.log("Documento emitido:", emitResponse);
 
                         await closeSaleMutation({
                             saleId: closeState.saleId,
@@ -579,17 +703,21 @@ const SalesTablesContent = ({
                         setIsClosingSale(false);
                         setCloseState({
                             saleId: null,
-                            paymentMethod: "cash",
+                            saleData: null,
+                            paymentMethod: "Contado",
                             notes: "",
                         });
                         setSelectedSaleId(null);
+                    } catch (error) {
+                        console.error("Error al emitir boleta:", error);
+                        alert(error instanceof Error ? error.message : "Error al emitir boleta");
                     } finally {
                         setIsProcessingClose(false);
                     }
                 }}
-                onEmitFactura={async (customerData, paymentMethod, notes) => {
-                    if (!closeState.saleId) {
-                        return;
+                onEmitFactura={async (customerData, paymentMethod, notes, customerEmail) => {
+                    if (!closeState.saleId || !closeState.saleData) {
+                        throw new Error("No se encontraron los datos de la venta");
                     }
                     setIsProcessingClose(true);
                     try {
@@ -600,12 +728,106 @@ const SalesTablesContent = ({
                             documentNumber: customerData.documentNumber,
                             name: customerData.name,
                             address: customerData.address || undefined,
-                            district: customerData.district || undefined,
-                            province: customerData.province || undefined,
-                            department: customerData.department || undefined,
                             email: customerData.email || undefined,
                             phone: customerData.phone || undefined,
                         });
+
+                        // PASO 1: Validar que tenemos los datos necesarios del usuario
+                        if (!currentUser?.personaId || !currentUser?.personaToken || !currentUser?.ruc || !currentUser?.serieFactura) {
+                            throw new Error("Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Factura");
+                        }
+
+                        // PASO 2: Obtener el número correlativo desde SUNAT
+                        const lastDocResponse = await getLastDocument({
+                            personaId: currentUser.personaId,
+                            personaToken: currentUser.personaToken,
+                            type: "01", // Factura
+                            serie: currentUser.serieFactura,
+                        });
+
+                        if (!lastDocResponse) {
+                            throw new Error("No se pudo obtener el número correlativo desde SUNAT");
+                        }
+
+                        // PASO 3: Construir el fileName
+                        const fileName = buildSunatFileName(
+                            currentUser.ruc,
+                            "01", // Factura
+                            currentUser.serieFactura,
+                            lastDocResponse.suggestedNumber
+                        );
+
+                        // PASO 4 - Construir documentBody (estructura UBL completa)
+                        // Crear mapeo de productos (productId -> productName)
+                        const productsNameMap = new Map<string, string>();
+                        (products ?? []).forEach((product) => {
+                            productsNameMap.set(product._id as string, product.name);
+                        });
+
+                        const documentBody = buildDocumentBody({
+                            documentType: "01", // Factura
+                            serie: currentUser.serieFactura,
+                            correlativo: lastDocResponse.suggestedNumber,
+                            saleData: {
+                                sale: {
+                                    total: closeState.saleData.sale.total,
+                                },
+                                items: closeState.saleData.items.map((item) => ({
+                                    productId: item.productId as string,
+                                    quantity: item.quantity,
+                                    unitPrice: item.unitPrice,
+                                    discountAmount: item.discountAmount,
+                                })),
+                            },
+                            customerData: {
+                                documentType: customerData.documentType as "RUC" | "DNI",
+                                documentNumber: customerData.documentNumber,
+                                name: customerData.name,
+                                address: customerData.address || undefined,
+                            },
+                            userData: {
+                                ruc: currentUser.ruc!,
+                                companyName: currentUser.companyName,
+                                companyCommercialName: currentUser.companyCommercialName,
+                                companyAddress: currentUser.companyAddress,
+                                companyDistrict: currentUser.companyDistrict,
+                                companyProvince: currentUser.companyProvince,
+                                companyDepartment: currentUser.companyDepartment,
+                                IGVPercentage: currentUser.IGVPercentage || 18,
+                            },
+                            products: productsNameMap,
+                            paymentMethod: paymentMethod,
+                            notes: notes,
+                        });
+
+                        // PASO 5 - customerEmail ya viene del formulario (opcional)
+                        // Si el usuario marcó "Enviar comprobante por correo" y hay email, se pasa al endpoint
+                        // Si no se marca el checkbox o no hay email, customerEmail será undefined
+
+                        // PASO 6 - Emitir el documento a SUNAT
+                        const emitResponse = await emitDocument({
+                            personaId: currentUser.personaId,
+                            personaToken: currentUser.personaToken,
+                            fileName,
+                            documentBody,
+                            ...(customerEmail && { customerEmail }),
+                        });
+                        
+                        if (!emitResponse) {
+                            throw new Error("Error al emitir documento en SUNAT");
+                        }
+
+                        // PASO 7 - Guardar el documentId en la venta
+                        await updateSaleDocumentId({
+                            saleId: closeState.saleId,
+                            documentId: emitResponse.documentId,
+                        });
+
+                        console.log("fileName generado:", fileName);
+                        console.log("saleData disponible:", closeState.saleData);
+                        console.log("documentBody:", documentBody);
+                        console.log("customerEmail:", customerEmail || "No se enviará correo");
+                        console.log("Documento emitido:", emitResponse);
 
                         await closeSaleMutation({
                             saleId: closeState.saleId,
@@ -617,10 +839,14 @@ const SalesTablesContent = ({
                         setIsClosingSale(false);
                         setCloseState({
                             saleId: null,
-                            paymentMethod: "cash",
+                            saleData: null,
+                            paymentMethod: "Contado",
                             notes: "",
                         });
                         setSelectedSaleId(null);
+                    } catch (error) {
+                        console.error("Error al emitir factura:", error);
+                        alert(error instanceof Error ? error.message : "Error al emitir factura");
                     } finally {
                         setIsProcessingClose(false);
                     }
@@ -775,6 +1001,7 @@ const NewSaleModal = ({
                 {
                     productId: product._id,
                     productName: product.name,
+                    imageUrl: product.imageUrl,
                     unitPrice: product.price,
                     quantity: 1,
                     discountAmount: 0,
@@ -861,7 +1088,7 @@ const NewSaleModal = ({
                 </header>
 
                 <div className="flex flex-1 flex-col gap-6 overflow-hidden lg:flex-row lg:gap-8 ">
-                    <div className="flex flex-3 flex-col gap-4 overflow-y-auto pr-1 lg:pr-4">
+                    <div className="flex flex-3 flex-col gap-4 overflow-y-auto">
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
@@ -925,42 +1152,63 @@ const NewSaleModal = ({
                                             key={product._id}
                                             type="button"
                                             onClick={() => addProduct(product)}
-                                            className={`flex h-full flex-col gap-2 rounded-2xl border p-4 text-left text-sm transition ${
+                                            className={`flex h-full gap-3 rounded-2xl border p-4 text-left text-sm transition ${
                                                 isOutOfStock
                                                     ? "cursor-not-allowed border-red-500/40 bg-red-500/10 text-red-200"
                                                     : "border-slate-800 bg-slate-900/60 text-slate-200 hover:border-[#fa7316] hover:text-white"
                                             }`}
                                             disabled={isOutOfStock}
                                         >
-                                            <div className="space-y-1">
-                                                <p
-                                                    className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} line-clamp-2`}
-                                                >
-                                                    {product.name}
-                                                </p>
-                                                <p
-                                                    className={`text-xs ${isOutOfStock ? "text-red-200/80" : "text-slate-400"} line-clamp-3`}
-                                                >
-                                                    {product.description}
-                                                </p>
+                                            <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-slate-800 bg-slate-900/50">
+                                                {product.imageUrl ? (
+                                                    <img
+                                                        src={product.imageUrl}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-500">
+                                                        <svg
+                                                            className="w-10 h-10"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                            />
+                                                        </svg>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div
-                                                className={`mt-auto flex items-center justify-between text-xs ${
-                                                    isOutOfStock
-                                                        ? "text-red-200"
-                                                        : "text-slate-400"
-                                                }`}
-                                            >
-                                                <span>
-                                                    Stock: {availableStock}
-                                                </span>
-                                                <span
-                                                    className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"}`}
-                                                >
-                                                    {formatCurrency(
-                                                        product.price
-                                                    )}
-                                                </span>
+                                            <div className="flex-1 flex flex-col gap-2 min-w-0">
+                                                <div className="space-y-1">
+                                                    <p
+                                                        className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} line-clamp-2`}
+                                                    >
+                                                        {product.name}
+                                                    </p>
+                                                    <p
+                                                        className={`text-xs ${isOutOfStock ? "text-red-200/80" : "text-slate-400"} line-clamp-3`}
+                                                    >
+                                                        {product.description}
+                                                    </p>
+                                                    <p
+                                                        className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"}`}
+                                                    >
+                                                        {formatCurrency(
+                                                            product.price
+                                                        )}
+                                                    </p>
+                                                    <p className="text-xs text-slate-400">
+                                                        Stock: {availableStock}
+                                                    </p>
+                                                   
+                                                </div>
+                                              
                                             </div>
                                         </button>
                                     );
@@ -980,7 +1228,7 @@ const NewSaleModal = ({
                         </div>
                     </div>
 
-                    <div className="flex flex-2 flex-col gap-4 overflow-y-auto pr-1 lg:pr-4">
+                    <div className="flex flex-2 flex-col gap-4 overflow-y-auto ">
                         <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
                             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
                                 Personal asignado
@@ -1023,7 +1271,7 @@ const NewSaleModal = ({
                         <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
-                                    Resumen de pedido
+                                    Pedido
                                 </h3>
                                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
                                     {items.length} items
@@ -1078,7 +1326,7 @@ const NewSaleModal = ({
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <FaRegEdit
-                                                        className="w-4 h-4 text-slate-300 transition hover:text-[#fa7316]"
+                                                        className="w-4 h-4 text-slate-300 transition hover:text-[#fa7316] cursor-pointer"
                                                         onClick={() =>
                                                             setEditingItemId(
                                                                 item.productId
@@ -1087,7 +1335,7 @@ const NewSaleModal = ({
                                                     />
 
                                                     <MdDeleteOutline
-                                                        className="w-5 h-5 text-red-700 transition hover:text-red-300"
+                                                        className="w-5 h-5 text-red-700 transition hover:text-red-300 cursor-pointer"
                                                         onClick={() =>
                                                             removeItem(
                                                                 item.productId
@@ -1356,7 +1604,8 @@ const SaleEditorDrawer = ({
     }) => Promise<void>;
     onCloseSale: (
         saleId: Id<"sales">,
-        paymentMethod: "cash" | "card" | "transfer" | "other",
+        saleData: LiveSale,
+        paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
         notes: string
     ) => void;
     onCancelSale: (saleId: Id<"sales">) => void;
@@ -1369,6 +1618,7 @@ const SaleEditorDrawer = ({
             return {
                 productId: item.productId,
                 productName: product?.name ?? "Producto",
+                imageUrl: product?.imageUrl ?? null,
                 unitPrice: item.unitPrice,
                 quantity: item.quantity,
                 discountAmount: item.discountAmount ?? 0,
@@ -1400,6 +1650,7 @@ const SaleEditorDrawer = ({
     const [editingItemId, setEditingItemId] = useState<Id<"products"> | null>(
         null
     );
+    const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
     const filteredProducts = useMemo(() => {
         const query = searchTerm.trim().toLowerCase();
@@ -1426,6 +1677,7 @@ const SaleEditorDrawer = ({
                 return {
                     productId: item.productId,
                     productName: product?.name ?? "Producto",
+                    imageUrl: product?.imageUrl ?? null,
                     unitPrice: item.unitPrice,
                     quantity: item.quantity,
                     discountAmount: item.discountAmount ?? 0,
@@ -1470,6 +1722,7 @@ const SaleEditorDrawer = ({
                 {
                     productId: product._id,
                     productName: product.name,
+                    imageUrl: product.imageUrl,
                     unitPrice: product.price,
                     quantity: 1,
                     discountAmount: 0,
@@ -1538,8 +1791,8 @@ const SaleEditorDrawer = ({
     };
 
     return (
-        <div className="fixed inset-y-0 right-0 z-40 w-full max-w-7xl overflow-y-auto border-l border-slate-800 bg-slate-950/95 p-6 text-white shadow-xl shadow-black/50">
-            <header className="flex items-center justify-between">
+        <div className="fixed inset-y-0 right-0 z-40 flex flex-col w-full border-l border-slate-800 bg-slate-950/95 text-white shadow-xl shadow-black/50">
+            <header className="flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-800">
                 <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
                         {sale.table?.label ?? "Venta sin mesa"}
@@ -1558,8 +1811,8 @@ const SaleEditorDrawer = ({
                 </button>
             </header>
 
-            <div className="mt-6 flex flex-col gap-6 lg:flex-row">
-                <div className="flex flex-1 flex-col gap-4">
+            <div className="flex-1 flex flex-col gap-6 overflow-hidden p-6 lg:flex-row lg:gap-8 min-h-0">
+                <div className="flex flex-3 flex-col gap-4 overflow-y-auto  min-h-0">
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
@@ -1632,47 +1885,61 @@ const SaleEditorDrawer = ({
                                             key={product._id}
                                             type="button"
                                             onClick={() => addItem(product)}
-                                            className={`flex h-full flex-col gap-2 rounded-2xl border p-4 text-left text-sm transition ${
+                                            className={`flex h-full gap-3 rounded-2xl border p-4 text-left text-sm transition ${
                                                 isOutOfStock
                                                     ? "cursor-not-allowed border-red-500/40 bg-red-500/10 text-red-200"
                                                     : "border-slate-800 bg-slate-900/60 text-slate-200 hover:border-[#fa7316] hover:text-white"
                                             }`}
                                             disabled={isOutOfStock}
                                         >
-                                            <div className="space-y-1">
-                                                <p
-                                                    className={`text-xs uppercase tracking-[0.24em] ${isOutOfStock ? "text-red-200" : "text-slate-500"}`}
-                                                >
-                                                    {product.categoryName}
-                                                </p>
-                                                <p
-                                                    className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} line-clamp-2`}
-                                                >
-                                                    {product.name}
-                                                </p>
-                                                <p
-                                                    className={`text-xs ${isOutOfStock ? "text-red-200/80" : "text-slate-400"} line-clamp-3`}
-                                                >
-                                                    {product.description}
-                                                </p>
+                                            <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-slate-800 bg-slate-900/50">
+                                                {product.imageUrl ? (
+                                                    <img
+                                                        src={product.imageUrl}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-500">
+                                                        <svg
+                                                            className="w-10 h-10"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                            />
+                                                        </svg>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div
-                                                className={`mt-auto flex items-center justify-between text-xs ${
-                                                    isOutOfStock
-                                                        ? "text-red-200"
-                                                        : "text-slate-400"
-                                                }`}
-                                            >
-                                                <span>
-                                                    Stock: {availableStock}
-                                                </span>
-                                                <span
-                                                    className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"}`}
-                                                >
-                                                    {formatCurrency(
-                                                        product.price
-                                                    )}
-                                                </span>
+                                            <div className="flex-1 flex flex-col gap-2 min-w-0">
+                                                <div className="space-y-1">
+                                                    <p
+                                                        className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} line-clamp-2`}
+                                                    >
+                                                        {product.name}
+                                                    </p>
+                                                    <p
+                                                        className={`text-xs ${isOutOfStock ? "text-red-200/80" : "text-slate-400"} line-clamp-3`}
+                                                    >
+                                                        {product.description}
+                                                    </p>
+                                                    <p
+                                                        className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"}`}
+                                                    >
+                                                        {formatCurrency(
+                                                            product.price
+                                                        )}
+                                                    </p>
+                                                    <p className="text-xs text-slate-400">
+                                                        Stock: {availableStock}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </button>
                                     );
@@ -1682,92 +1949,119 @@ const SaleEditorDrawer = ({
                     </div>
                 </div>
 
-                <div className="flex w-full flex-col gap-4 lg:w-[380px]">
-                    <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-                        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                            Mesa asignada
-                            <select
-                                value={selectedTableId}
-                                onChange={(event) =>
-                                    setSelectedTableId(
-                                        event.target.value as
-                                            | Id<"branchTables">
-                                            | ""
-                                    )
-                                }
-                                className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-                            >
-                                <option value="">Sin mesa</option>
-                                {tables.map((table) => (
-                                    <option
-                                        key={table._id}
-                                        value={table._id as string}
-                                        disabled={
-                                            Boolean(table.currentSaleId) &&
-                                            table._id !== sale.sale.tableId
+                <div className="flex flex-2 flex-col gap-4 overflow-y-auto  ">
+                    <div className="flex-shrink-0 rounded-2xl border border-slate-800 bg-slate-950/50 overflow-hidden">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setIsDetailsExpanded(!isDetailsExpanded)
+                            }
+                            className="w-full flex items-center justify-between p-4 text-left text-white hover:bg-slate-900/50 transition"
+                        >
+                            <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+                                Detalles del pedido
+                            </h3>
+                            <span className="text-slate-400">
+                                {isDetailsExpanded ? (
+                                    <IoIosArrowUp />
+                                ) : (
+                                    <IoIosArrowDown />
+                                )}
+                            </span>
+                        </button>
+                        {isDetailsExpanded && (
+                            <div className="space-y-4 p-4 border-t border-slate-800">
+                                <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                    Mesa asignada
+                                    <select
+                                        value={selectedTableId}
+                                        onChange={(event) =>
+                                            setSelectedTableId(
+                                                event.target.value as
+                                                    | Id<"branchTables">
+                                                    | ""
+                                            )
                                         }
+                                        className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                     >
-                                        {table.label}
-                                        {table.currentSaleId &&
-                                        table._id !== sale.sale.tableId
-                                            ? " · Ocupada"
-                                            : ""}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                            Personal asignado
-                            <select
-                                value={selectedStaffId}
-                                onChange={(event) =>
-                                    setSelectedStaffId(
-                                        event.target.value as Id<"staff"> | ""
-                                    )
-                                }
-                                className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-                            >
-                                <option value="">Sin asignar</option>
-                                {staffMembers.map((member) => (
-                                    <option
-                                        key={member._id}
-                                        value={member._id as string}
+                                        <option value="">Sin mesa</option>
+                                        {tables.map((table) => (
+                                            <option
+                                                key={table._id}
+                                                value={table._id as string}
+                                                disabled={
+                                                    Boolean(
+                                                        table.currentSaleId
+                                                    ) &&
+                                                    table._id !==
+                                                        sale.sale.tableId
+                                                }
+                                            >
+                                                {table.label}
+                                                {table.currentSaleId &&
+                                                table._id !== sale.sale.tableId
+                                                    ? " · Ocupada"
+                                                    : ""}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                                <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                    Personal asignado
+                                    <select
+                                        value={selectedStaffId}
+                                        onChange={(event) =>
+                                            setSelectedStaffId(
+                                                event.target.value as
+                                                    | Id<"staff">
+                                                    | ""
+                                            )
+                                        }
+                                        className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                     >
-                                        {member.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                            Notas del pedido
-                            <textarea
-                                value={saleNotes}
-                                onChange={(event) =>
-                                    setSaleNotes(event.target.value)
-                                }
-                                rows={3}
-                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-                                placeholder="Comentarios especiales o instrucciones"
-                            />
-                        </label>
-                        <div className="flex justify-end">
-                            <button
-                                type="button"
-                                onClick={saveDetails}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
-                                disabled={isUpdatingDetails}
-                            >
-                                {isUpdatingDetails
-                                    ? "Guardando..."
-                                    : "Guardar detalles"}
-                            </button>
-                        </div>
+                                        <option value="">Sin asignar</option>
+                                        {staffMembers.map((member) => (
+                                            <option
+                                                key={member._id}
+                                                value={member._id as string}
+                                            >
+                                                {member.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                                <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                    Notas del pedido
+                                    <textarea
+                                        value={saleNotes}
+                                        onChange={(event) =>
+                                            setSaleNotes(event.target.value)
+                                        }
+                                        rows={3}
+                                        className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                        placeholder="Comentarios especiales o instrucciones"
+                                    />
+                                </label>
+                                <div className="flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={saveDetails}
+                                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                        disabled={isUpdatingDetails}
+                                    >
+                                        {isUpdatingDetails
+                                            ? "Guardando..."
+                                            : "Guardar detalles"}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
-                                Resumen
+                                Pedido
                             </h3>
                             <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
                                 {items.length} items
@@ -1779,7 +2073,7 @@ const SaleEditorDrawer = ({
                                 productos desde el catálogo.
                             </div>
                         ) : (
-                            <ul className="divide-y divide-slate-800 max-h-[260px] overflow-y-auto pr-1">
+                            <ul className="divide-y divide-slate-800  overflow-y-auto pr-1">
                                 {items.map((item) => (
                                     <li
                                         key={item.productId}
@@ -1898,25 +2192,29 @@ const SaleEditorDrawer = ({
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-                        <div className="flex items-center justify-between">
+            <footer className="flex-shrink-0 flex flex-col gap-4 p-6 border-t border-slate-800 bg-slate-950/95">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-3">
                             <span className="text-xs uppercase tracking-[0.24em] text-slate-500">
                                 Total
                             </span>
-                            <span className="text-xl font-semibold text-white">
+                            <span className="text-2xl font-semibold text-white">
                                 {formatCurrency(total)}
                             </span>
                         </div>
-                        <div className="grid gap-2 text-sm text-slate-300">
-                            <div className="flex items-center justify-between">
-                                <span>Creada</span>
+                        <div className="flex flex-col gap-1 text-sm text-slate-300">
+                            <div className="flex items-center gap-2">
+                                <span>Creada:</span>
                                 <span className="font-semibold text-white">
                                     {formatDateTime(sale.sale.openedAt)}
                                 </span>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span>Tiempo en mesa</span>
+                            <div className="flex items-center gap-2">
+                                <span>Tiempo en mesa:</span>
                                 <span className="font-semibold text-white">
                                     {formatDuration(
                                         sale.sale.openedAt,
@@ -1927,14 +2225,15 @@ const SaleEditorDrawer = ({
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-3 md:flex-row md:justify-between">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center">
                         <div className="flex flex-col gap-2 sm:flex-row">
                             <button
                                 type="button"
                                 onClick={() =>
                                     onCloseSale(
                                         sale.sale._id,
-                                        "cash",
+                                        sale,
+                                        "Contado",
                                         saleNotes
                                     )
                                 }
@@ -1950,16 +2249,9 @@ const SaleEditorDrawer = ({
                                 Cancelar venta
                             </button>
                         </div>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
-                        >
-                            Cerrar panel
-                        </button>
                     </div>
                 </div>
-            </div>
+            </footer>
 
             {editingItem && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">

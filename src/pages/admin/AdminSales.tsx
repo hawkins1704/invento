@@ -677,15 +677,15 @@ const SummaryCard = ({
   );
 };
 
-const methodLabel = (method: "cash" | "card" | "transfer" | "other") => {
+const methodLabel = (method: "Contado" | "Tarjeta" | "Transferencia" | "Otros") => {
   switch (method) {
-    case "cash":
+    case "Contado":
       return "Efectivo";
-    case "card":
+    case "Tarjeta":
       return "Tarjeta";
-    case "transfer":
+    case "Transferencia":
       return "Transferencia";
-    case "other":
+    case "Otros":
     default:
       return "Otro";
   }

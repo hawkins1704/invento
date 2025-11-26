@@ -17,7 +17,10 @@ export default defineSchema({
     IGVPercentage: v.optional(v.union(v.literal(10), v.literal(18))),
     personaId: v.optional(v.string()),
     personaToken: v.optional(v.string()),
+    serieBoleta: v.optional(v.string()),
+    serieFactura: v.optional(v.string()),
     companyName: v.optional(v.string()),
+    companyCommercialName: v.optional(v.string()),
     ruc: v.optional(v.string()),
     companyLogo: v.optional(v.id("_storage")),
     companyAddress: v.optional(v.string()),
@@ -93,10 +96,10 @@ export default defineSchema({
     total: v.number(),
     paymentMethod: v.optional(
       v.union(
-        v.literal("cash"),
-        v.literal("card"),
-        v.literal("transfer"),
-        v.literal("other")
+        v.literal("Contado"),
+        v.literal("Tarjeta"),
+        v.literal("Transferencia"),
+        v.literal("Otros")
       )
     ),
     notes: v.optional(v.string()),
@@ -138,9 +141,6 @@ export default defineSchema({
     documentNumber: v.string(),
     name: v.string(),
     address: v.optional(v.string()),
-    district: v.optional(v.string()),
-    province: v.optional(v.string()),
-    department: v.optional(v.string()),
     email: v.optional(v.string()),
     phone: v.optional(v.string()),
   })

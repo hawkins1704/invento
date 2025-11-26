@@ -8,9 +8,6 @@ export const create = mutation({
     documentNumber: v.string(),
     name: v.string(),
     address: v.optional(v.string()),
-    district: v.optional(v.string()),
-    province: v.optional(v.string()),
-    department: v.optional(v.string()),
     email: v.optional(v.string()),
     phone: v.optional(v.string()),
   },
@@ -40,9 +37,6 @@ export const create = mutation({
       await ctx.db.patch(existing._id, {
         name: args.name.trim(),
         address: args.address?.trim(),
-        district: args.district?.trim(),
-        province: args.province?.trim(),
-        department: args.department?.trim(),
         email: args.email?.trim().toLowerCase(),
         phone: args.phone?.trim(),
       });
@@ -55,9 +49,6 @@ export const create = mutation({
       documentNumber: normalizedDocumentNumber,
       name: args.name.trim(),
       address: args.address?.trim(),
-      district: args.district?.trim(),
-      province: args.province?.trim(),
-      department: args.department?.trim(),
       email: args.email?.trim().toLowerCase(),
       phone: args.phone?.trim(),
     });

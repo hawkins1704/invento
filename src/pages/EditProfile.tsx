@@ -11,10 +11,13 @@ type ProfileFormState = {
   administratorCode: string;
   salesCode: string;
   companyName: string;
+  companyCommercialName: string;
   ruc: string;
   companyLogoFile: File | null;
   personaId: string;
   personaToken: string;
+  serieBoleta: string;
+  serieFactura: string;
   IGVPercentage: "10" | "18" | "";
   companyAddress: string;
   companyDistrict: string;
@@ -26,12 +29,15 @@ const DEFAULT_FORM: ProfileFormState = {
   name: "",
   administratorCode: "",
   salesCode: "",
-  companyName: "",
-  ruc: "",
+    companyName: "",
+    companyCommercialName: "",
+    ruc: "",
   companyLogoFile: null,
-  personaId: "",
-  personaToken: "",
-  IGVPercentage: "",
+    personaId: "",
+    personaToken: "",
+    serieBoleta: "",
+    serieFactura: "",
+    IGVPercentage: "",
   companyAddress: "",
   companyDistrict: "",
   companyProvince: "",
@@ -59,10 +65,13 @@ const EditProfile = () => {
         administratorCode: currentUser.administratorCode ?? "",
         salesCode: currentUser.salesCode ?? "",
         companyName: currentUser.companyName ?? "",
+        companyCommercialName: (currentUser as any).companyCommercialName ?? "",
         ruc: (currentUser as any).ruc ?? "",
         companyLogoFile: null,
         personaId: currentUser.personaId ?? "",
         personaToken: currentUser.personaToken ?? "",
+        serieBoleta: (currentUser as any).serieBoleta ?? "",
+        serieFactura: (currentUser as any).serieFactura ?? "",
         IGVPercentage: currentUser.IGVPercentage ? (currentUser.IGVPercentage.toString() as "10" | "18") : "",
         companyAddress: (currentUser as any).companyAddress ?? "",
         companyDistrict: (currentUser as any).companyDistrict ?? "",
@@ -155,11 +164,14 @@ const EditProfile = () => {
         administratorCode: formState.administratorCode.trim() || undefined,
         salesCode: formState.salesCode.trim() || undefined,
         companyName: formState.companyName.trim() || undefined,
+        companyCommercialName: formState.companyCommercialName.trim() || undefined,
         ruc: formState.ruc.trim() || undefined,
         companyLogo: companyLogoStorageId,
         removeCompanyLogo: shouldRemoveCompanyLogo ? true : undefined,
         personaId: formState.personaId.trim() || undefined,
         personaToken: formState.personaToken.trim() || undefined,
+        serieBoleta: formState.serieBoleta.trim() || undefined,
+        serieFactura: formState.serieFactura.trim() || undefined,
         IGVPercentage: formState.IGVPercentage
           ? (Number(formState.IGVPercentage) as 10 | 18)
           : undefined,
@@ -302,7 +314,7 @@ const EditProfile = () => {
                 htmlFor="companyName"
                 className="text-sm font-medium text-slate-200"
               >
-                Nombre de la Empresa
+                Razón Social
               </label>
               <input
                 id="companyName"
@@ -311,7 +323,25 @@ const EditProfile = () => {
                 value={formState.companyName}
                 onChange={handleChange}
                 className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                placeholder="Razón social o nombre comercial"
+                placeholder="Razón social de la empresa"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="companyCommercialName"
+                className="text-sm font-medium text-slate-200"
+              >
+                Nombre Comercial
+              </label>
+              <input
+                id="companyCommercialName"
+                name="companyCommercialName"
+                type="text"
+                value={formState.companyCommercialName}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Nombre comercial de la empresa"
               />
             </div>
 
@@ -420,6 +450,50 @@ const EditProfile = () => {
                 className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Token de autenticación APISUNAT"
               />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="serieBoleta"
+                className="text-sm font-medium text-slate-200"
+              >
+                Serie Boleta
+              </label>
+              <input
+                id="serieBoleta"
+                name="serieBoleta"
+                type="text"
+                value={formState.serieBoleta}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Ej: B001"
+                maxLength={4}
+              />
+              <p className="text-xs text-slate-500">
+                Serie para boletas de venta (4 caracteres, ej: B001)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="serieFactura"
+                className="text-sm font-medium text-slate-200"
+              >
+                Serie Factura
+              </label>
+              <input
+                id="serieFactura"
+                name="serieFactura"
+                type="text"
+                value={formState.serieFactura}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Ej: F001"
+                maxLength={4}
+              />
+              <p className="text-xs text-slate-500">
+                Serie para facturas (4 caracteres, ej: F001)
+              </p>
             </div>
 
             <div className="space-y-2">

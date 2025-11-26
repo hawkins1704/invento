@@ -7,6 +7,8 @@ import type {
   APISUNATError,
   ListDocumentsParams,
   PDFFormat,
+  LastDocumentRequest,
+  LastDocumentResponse,
 } from "../types/apisunat";
 
 // URL base de la API de APISUNAT
@@ -28,6 +30,33 @@ class APISUNATClient {
   }
 
   /**
+   * Obtiene el último número correlativo para un documento
+   * Endpoint: POST /personas/lastDocument
+   * 
+   * @param request Parámetros: personaId, personaToken, type, serie
+   * @returns Respuesta con lastNumber y suggestedNumber
+   */
+  async getLastDocument(
+    request: LastDocumentRequest
+  ): Promise<LastDocumentResponse> {
+    try {
+      const { data } = await this.axiosInstance.post<LastDocumentResponse>(
+        "/personas/lastDocument",
+        request
+      );
+      return data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data as APISUNATError | undefined;
+        throw new Error(
+          errorData?.message || errorData?.error || error.message || "Error al obtener número correlativo"
+        );
+      }
+      throw new Error("Error de conexión con APISUNAT");
+    }
+  }
+
+  /**
    * Emite un documento electrónico (factura o boleta)
    * Endpoint: POST /sendBill
    * 
@@ -38,17 +67,19 @@ class APISUNATClient {
     document: EmitDocumentRequest
   ): Promise<EmitDocumentResponse> {
     try {
+      console.log("document: ", document);
       const { data } = await this.axiosInstance.post<EmitDocumentResponse>(
-        "/sendBill",
+        "/personas/v1/sendBill",
         document
       );
       return data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const errorData = error.response?.data as APISUNATError | undefined;
-        throw new Error(
-          errorData?.message || errorData?.error || error.message || "Error al emitir documento"
-        );
+        console.log("Error encontrado al emitir documento: ", error.response?.data);
+        // const errorData = error.response?.data as APISUNATError | undefined;
+        // throw new Error(
+        //   errorData?.message || errorData?.error || error.message || "Error al emitir documento"
+        // );
       }
       throw new Error("Error de conexión con APISUNAT");
     }
