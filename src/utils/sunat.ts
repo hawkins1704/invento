@@ -294,37 +294,35 @@ export const buildLegalMonetaryTotal = (
 };
 
 /**
- * Construye el TaxTotal (impuestos del documento)
+ * Construye el TaxTotal (impuestos del documento) usando los totales ya calculados
  * 
- * @param total Monto total después de descuentos (incluye IGV)
+ * @param totalTaxableAmount Suma de todos los montos sin IGV (lineExtensionAmount)
+ * @param totalTaxAmount Suma de todos los IGV calculados
  * @param igvPercentage Porcentaje de IGV: 10 o 18
  * @returns TaxTotal completo con TaxableAmount e IGV calculados
  */
 export const buildTaxTotal = (
-  total: number,
+  totalTaxableAmount: number,
+  totalTaxAmount: number,
   igvPercentage: 10 | 18
 ): TaxTotal => {
   // Validar que tengamos los datos necesarios
-  if (total < 0) {
-    throw new Error("El total no puede ser negativo");
+  if (totalTaxableAmount < 0) {
+    throw new Error("El monto gravado no puede ser negativo");
+  }
+  if (totalTaxAmount < 0) {
+    throw new Error("El IGV no puede ser negativo");
   }
   if (igvPercentage !== 10 && igvPercentage !== 18) {
     throw new Error('El porcentaje de IGV debe ser 10 o 18');
   }
-
-  // Calcular el monto gravado (sin IGV)
-  // Si total = X + X*IGV%, entonces X = total / (1 + IGV%)
-  const taxableAmount = roundToCents(total / (1 + igvPercentage / 100));
-  
-  // Calcular el IGV
-  const taxAmount = roundToCents(total - taxableAmount);
 
   return {
     "cbc:TaxAmount": {
       _attributes: {
         currencyID: "PEN",
       },
-      _text: taxAmount,
+      _text: totalTaxAmount,
     },
     "cac:TaxSubtotal": [
       {
@@ -332,13 +330,13 @@ export const buildTaxTotal = (
           _attributes: {
             currencyID: "PEN",
           },
-          _text: taxableAmount,
+          _text: totalTaxableAmount,
         },
         "cbc:TaxAmount": {
           _attributes: {
             currencyID: "PEN",
           },
-          _text: taxAmount,
+          _text: totalTaxAmount,
         },
         "cac:TaxCategory": {
           "cac:TaxScheme": {
@@ -426,16 +424,13 @@ const buildInvoiceLineTaxSubtotal = (
 };
 
 /**
- * Construye el TaxTotal para una línea de factura
+ * Construye el TaxTotal para una línea de factura usando el IGV ya calculado
  */
-const buildInvoiceLineTaxTotal = (
+const buildInvoiceLineTaxTotalFromAmount = (
   lineExtensionAmount: number,
+  taxAmount: number,
   igvPercentage: 10 | 18
 ): InvoiceLineTaxTotal => {
-  // Calcular el IGV de la línea
-  // IGV = monto sin IGV * porcentaje de IGV
-  const taxAmount = roundToCents(lineExtensionAmount * (igvPercentage / 100));
-
   return {
     "cbc:TaxAmount": {
       _attributes: {
@@ -449,12 +444,14 @@ const buildInvoiceLineTaxTotal = (
   };
 };
 
+
 /**
  * Construye una línea de factura (InvoiceLine)
  * 
  * @param lineNumber Número de línea (1, 2, 3...)
  * @param quantity Cantidad del producto
- * @param unitPrice Precio unitario SIN IGV
+ * @param unitValue Precio unitario SIN IGV (unitValue del producto)
+ * @param igv Monto de IGV por unidad (igv del producto)
  * @param discountAmount Descuento aplicado (opcional, default 0)
  * @param productDescription Descripción/nombre del producto
  * @param igvPercentage Porcentaje de IGV: 10 o 18
@@ -463,7 +460,8 @@ const buildInvoiceLineTaxTotal = (
 export const buildInvoiceLine = (
   lineNumber: number,
   quantity: number,
-  unitPrice: number,
+  unitValue: number,
+  igv: number,
   discountAmount: number,
   productDescription: string,
   igvPercentage: 10 | 18
@@ -475,8 +473,11 @@ export const buildInvoiceLine = (
   if (quantity <= 0) {
     throw new Error("La cantidad debe ser mayor a 0");
   }
-  if (unitPrice < 0) {
+  if (unitValue < 0) {
     throw new Error("El precio unitario no puede ser negativo");
+  }
+  if (igv < 0) {
+    throw new Error("El IGV no puede ser negativo");
   }
   if (discountAmount < 0) {
     throw new Error("El descuento no puede ser negativo");
@@ -491,14 +492,22 @@ export const buildInvoiceLine = (
   // Calcular subtotal de la línea (sin IGV, después de descuentos)
   // Los descuentos se aplican ANTES del IGV
   const lineExtensionAmount = roundToCents(
-    Math.max(0, quantity * unitPrice - discountAmount)
+    Math.max(0, quantity * unitValue - discountAmount)
+  );
+
+  // Calcular IGV de la línea (usando el igv del producto * cantidad, después de descuentos)
+  // Si hay descuento, se aplica proporcionalmente al IGV
+  // El descuento se aplica primero al precio sin IGV, luego se calcula el IGV sobre el monto resultante
+  const discountRatio = unitValue > 0 ? discountAmount / (quantity * unitValue) : 0;
+  const lineIGVAmount = roundToCents(
+    Math.max(0, (quantity * igv) * (1 - discountRatio))
   );
 
   // Precio unitario con IGV (para PricingReference)
-  const unitPriceWithIGV = roundToCents(unitPrice * (1 + igvPercentage / 100));
+  const unitPriceWithIGV = roundToCents(unitValue + igv);
 
-  // Construir TaxTotal de la línea
-  const taxTotal = buildInvoiceLineTaxTotal(lineExtensionAmount, igvPercentage);
+  // Construir TaxTotal de la línea usando el IGV calculado
+  const taxTotal = buildInvoiceLineTaxTotalFromAmount(lineExtensionAmount, lineIGVAmount, igvPercentage);
 
   return {
     "cbc:ID": {
@@ -540,7 +549,7 @@ export const buildInvoiceLine = (
         _attributes: {
           currencyID: "PEN",
         },
-        _text: unitPrice,
+        _text: unitValue, // Precio SIN IGV
       },
     },
   };
@@ -552,7 +561,8 @@ export const buildInvoiceLine = (
 type SaleItemWithProduct = {
   productId: string;
   quantity: number;
-  unitPrice: number;
+  unitValue: number; // Precio SIN IGV (unitValue del producto)
+  igv: number; // Monto de IGV por unidad (igv del producto)
   discountAmount?: number;
   productName: string;
 };
@@ -562,26 +572,58 @@ type SaleItemWithProduct = {
  * 
  * @param items Array de items de la venta con información del producto
  * @param igvPercentage Porcentaje de IGV: 10 o 18
- * @returns InvoiceLine[] con todas las líneas de detalle
+ * @returns Objeto con las líneas de factura y los totales calculados
  */
 export const buildInvoiceLines = (
   items: SaleItemWithProduct[],
   igvPercentage: 10 | 18
-): InvoiceLine[] => {
+): {
+  invoiceLines: InvoiceLine[];
+  totalTaxableAmount: number; // Suma de todos los lineExtensionAmount
+  totalTaxAmount: number; // Suma de todos los IGV
+} => {
   if (items.length === 0) {
     throw new Error("Debe haber al menos un item en la venta");
   }
 
-  return items.map((item, index) =>
-    buildInvoiceLine(
+  let totalTaxableAmount = 0;
+  let totalTaxAmount = 0;
+
+  const invoiceLines = items.map((item, index) => {
+    // Calcular valores de la línea
+    const lineExtensionAmount = roundToCents(
+      Math.max(0, item.quantity * item.unitValue - (item.discountAmount ?? 0))
+    );
+    
+    // Calcular IGV de la línea (usando el igv del producto * cantidad, después de descuentos)
+    // El descuento se aplica primero al precio sin IGV, luego se calcula el IGV sobre el monto resultante
+    const discountRatio = (item.quantity * item.unitValue) > 0 
+      ? (item.discountAmount ?? 0) / (item.quantity * item.unitValue) 
+      : 0;
+    const lineIGVAmount = roundToCents(
+      Math.max(0, (item.quantity * item.igv) * (1 - discountRatio))
+    );
+
+    // Acumular totales
+    totalTaxableAmount += lineExtensionAmount;
+    totalTaxAmount += lineIGVAmount;
+
+    return buildInvoiceLine(
       index + 1, // Número de línea (1, 2, 3...)
       item.quantity,
-      item.unitPrice,
+      item.unitValue,
+      item.igv,
       item.discountAmount ?? 0,
       item.productName,
       igvPercentage
-    )
-  );
+    );
+  });
+
+  return {
+    invoiceLines,
+    totalTaxableAmount: roundToCents(totalTaxableAmount),
+    totalTaxAmount: roundToCents(totalTaxAmount),
+  };
 };
 
 /**
@@ -624,9 +666,18 @@ type CustomerDataForDocumentBody = {
 };
 
 /**
- * Tipo para mapeo de productos (productId -> productName)
+ * Tipo para información completa del producto
  */
-type ProductMap = Map<string, string> | Record<string, string>;
+type ProductInfo = {
+  name: string;
+  unitValue: number;
+  igv: number;
+};
+
+/**
+ * Tipo para mapeo de productos (productId -> ProductInfo)
+ */
+type ProductMap = Map<string, ProductInfo> | Record<string, ProductInfo>;
 
 /**
  * Construye el DocumentBody completo para documentos SUNAT
@@ -674,10 +725,6 @@ export const buildDocumentBody = (params: {
   // Obtener porcentaje de IGV (default 18%)
   const igvPercentage = userData.IGVPercentage || 18;
 
-  // Calcular total CON IGV (saleData.sale.total es SIN IGV)
-  // totalConIGV = totalSinIGV * (1 + IGV%)
-  const totalConIGV = roundToCents(saleData.sale.total * (1 + igvPercentage / 100));
-
   // Construir dirección completa de la empresa
   const supplierAddress = [
     userData.companyAddress,
@@ -691,6 +738,39 @@ export const buildDocumentBody = (params: {
   if (!supplierAddress) {
     throw new Error("La dirección de la empresa es requerida");
   }
+
+  // Mapear items con información completa de productos (unitValue e igv)
+  const itemsWithProducts: SaleItemWithProduct[] = saleData.items.map(
+    (item) => {
+      const productInfo =
+        products instanceof Map
+          ? products.get(item.productId)
+          : products[item.productId];
+
+      if (!productInfo) {
+        throw new Error(`Producto con ID ${item.productId} no encontrado`);
+      }
+
+      if (productInfo.unitValue === undefined || productInfo.igv === undefined) {
+        throw new Error(`El producto ${productInfo.name} no tiene unitValue o igv definidos`);
+      }
+
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        unitValue: productInfo.unitValue,
+        igv: productInfo.igv,
+        discountAmount: item.discountAmount,
+        productName: productInfo.name,
+      };
+    }
+  );
+
+  // Construir InvoiceLines (retorna líneas y totales calculados)
+  const { invoiceLines, totalTaxableAmount, totalTaxAmount } = buildInvoiceLines(itemsWithProducts, igvPercentage);
+
+  // Calcular total CON IGV (suma de base imponible + IGV)
+  const totalConIGV = roundToCents(totalTaxableAmount + totalTaxAmount);
 
   // Construir campos básicos
   const basicFields = buildBasicDocumentBodyFields(
@@ -725,8 +805,8 @@ export const buildDocumentBody = (params: {
         "NO ESPECIFICADO"
       );
 
-  // Construir TaxTotal (necesita total CON IGV)
-  const taxTotal = buildTaxTotal(totalConIGV, igvPercentage);
+  // Construir TaxTotal usando los totales ya calculados
+  const taxTotal = buildTaxTotal(totalTaxableAmount, totalTaxAmount, igvPercentage);
 
   // Construir LegalMonetaryTotal (necesita total CON IGV)
   const legalMonetaryTotal = buildLegalMonetaryTotal(totalConIGV, igvPercentage);
@@ -736,27 +816,6 @@ export const buildDocumentBody = (params: {
     documentType === "01" && paymentMethod
       ? buildPaymentTerms(paymentMethod)
       : undefined;
-
-  // Mapear items con nombres de productos
-  const itemsWithProducts: SaleItemWithProduct[] = saleData.items.map(
-    (item) => {
-      const productName =
-        products instanceof Map
-          ? products.get(item.productId) || "Producto"
-          : products[item.productId] || "Producto";
-
-      return {
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        discountAmount: item.discountAmount,
-        productName,
-      };
-    }
-  );
-
-  // Construir InvoiceLines
-  const invoiceLines = buildInvoiceLines(itemsWithProducts, igvPercentage);
 
   // Construir y retornar el DocumentBody completo
   return {

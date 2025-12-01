@@ -109,16 +109,21 @@ const Layout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isBranchMenuOpen, setIsBranchMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuthActions();
   const profileButtonRef = useRef<HTMLButtonElement | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const branchButtonRef = useRef<HTMLButtonElement | null>(null);
+  const branchMenuRef = useRef<HTMLDivElement | null>(null);
   const {
     branchId: shiftBranchId,
     branch: selectedShiftBranch,
+    branches,
     activeShift: activeShiftSummary,
     isLoadingShift,
+    setBranchId,
   } = useSalesShift();
   const shiftStaff = useQuery(
     api.staff.list,
@@ -275,7 +280,29 @@ const Layout = () => {
 
   useEffect(() => {
     setIsProfileMenuOpen(false);
+    setIsBranchMenuOpen(false);
   }, [isCollapsed, isMobileOpen]);
+
+  useEffect(() => {
+    if (!isBranchMenuOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        (branchButtonRef.current && branchButtonRef.current.contains(event.target as Node)) ||
+        (branchMenuRef.current && branchMenuRef.current.contains(event.target as Node))
+      ) {
+        return;
+      }
+      setIsBranchMenuOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isBranchMenuOpen]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -715,6 +742,82 @@ const Layout = () => {
               </h1>
             </div>
           </div>
+          {currentArea === "sales" && selectedShiftBranch && (
+            <div className="relative">
+              <button
+                type="button"
+                ref={branchButtonRef}
+                onClick={() => setIsBranchMenuOpen((previous) => !previous)}
+                className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm font-semibold text-white transition hover:border-[#fa7316] hover:bg-slate-800/80"
+              >
+                <BiSolidStore color={PRIMARY_COLOR} />
+                <span>{selectedShiftBranch.name}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className={`h-4 w-4 transition-transform ${isBranchMenuOpen ? "rotate-180" : ""}`}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </button>
+
+              {isBranchMenuOpen && branches && branches.length > 0 && (
+                <div
+                  ref={branchMenuRef}
+                  className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-slate-800 bg-slate-900/95 p-3 shadow-xl"
+                >
+                  <div className="mb-2 px-3 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    Seleccionar sucursal
+                  </div>
+                  {branches
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((branch) => {
+                      const isSelected = (branch._id as string) === shiftBranchId;
+                      return (
+                        <button
+                          key={branch._id as string}
+                          type="button"
+                          onClick={() => {
+                            setBranchId(branch._id as string);
+                            setIsBranchMenuOpen(false);
+                          }}
+                          className={`flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${
+                            isSelected
+                              ? "bg-[#fa7316]/10 text-[#fa7316] border border-[#fa7316]/30"
+                              : "text-slate-200 hover:bg-slate-800/80"
+                          }`}
+                        >
+                          <BiSolidStore color={isSelected ? PRIMARY_COLOR : undefined} className="mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold">{branch.name}</div>
+                            {branch.address && (
+                              <div className={`mt-0.5 text-xs ${isSelected ? "text-[#fa7316]/80" : "text-slate-400"}`}>
+                                {branch.address}
+                              </div>
+                            )}
+                          </div>
+                          {isSelected && (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={2}
+                              stroke="currentColor"
+                              className="h-5 w-5 flex-shrink-0"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                          )}
+                        </button>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          )}
         </header>
 
         <main className="flex-1 overflow-y-auto bg-slate-950">

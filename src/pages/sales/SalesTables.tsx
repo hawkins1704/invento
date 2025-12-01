@@ -621,10 +621,16 @@ const SalesTablesContent = ({
                         );
 
                         // PASO 4 - Construir documentBody (estructura UBL completa)
-                        // Crear mapeo de productos (productId -> productName)
-                        const productsNameMap = new Map<string, string>();
+                        // Crear mapeo de productos con información completa (productId -> {name, unitValue, igv})
+                        const productsMap = new Map<string, { name: string; unitValue: number; igv: number }>();
                         (products ?? []).forEach((product) => {
-                            productsNameMap.set(product._id as string, product.name);
+                            if (product.unitValue !== undefined && product.igv !== undefined) {
+                                productsMap.set(product._id as string, {
+                                    name: product.name,
+                                    unitValue: product.unitValue,
+                                    igv: product.igv,
+                                });
+                            }
                         });
 
                         const documentBody = buildDocumentBody({
@@ -660,7 +666,7 @@ const SalesTablesContent = ({
                                 companyDepartment: currentUser.companyDepartment,
                                 IGVPercentage: currentUser.IGVPercentage || 18,
                             },
-                            products: productsNameMap,
+                            products: productsMap,
                             notes: notes,
                         });
 
@@ -758,10 +764,16 @@ const SalesTablesContent = ({
                         );
 
                         // PASO 4 - Construir documentBody (estructura UBL completa)
-                        // Crear mapeo de productos (productId -> productName)
-                        const productsNameMap = new Map<string, string>();
+                        // Crear mapeo de productos con información completa (productId -> {name, unitValue, igv})
+                        const productsMap = new Map<string, { name: string; unitValue: number; igv: number }>();
                         (products ?? []).forEach((product) => {
-                            productsNameMap.set(product._id as string, product.name);
+                            if (product.unitValue !== undefined && product.igv !== undefined) {
+                                productsMap.set(product._id as string, {
+                                    name: product.name,
+                                    unitValue: product.unitValue,
+                                    igv: product.igv,
+                                });
+                            }
                         });
 
                         const documentBody = buildDocumentBody({
@@ -795,7 +807,7 @@ const SalesTablesContent = ({
                                 companyDepartment: currentUser.companyDepartment,
                                 IGVPercentage: currentUser.IGVPercentage || 18,
                             },
-                            products: productsNameMap,
+                            products: productsMap,
                             paymentMethod: paymentMethod,
                             notes: notes,
                         });
