@@ -12,7 +12,7 @@ import type {
 } from "../types/apisunat";
 
 // URL base de la API de APISUNAT
-const APISUNAT_BASE_URL = "https://back.apisunat.com";
+const APISUNAT_BASE_URL = import.meta.env.VITE_APISUNAT_BASE_URL as string;
 
 /**
  * Cliente HTTP para interactuar con la API de APISUNAT

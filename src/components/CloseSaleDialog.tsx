@@ -1,5 +1,7 @@
-import { useState, type ChangeEvent } from "react";
+import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { useDecolecta } from "../hooks/useDecolecta";
+import type { RUCResponse, DNIResponse } from "../types/decolecta";
 
 type CustomerFormState = {
     documentType: "RUC" | "DNI" | "";
@@ -65,20 +67,149 @@ const CloseSaleDialog = ({
     );
     const [showCustomerForm, setShowCustomerForm] = useState(false);
     const [sendEmail, setSendEmail] = useState(false);
-
-    if (!isOpen || !saleId) {
-        return null;
-    }
+    const [isLoadingCustomerData, setIsLoadingCustomerData] = useState(false);
+    
+    const { consultarRUC, consultarDNI } = useDecolecta();
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastQueriedRef = useRef<string>(""); // Para evitar consultas duplicadas
 
     const handleCustomerFormChange = (
         event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
         const { name, value } = event.target;
-        setCustomerForm((previous) => ({
-            ...previous,
-            [name]: value,
-        }));
+        setCustomerForm((previous) => {
+            const updated = {
+                ...previous,
+                [name]: value,
+            };
+            
+            // Si se cambió el tipo de documento o número de documento, limpiar otros campos
+            // para permitir que se autocompleten con los nuevos datos
+            if (name === "documentType" || name === "documentNumber") {
+                // No limpiar si solo se está cambiando el tipo de documento
+                if (name === "documentType") {
+                    return updated;
+                }
+            }
+            
+            return updated;
+        });
     };
+
+    // Efecto para consultar datos automáticamente cuando se ingresa RUC o DNI
+    useEffect(() => {
+        // Limpiar timer anterior si existe
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+
+        // Solo consultar si:
+        // 1. El formulario de cliente está visible
+        // 2. Hay un tipo de documento seleccionado
+        // 3. El número de documento tiene al menos 8 caracteres (mínimo para DNI/RUC válido)
+        if (
+            showCustomerForm &&
+            customerForm.documentType &&
+            customerForm.documentNumber.trim().length >= 8
+        ) {
+            const documentNumber = customerForm.documentNumber.trim();
+            const queryKey = `${customerForm.documentType}-${documentNumber}`;
+            
+            // Evitar consultas duplicadas
+            if (queryKey === lastQueriedRef.current) {
+                return;
+            }
+
+            // Debounce: esperar 500ms después de que el usuario deje de escribir
+            debounceTimerRef.current = setTimeout(async () => {
+                setIsLoadingCustomerData(true);
+                lastQueriedRef.current = queryKey;
+
+                try {
+                    if (customerForm.documentType === "RUC") {
+                        const response = await consultarRUC(documentNumber);
+                        if (response) {
+                            // Mapear datos de RUC
+                            setCustomerForm((previous) => {
+                                const updated = { ...previous };
+                                const rucResponse = response as RUCResponse;
+                                
+                                if (rucResponse.razonSocial) {
+                                    updated.name = rucResponse.razonSocial;
+                                }
+                                if (rucResponse.direccion) {
+                                    updated.address = rucResponse.direccion;
+                                }
+                                if (rucResponse.email) {
+                                    updated.email = rucResponse.email;
+                                }
+                                if (rucResponse.telefono) {
+                                    updated.phone = rucResponse.telefono;
+                                }
+                                
+                                return updated;
+                            });
+                        }
+                    } else if (customerForm.documentType === "DNI") {
+                        const response = await consultarDNI(documentNumber);
+                        if (response) {
+                            // Mapear datos de DNI según estructura de Decolecta API
+                            setCustomerForm((previous) => {
+                                const updated = { ...previous };
+                                const dniResponse = response as DNIResponse;
+                                
+                                // Priorizar full_name, si no existe construir desde los campos individuales
+                                if (dniResponse.full_name) {
+                                    updated.name = dniResponse.full_name;
+                                } else if (dniResponse.first_name && dniResponse.first_last_name && dniResponse.second_last_name) {
+                                    updated.name = `${dniResponse.first_last_name} ${dniResponse.second_last_name} ${dniResponse.first_name}`.trim();
+                                } else if (dniResponse.first_name && dniResponse.first_last_name) {
+                                    updated.name = `${dniResponse.first_last_name} ${dniResponse.first_name}`.trim();
+                                } else if (dniResponse.first_name) {
+                                    updated.name = dniResponse.first_name;
+                                }
+                                // Nota: La API de DNI de Decolecta no devuelve dirección, email ni teléfono
+                                // Estos campos se mantienen vacíos o se pueden llenar manualmente
+                                
+                                return updated;
+                            });
+                        }
+                    } else {
+                        setIsLoadingCustomerData(false);
+                        return;
+                    }
+                } catch (error) {
+                    // Silenciar errores, solo no autocompletar si falla
+                    console.error("Error al consultar datos del cliente:", error);
+                } finally {
+                    setIsLoadingCustomerData(false);
+                }
+            }, 500); // 500ms de debounce
+        }
+
+        // Cleanup function
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, [
+        showCustomerForm,
+        customerForm.documentType,
+        customerForm.documentNumber,
+        consultarRUC,
+        consultarDNI,
+    ]);
+
+    // Limpiar el ref cuando se cierra el diálogo o se resetea el formulario
+    useEffect(() => {
+        if (!isOpen) {
+            lastQueriedRef.current = "";
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        }
+    }, [isOpen]);
 
     const handleClose = () => {
         setCustomerForm(DEFAULT_CUSTOMER_FORM);
@@ -86,6 +217,11 @@ const CloseSaleDialog = ({
         setPaymentMethod("Contado");
         setNotes("");
         setSendEmail(false);
+        setIsLoadingCustomerData(false);
+        lastQueriedRef.current = "";
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
         onClose();
     };
 
@@ -173,6 +309,11 @@ const CloseSaleDialog = ({
         customerForm.documentNumber.trim() &&
         customerForm.name.trim();
 
+    // Early return después de todos los hooks para cumplir con las reglas de Hooks
+    if (!isOpen || !saleId) {
+        return null;
+    }
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 py-10">
             <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
@@ -251,21 +392,33 @@ const CloseSaleDialog = ({
                                                 className="text-sm font-medium text-slate-200"
                                             >
                                                 Número de documento
+                                                {isLoadingCustomerData && (
+                                                    <span className="ml-2 text-xs text-slate-400">
+                                                        Consultando...
+                                                    </span>
+                                                )}
                                             </label>
-                                            <input
-                                                id="documentNumber"
-                                                name="documentNumber"
-                                                type="text"
-                                                value={
-                                                    customerForm.documentNumber
-                                                }
-                                                onChange={
-                                                    handleCustomerFormChange
-                                                }
-                                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                                                placeholder="Número de DNI o RUC"
-                                                disabled={isProcessing}
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    id="documentNumber"
+                                                    name="documentNumber"
+                                                    type="text"
+                                                    value={
+                                                        customerForm.documentNumber
+                                                    }
+                                                    onChange={
+                                                        handleCustomerFormChange
+                                                    }
+                                                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                    placeholder="Número de DNI o RUC"
+                                                    disabled={isProcessing}
+                                                />
+                                                {isLoadingCustomerData && (
+                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-[#fa7316]"></div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
