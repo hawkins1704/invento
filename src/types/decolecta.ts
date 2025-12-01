@@ -1,21 +1,30 @@
 // Tipos para la API de Decolecta
 
 /**
- * Respuesta de consulta por RUC
+ * Respuesta de consulta por RUC según documentación de Decolecta
  */
 export interface RUCResponse {
-  ruc?: string;
-  razonSocial?: string;
-  nombreComercial?: string;
-  tipo?: string;
+  razon_social?: string; // Razón social de la empresa
+  numero_documento?: string; // RUC de la empresa
   estado?: string;
   condicion?: string;
-  direccion?: string;
+  direccion?: string; // Dirección completa (con tilde)
+  ubigeo?: string; // Ubigeo según SUNAT
+  via_tipo?: string;
+  via_nombre?: string;
+  zona_codigo?: string;
+  zona_tipo?: string;
+  numero?: string;
+  interior?: string;
+  lote?: string;
+  dpto?: string; // Departamento
+  manzana?: string;
+  kilometro?: string;
   distrito?: string;
   provincia?: string;
   departamento?: string;
-  email?: string;
-  telefono?: string;
+  es_agente_retencion?: boolean;
+  es_buen_contribuyente?: boolean;
   [key: string]: unknown; // Para campos adicionales que pueda devolver la API
 }
 

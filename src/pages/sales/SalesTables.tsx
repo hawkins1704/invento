@@ -87,7 +87,7 @@ const SalesTablesContent = ({
     const cancelSaleMutation = useMutation(api.sales.cancel);
     const createCustomer = useMutation(api.customers.create);
     const updateSaleDocumentId = useMutation(api.sales.updateDocumentId);
-    const { getLastDocument, emitDocument } = useAPISUNAT();
+    const { getLastDocument, emitDocument, downloadPDF, getDocument } = useAPISUNAT();
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [tableForNewSale, setTableForNewSale] =
@@ -706,17 +706,19 @@ const SalesTablesContent = ({
                             customerId,
                             documentType: "03", // Boleta
                         });
-                        setIsClosingSale(false);
-                        setCloseState({
-                            saleId: null,
-                            saleData: null,
-                            paymentMethod: "Contado",
-                            notes: "",
-                        });
-                        setSelectedSaleId(null);
+                        
+                        // Retornar éxito con documentId
+                        return {
+                            success: true,
+                            documentId: emitResponse.documentId,
+                        };
                     } catch (error) {
                         console.error("Error al emitir boleta:", error);
-                        alert(error instanceof Error ? error.message : "Error al emitir boleta");
+                        const errorMessage = error instanceof Error ? error.message : "Error al emitir boleta";
+                        return {
+                            success: false,
+                            error: errorMessage,
+                        };
                     } finally {
                         setIsProcessingClose(false);
                     }
@@ -848,19 +850,56 @@ const SalesTablesContent = ({
                             customerId,
                             documentType: "01", // Factura
                         });
-                        setIsClosingSale(false);
-                        setCloseState({
-                            saleId: null,
-                            saleData: null,
-                            paymentMethod: "Contado",
-                            notes: "",
-                        });
-                        setSelectedSaleId(null);
+                        
+                        // Retornar éxito con documentId
+                        return {
+                            success: true,
+                            documentId: emitResponse.documentId,
+                        };
                     } catch (error) {
                         console.error("Error al emitir factura:", error);
-                        alert(error instanceof Error ? error.message : "Error al emitir factura");
+                        const errorMessage = error instanceof Error ? error.message : "Error al emitir factura";
+                        return {
+                            success: false,
+                            error: errorMessage,
+                        };
                     } finally {
                         setIsProcessingClose(false);
+                    }
+                }}
+                onDownloadPDF={async (documentId: string) => {
+                    if (!currentUser?.personaToken) {
+                        alert("No se encontraron las credenciales necesarias para descargar el PDF");
+                        return;
+                    }
+
+                    try {
+                        // Obtener el documento para obtener el fileName
+                        const docInfo = await getDocument(documentId, currentUser.personaToken);
+                        
+                        if (!docInfo) {
+                            throw new Error("No se pudo obtener la información del documento");
+                        }
+
+                        // Descargar el PDF en formato A4
+                        const blob = await downloadPDF(documentId, "A4", docInfo.fileName);
+                        
+                        if (!blob) {
+                            throw new Error("No se pudo descargar el PDF");
+                        }
+
+                        // Crear URL del blob y descargar
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.download = `${docInfo.fileName}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                    } catch (error) {
+                        console.error("Error al descargar PDF:", error);
+                        alert(error instanceof Error ? error.message : "Error al descargar PDF");
                     }
                 }}
             />

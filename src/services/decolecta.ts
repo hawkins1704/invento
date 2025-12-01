@@ -81,7 +81,6 @@ class DecolectaClient {
       );
       return data;
     } catch (error) {
-      console.log("error: ", error);
       if (axios.isAxiosError(error)) {
         const errorData = error.response?.data as DecolectaError | undefined;
         throw new Error(

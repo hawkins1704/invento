@@ -1,9 +1,11 @@
 import { useState, useCallback } from "react";
-import { decolectaClient } from "../services/decolecta";
+import { useAction } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import type { RUCResponse, DNIResponse } from "../types/decolecta";
 
 /**
- * Hook personalizado para usar Decolecta API con manejo de estado básico
+ * Hook personalizado para usar Decolecta API a través de Convex (proxy)
+ * Evita problemas de CORS haciendo las peticiones desde el servidor
  * 
  * Ejemplo de uso:
  * ```tsx
@@ -20,6 +22,10 @@ import type { RUCResponse, DNIResponse } from "../types/decolecta";
 export function useDecolecta() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Acciones de Convex que actúan como proxy
+  const consultarRUCAction = useAction(api.decolecta.consultarRUC);
+  const consultarDNIAction = useAction(api.decolecta.consultarDNI);
 
   /**
    * Consulta datos de una empresa por RUC
@@ -31,8 +37,8 @@ export function useDecolecta() {
     setError(null);
 
     try {
-      const response = await decolectaClient.consultarRUC(ruc);
-      return response;
+      const response = await consultarRUCAction({ ruc });
+      return response as RUCResponse;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido al consultar RUC";
@@ -41,7 +47,7 @@ export function useDecolecta() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [consultarRUCAction]);
 
   /**
    * Consulta datos de una persona por DNI
@@ -53,8 +59,8 @@ export function useDecolecta() {
     setError(null);
 
     try {
-      const response = await decolectaClient.consultarDNI(dni);
-      return response;
+      const response = await consultarDNIAction({ dni });
+      return response as DNIResponse;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido al consultar DNI";
@@ -63,7 +69,7 @@ export function useDecolecta() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [consultarDNIAction]);
 
   return {
     consultarRUC,

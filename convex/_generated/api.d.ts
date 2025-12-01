@@ -16,6 +16,7 @@ import type * as branches from "../branches.js";
 import type * as categories from "../categories.js";
 import type * as customProfile from "../customProfile.js";
 import type * as customers from "../customers.js";
+import type * as decolecta from "../decolecta.js";
 import type * as http from "../http.js";
 import type * as products from "../products.js";
 import type * as sales from "../sales.js";
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   customProfile: typeof customProfile;
   customers: typeof customers;
+  decolecta: typeof decolecta;
   http: typeof http;
   products: typeof products;
   sales: typeof sales;

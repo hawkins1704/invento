@@ -2,6 +2,9 @@ import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useDecolecta } from "../hooks/useDecolecta";
 import type { RUCResponse, DNIResponse } from "../types/decolecta";
+import { HiOutlineReceiptTax } from "react-icons/hi";
+import { MdErrorOutline } from "react-icons/md";
+import { BiBadgeCheck } from "react-icons/bi";
 
 type CustomerFormState = {
     documentType: "RUC" | "DNI" | "";
@@ -38,13 +41,14 @@ type CloseSaleDialogProps = {
         paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
         notes?: string,
         customerEmail?: string
-    ) => void;
+    ) => Promise<{ success: boolean; documentId?: string; error?: string }>;
     onEmitFactura: (
         customerData: CustomerFormState,
         paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
         notes?: string,
         customerEmail?: string
-    ) => void;
+    ) => Promise<{ success: boolean; documentId?: string; error?: string }>;
+    onDownloadPDF?: (documentId: string) => Promise<void>;
 };
 
 const CloseSaleDialog = ({
@@ -57,6 +61,7 @@ const CloseSaleDialog = ({
     onCloseWithoutEmit,
     onEmitBoleta,
     onEmitFactura,
+    onDownloadPDF,
 }: CloseSaleDialogProps) => {
     const [paymentMethod, setPaymentMethod] = useState<
         "Contado" | "Tarjeta" | "Transferencia" | "Otros"
@@ -68,6 +73,9 @@ const CloseSaleDialog = ({
     const [showCustomerForm, setShowCustomerForm] = useState(false);
     const [sendEmail, setSendEmail] = useState(false);
     const [isLoadingCustomerData, setIsLoadingCustomerData] = useState(false);
+    const [emissionStatus, setEmissionStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+    const [emissionError, setEmissionError] = useState<string | null>(null);
+    const [emittedDocumentId, setEmittedDocumentId] = useState<string | null>(null);
     
     const { consultarRUC, consultarDNI } = useDecolecta();
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -79,17 +87,33 @@ const CloseSaleDialog = ({
         const { name, value } = event.target;
         setCustomerForm((previous) => {
             const updated = {
-                ...previous,
-                [name]: value,
+            ...previous,
+            [name]: value,
             };
             
-            // Si se cambió el tipo de documento o número de documento, limpiar otros campos
-            // para permitir que se autocompleten con los nuevos datos
-            if (name === "documentType" || name === "documentNumber") {
-                // No limpiar si solo se está cambiando el tipo de documento
-                if (name === "documentType") {
-                    return updated;
+            // Si se cambió el número de documento, detectar automáticamente el tipo
+            if (name === "documentNumber") {
+                const documentNumber = value.trim().replace(/\D/g, ""); // Solo números
+                const length = documentNumber.length;
+                
+                // Si no hay tipo seleccionado, detectar automáticamente según la longitud
+                if (!previous.documentType) {
+                    if (length === 8) {
+                        updated.documentType = "DNI";
+                        // Resetear el ref para permitir búsqueda inmediata
+                        lastQueriedRef.current = "";
+                    } else if (length === 11) {
+                        updated.documentType = "RUC";
+                        // Resetear el ref para permitir búsqueda inmediata
+                        lastQueriedRef.current = "";
+                    }
                 }
+            }
+            
+            // Si se cambió manualmente el tipo de documento, resetear el ref para permitir nueva búsqueda
+            if (name === "documentType") {
+                lastQueriedRef.current = "";
+                return updated;
             }
             
             return updated;
@@ -103,17 +127,54 @@ const CloseSaleDialog = ({
             clearTimeout(debounceTimerRef.current);
         }
 
+        if (!showCustomerForm) {
+            return;
+        }
+
+        const documentNumber = customerForm.documentNumber.trim().replace(/\D/g, ""); // Solo números
+        const length = documentNumber.length;
+        
+        // Determinar el tipo de documento y la longitud requerida
+        let documentType: "DNI" | "RUC" | null = null;
+        let requiredLength = 0;
+        let shouldUpdateType = false;
+        
+        if (customerForm.documentType === "DNI") {
+            documentType = "DNI";
+            requiredLength = 8;
+        } else if (customerForm.documentType === "RUC") {
+            documentType = "RUC";
+            requiredLength = 11;
+        } else if (length === 8) {
+            // Auto-detectar DNI si no hay tipo seleccionado
+            documentType = "DNI";
+            requiredLength = 8;
+            shouldUpdateType = true;
+        } else if (length === 11) {
+            // Auto-detectar RUC si no hay tipo seleccionado
+            documentType = "RUC";
+            requiredLength = 11;
+            shouldUpdateType = true;
+        }
+
+        // Si se detectó automáticamente el tipo, actualizar el estado primero
+        if (shouldUpdateType && documentType) {
+            setCustomerForm((previous) => ({
+                ...previous,
+                documentType,
+            }));
+            // Resetear el ref para permitir búsqueda después de actualizar el tipo
+            lastQueriedRef.current = "";
+            // No buscar todavía, esperar al siguiente render cuando el tipo ya esté actualizado
+            return;
+        }
+
         // Solo consultar si:
         // 1. El formulario de cliente está visible
-        // 2. Hay un tipo de documento seleccionado
-        // 3. El número de documento tiene al menos 8 caracteres (mínimo para DNI/RUC válido)
-        if (
-            showCustomerForm &&
-            customerForm.documentType &&
-            customerForm.documentNumber.trim().length >= 8
-        ) {
-            const documentNumber = customerForm.documentNumber.trim();
-            const queryKey = `${customerForm.documentType}-${documentNumber}`;
+        // 2. Se detectó un tipo de documento válido
+        // 3. El número tiene exactamente la longitud requerida
+        if (documentType && length === requiredLength) {
+            const queryKey = `${documentType}-${documentNumber}`;
             
             // Evitar consultas duplicadas
             if (queryKey === lastQueriedRef.current) {
@@ -126,31 +187,31 @@ const CloseSaleDialog = ({
                 lastQueriedRef.current = queryKey;
 
                 try {
-                    if (customerForm.documentType === "RUC") {
+                    if (documentType === "RUC") {
                         const response = await consultarRUC(documentNumber);
                         if (response) {
-                            // Mapear datos de RUC
+                            // Mapear datos de RUC según estructura de Decolecta API
                             setCustomerForm((previous) => {
                                 const updated = { ...previous };
                                 const rucResponse = response as RUCResponse;
                                 
-                                if (rucResponse.razonSocial) {
-                                    updated.name = rucResponse.razonSocial;
+                                // Mapear razón social al nombre
+                                if (rucResponse.razon_social) {
+                                    updated.name = rucResponse.razon_social;
                                 }
+                                
+                                // Mapear dirección (con tilde según la API)
                                 if (rucResponse.direccion) {
                                     updated.address = rucResponse.direccion;
                                 }
-                                if (rucResponse.email) {
-                                    updated.email = rucResponse.email;
-                                }
-                                if (rucResponse.telefono) {
-                                    updated.phone = rucResponse.telefono;
-                                }
+                                
+                                // Nota: La API de RUC básico no devuelve email ni teléfono
+                                // Estos campos se mantienen vacíos o se pueden llenar manualmente
                                 
                                 return updated;
                             });
                         }
-                    } else if (customerForm.documentType === "DNI") {
+                    } else if (documentType === "DNI") {
                         const response = await consultarDNI(documentNumber);
                         if (response) {
                             // Mapear datos de DNI según estructura de Decolecta API
@@ -218,6 +279,9 @@ const CloseSaleDialog = ({
         setNotes("");
         setSendEmail(false);
         setIsLoadingCustomerData(false);
+        setEmissionStatus("idle");
+        setEmissionError(null);
+        setEmittedDocumentId(null);
         lastQueriedRef.current = "";
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
@@ -241,7 +305,7 @@ const CloseSaleDialog = ({
         handleClose();
     };
 
-    const handleEmitBoleta = () => {
+    const handleEmitBoleta = async () => {
         const customerData =
             showCustomerForm &&
             customerForm.documentType &&
@@ -263,16 +327,32 @@ const CloseSaleDialog = ({
                 ? customerForm.email.trim()
                 : undefined;
 
-        onEmitBoleta(
-            customerData,
-            paymentMethod,
-            notes.trim() || undefined,
-            customerEmail
-        );
-        handleClose();
+        setEmissionStatus("loading");
+        setEmissionError(null);
+        setEmittedDocumentId(null);
+
+        try {
+            const result = await onEmitBoleta(
+                customerData,
+                paymentMethod,
+                notes.trim() || undefined,
+                customerEmail
+            );
+
+            if (result.success && result.documentId) {
+                setEmissionStatus("success");
+                setEmittedDocumentId(result.documentId);
+            } else {
+                setEmissionStatus("error");
+                setEmissionError(result.error || "Error al emitir boleta");
+            }
+        } catch (error) {
+            setEmissionStatus("error");
+            setEmissionError(error instanceof Error ? error.message : "Error desconocido al emitir boleta");
+        }
     };
 
-    const handleEmitFactura = () => {
+    const handleEmitFactura = async () => {
         if (
             !showCustomerForm ||
             !customerForm.documentType ||
@@ -295,19 +375,57 @@ const CloseSaleDialog = ({
                 ? customerForm.email.trim()
                 : undefined;
 
-        onEmitFactura(
-            customerForm,
-            paymentMethod,
-            notes.trim() || undefined,
-            customerEmail
-        );
-        handleClose();
+        setEmissionStatus("loading");
+        setEmissionError(null);
+        setEmittedDocumentId(null);
+
+        try {
+            const result = await onEmitFactura(
+                customerForm,
+                paymentMethod,
+                notes.trim() || undefined,
+                customerEmail
+            );
+
+            if (result.success && result.documentId) {
+                setEmissionStatus("success");
+                setEmittedDocumentId(result.documentId);
+            } else {
+                setEmissionStatus("error");
+                setEmissionError(result.error || "Error al emitir factura");
+            }
+        } catch (error) {
+            setEmissionStatus("error");
+            setEmissionError(error instanceof Error ? error.message : "Error desconocido al emitir factura");
+        }
     };
+
+    // Validar si el número de documento es válido según su tipo
+    const documentNumberClean = customerForm.documentNumber.trim().replace(/\D/g, "");
+    const isValidDocumentNumber = (): boolean => {
+        if (!customerForm.documentType) {
+            // Si no hay tipo seleccionado, es válido si tiene 8 o 11 dígitos
+            return documentNumberClean.length === 8 || documentNumberClean.length === 11;
+        }
+        if (customerForm.documentType === "DNI") {
+            return documentNumberClean.length === 8;
+        }
+        if (customerForm.documentType === "RUC") {
+            return documentNumberClean.length === 11;
+        }
+        return true;
+    };
+
+    const showDocumentNumberError = 
+        customerForm.documentType !== "" &&
+        documentNumberClean.length > 0 &&
+        !isValidDocumentNumber();
 
     const isCustomerFormValid =
         customerForm.documentType &&
         customerForm.documentNumber.trim() &&
-        customerForm.name.trim();
+        customerForm.name.trim() &&
+        isValidDocumentNumber();
 
     // Early return después de todos los hooks para cumplir con las reglas de Hooks
     if (!isOpen || !saleId) {
@@ -318,43 +436,61 @@ const CloseSaleDialog = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 py-10">
             <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
             <div className="relative flex w-full max-w-2xl flex-col gap-6 rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 max-h-[90vh] overflow-hidden">
-                <header className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-semibold">Cerrar venta</h2>
-                        <button
-                            type="button"
-                            onClick={handleClose}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-300 transition hover:text-white"
-                            aria-label="Cerrar"
-                            disabled={isProcessing}
-                        >
-                            ✕
-                        </button>
-                    </div>
-                    <p className="text-sm text-slate-400">
-                        Completa la información del cliente (opcional) y
-                        selecciona cómo deseas proceder.
-                    </p>
-                </header>
-
-                <div className="flex flex-1 flex-col gap-6 overflow-y-auto pr-1">
-                    <div className="space-y-5">
-                        <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-sm text-slate-200">
-                                <input
-                                    type="checkbox"
-                                    checked={showCustomerForm}
-                                    onChange={(e) =>
-                                        setShowCustomerForm(e.target.checked)
-                                    }
-                                    className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                {emissionStatus === "idle" ? (
+                    <>
+                        <header className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-2xl font-semibold">Cerrar venta</h2>
+                                <button
+                                    type="button"
+                                    onClick={handleClose}
+                                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-300 transition hover:text-white"
+                                    aria-label="Cerrar"
                                     disabled={isProcessing}
-                                />
-                                <span>Registrar información del cliente</span>
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            <p className="text-sm text-slate-400">
+                                Completa la información del cliente (opcional) y
+                                selecciona cómo deseas proceder.
+                            </p>
+                        </header>
+
+                        <div className="flex flex-1 flex-col gap-6 overflow-y-auto pr-1">
+                            <div className="space-y-5">
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => !isProcessing && setShowCustomerForm(!showCustomerForm)}
+                                    disabled={isProcessing}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none  disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        showCustomerForm
+                                            ? "bg-[#fa7316]"
+                                            : "bg-slate-700"
+                                    }`}
+                                    role="switch"
+                                    aria-checked={showCustomerForm}
+                                    aria-label="Registrar información del cliente"
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                            showCustomerForm
+                                                ? "translate-x-6"
+                                                : "translate-x-1"
+                                        }`}
+                                    />
+                                </button>
+                                <div className="flex flex-col">
+                                    <span className="text-sm text-slate-200">
+                                        Registrar información del cliente
+                                    </span>
                                 <p className="text-xs text-slate-400">
                                     Obligatorio para emitir factura
                                 </p>
-                            </label>
+                                </div>
+                            </div>
 
                             {showCustomerForm && (
                                 <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/70 p-4">
@@ -399,26 +535,35 @@ const CloseSaleDialog = ({
                                                 )}
                                             </label>
                                             <div className="relative">
-                                                <input
-                                                    id="documentNumber"
-                                                    name="documentNumber"
-                                                    type="text"
-                                                    value={
-                                                        customerForm.documentNumber
-                                                    }
-                                                    onChange={
-                                                        handleCustomerFormChange
-                                                    }
-                                                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                                                    placeholder="Número de DNI o RUC"
-                                                    disabled={isProcessing}
-                                                />
+                                            <input
+                                                id="documentNumber"
+                                                name="documentNumber"
+                                                type="text"
+                                                value={
+                                                    customerForm.documentNumber
+                                                }
+                                                onChange={
+                                                    handleCustomerFormChange
+                                                }
+                                                    className={`w-full rounded-xl border px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
+                                                        showDocumentNumberError
+                                                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/30"
+                                                            : "border-slate-700 bg-slate-900 focus:border-[#fa7316] focus:ring-[#fa7316]/30"
+                                                    }`}
+                                                placeholder="Número de DNI o RUC"
+                                                disabled={isProcessing}
+                                            />
                                                 {isLoadingCustomerData && (
                                                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                                                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-[#fa7316]"></div>
                                                     </div>
                                                 )}
                                             </div>
+                                            {showDocumentNumberError && (
+                                                <p className="text-xs text-red-400 mt-1">
+                                                    Número de documento inválido
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -549,15 +694,32 @@ const CloseSaleDialog = ({
                             </label>
                             <div className="mt-2 rounded-lg ">
                                 <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                                    <div className="relative inline-flex items-center justify-center">
                                     <input
                                         type="checkbox"
                                         checked={sendEmail}
                                         onChange={(e) =>
                                             setSendEmail(e.target.checked)
                                         }
-                                        className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                            className="peer h-6 w-6 appearance-none rounded-full border-2 border-slate-700 bg-slate-900 transition-colors checked:border-[#fa7316] checked:bg-[#fa7316] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                         disabled={isProcessing}
                                     />
+                                        {sendEmail && (
+                                            <svg
+                                                className="pointer-events-none absolute h-4 w-4 text-white"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                strokeWidth={3}
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M5 13l4 4L19 7"
+                                                />
+                                            </svg>
+                                        )}
+                                    </div>
                                     <span>Enviar comprobante por correo</span>
                                 </label>
                             </div>
@@ -571,42 +733,118 @@ const CloseSaleDialog = ({
                                 )}
                         </div>
 
-                        <div className="flex flex-col gap-3 pt-4">
-                            <button
-                                type="button"
-                                onClick={handleEmitFactura}
-                                disabled={isProcessing || !isCustomerFormValid}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/40 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {isProcessing
-                                    ? "Procesando..."
-                                    : "EMITIR FACTURA"}
-                            </button>
+                                <div className="flex flex-row gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={handleEmitFactura}
+                                        disabled={isProcessing || !isCustomerFormValid}
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        <HiOutlineReceiptTax className="h-5 w-5" />
+                                        EMITIR FACTURA
+                                    </button>
 
-                            <button
-                                type="button"
-                                onClick={handleEmitBoleta}
-                                disabled={isProcessing}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-green-600/40 transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {isProcessing
-                                    ? "Procesando..."
-                                    : "EMITIR BOLETA"}
-                            </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleEmitBoleta}
+                                        disabled={isProcessing}
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        <HiOutlineReceiptTax className="h-5 w-5" />
+                                        EMITIR BOLETA
+                                    </button>
 
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseWithoutEmit}
+                                        disabled={isProcessing}
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        CERRAR SIN EMITIR
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                ) : emissionStatus === "loading" ? (
+                    <>
+                        <header className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-2xl font-semibold">Generando documento</h2>
+                            </div>
+                        </header>
+                        <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12">
+                            <div className="flex gap-1">
+                                <div className="h-2 w-2 animate-bounce rounded-full bg-[#fa7316] [animation-delay:-0.3s]"></div>
+                                <div className="h-2 w-2 animate-bounce rounded-full bg-[#fa7316] [animation-delay:-0.15s]"></div>
+                                <div className="h-2 w-2 animate-bounce rounded-full bg-[#fa7316]"></div>
+                            </div>
+                            <p className="text-sm font-medium text-slate-200">
+                                ENVIANDO VENTA...
+                            </p>
+                        </div>
+                    </>
+                ) : emissionStatus === "error" ? (
+                    <>
+                        <header className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-2xl font-semibold">Error</h2>
+                            </div>
+                        </header>
+                        <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12">
+                            <MdErrorOutline className="h-12 w-12 text-red-500" />
+                            <p className="text-sm font-medium text-red-400 text-center max-w-md">
+                                {emissionError || "Error al emitir documento"}
+                            </p>
                             <button
                                 type="button"
-                                onClick={handleCloseWithoutEmit}
-                                disabled={isProcessing}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                onClick={() => {
+                                    setEmissionStatus("idle");
+                                    setEmissionError(null);
+                                }}
+                                className="rounded-xl border border-slate-700 bg-slate-800 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
                             >
-                                {isProcessing
-                                    ? "Procesando..."
-                                    : "CERRAR SIN EMITIR"}
+                                INTENTARLO NUEVAMENTE
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </>
+                ) : emissionStatus === "success" ? (
+                    <>
+                        <header className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-2xl font-semibold">Documento emitido</h2>
+                            </div>
+                        </header>
+                        <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12">
+                            <BiBadgeCheck className="h-12 w-12 text-green-500" />
+                            <p className="text-sm font-medium text-green-400 text-center">
+                                El documento se emitió de manera satisfactoria
+                            </p>
+                            <div className="flex flex-row gap-3 w-full max-w-md">
+                                {onDownloadPDF && emittedDocumentId && (
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (onDownloadPDF && emittedDocumentId) {
+                                                await onDownloadPDF(emittedDocumentId);
+                                            }
+                                        }}
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
+                                    >
+                                        DESCARGAR PDF
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={handleClose}
+                                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
+                                >
+                                    CERRAR
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                ) : null}
             </div>
         </div>
     );
