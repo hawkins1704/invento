@@ -185,34 +185,31 @@ class APISUNATClient {
 
 
   /**
-   * Descarga el PDF de un documento
+   * Abre el PDF de un documento en una nueva pestaña
    * Endpoint: GET /documents/:documentId/getPDF/:format/:fileName[.pdf]
    * 
    * @param documentId ID del documento
    * @param format Formato del PDF (A4, A5, ticket58mm, ticket80mm)
    * @param fileName Nombre del archivo (con o sin .pdf)
-   * @returns Blob del archivo PDF
    */
   async downloadPDF(
     documentId: string,
     format: PDFFormat,
     fileName: string,
-  ): Promise<Blob> {
+  ): Promise<void> {
     try {
       // Asegurar que el fileName termine en .pdf
       const fileNameWithExtension = fileName.endsWith(".pdf") ? fileName : `${fileName}.pdf`;
-      console.log(`/documents/${documentId}/getPDF/${format}/${fileNameWithExtension}`);
-      const { data } = await this.axiosInstance.get(
-        `/documents/${documentId}/getPDF/${format}/${fileNameWithExtension}`,
-   
-      );
-      console.log("DATA PDF", data);
-      return data;
+      
+      // Construir la URL completa
+      const baseUrl = this.axiosInstance.defaults.baseURL || APISUNAT_BASE_URL;
+      const pdfUrl = `${baseUrl}/documents/${documentId}/getPDF/${format}/${fileNameWithExtension}`;
+      
+      // Abrir el PDF en una nueva pestaña para evitar problemas de CORS
+      window.open(pdfUrl, '_blank');
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.message || "Error al descargar PDF");
-      }
-      throw new Error("Error de conexión con APISUNAT");
+      console.log("Error al abrir PDF: ", error);
+      throw new Error("Error al abrir el PDF");
     }
   }
 

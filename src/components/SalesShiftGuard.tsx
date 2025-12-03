@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { useSalesShift, type ShiftSummary } from "../hooks/useSalesShift";
 import { FaRegClock } from "react-icons/fa";
-import { BiSolidStore } from "react-icons/bi";
+import { MdStorefront } from "react-icons/md";
 type GuardRenderProps = {
   branch: Doc<"branches">;
   branchId: string;
@@ -42,14 +42,14 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
   if (!branchId || !branch) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300 shadow-inner shadow-black/20">
-        <BiSolidStore color={PRIMARY_COLOR} size={32}/>
+        <MdStorefront color={PRIMARY_COLOR} size={32}/>
         <p className="max-w-md text-sm text-slate-400">
           Selecciona la sucursal en la que trabajarás para continuar con las ventas.
         </p>
         <button
           type="button"
           onClick={() => navigate("/sales/select-branch", { replace: true })}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811]"
         >
           Elegir sucursal
         </button>

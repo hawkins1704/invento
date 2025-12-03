@@ -57,6 +57,7 @@ export const updateProfile = mutation({
     companyDistrict: v.optional(v.string()),
     companyProvince: v.optional(v.string()),
     companyDepartment: v.optional(v.string()),
+    printFormat: v.optional(v.union(v.literal("A4"), v.literal("A5"), v.literal("ticket58mm"), v.literal("ticket80mm"))),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -133,6 +134,9 @@ export const updateProfile = mutation({
     }
     if (args.companyDepartment !== undefined) {
       updates.companyDepartment = args.companyDepartment.trim() || undefined;
+    }
+    if (args.printFormat !== undefined) {
+      updates.printFormat = args.printFormat;
     }
 
     await ctx.db.patch(userId, updates);

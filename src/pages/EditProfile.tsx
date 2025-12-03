@@ -19,6 +19,7 @@ type ProfileFormState = {
   serieBoleta: string;
   serieFactura: string;
   IGVPercentage: "10" | "18" | "";
+  printFormat: "A4" | "A5" | "ticket58mm" | "ticket80mm" | "";
   companyAddress: string;
   companyDistrict: string;
   companyProvince: string;
@@ -38,6 +39,7 @@ const DEFAULT_FORM: ProfileFormState = {
     serieBoleta: "",
     serieFactura: "",
     IGVPercentage: "",
+    printFormat: "",
   companyAddress: "",
   companyDistrict: "",
   companyProvince: "",
@@ -73,6 +75,7 @@ const EditProfile = () => {
         serieBoleta: (currentUser as any).serieBoleta ?? "",
         serieFactura: (currentUser as any).serieFactura ?? "",
         IGVPercentage: currentUser.IGVPercentage ? (currentUser.IGVPercentage.toString() as "10" | "18") : "",
+        printFormat: (currentUser as any).printFormat ?? "",
         companyAddress: (currentUser as any).companyAddress ?? "",
         companyDistrict: (currentUser as any).companyDistrict ?? "",
         companyProvince: (currentUser as any).companyProvince ?? "",
@@ -174,6 +177,9 @@ const EditProfile = () => {
         serieFactura: formState.serieFactura.trim() || undefined,
         IGVPercentage: formState.IGVPercentage
           ? (Number(formState.IGVPercentage) as 10 | 18)
+          : undefined,
+        printFormat: formState.printFormat
+          ? (formState.printFormat as "A4" | "A5" | "ticket58mm" | "ticket80mm")
           : undefined,
         companyAddress: formState.companyAddress.trim() || undefined,
         companyDistrict: formState.companyDistrict.trim() || undefined,
@@ -517,6 +523,31 @@ const EditProfile = () => {
               <p className="text-xs text-slate-500">
                 Este porcentaje se utilizará para calcular el IGV de los productos
                 que crees o edites.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="printFormat"
+                className="text-sm font-medium text-slate-200"
+              >
+                Formato de Impresión PDF
+              </label>
+              <select
+                id="printFormat"
+                name="printFormat"
+                value={formState.printFormat}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+              >
+                <option value="">Selecciona un formato</option>
+                <option value="A4">A4</option>
+                <option value="A5">A5</option>
+                <option value="ticket58mm">Ticket 58mm</option>
+                <option value="ticket80mm">Ticket 80mm</option>
+              </select>
+              <p className="text-xs text-slate-500">
+                Formato predeterminado para descargar PDFs de documentos emitidos.
               </p>
             </div>
           </div>

@@ -27,6 +27,7 @@ export default defineSchema({
     companyDistrict: v.optional(v.string()),
     companyProvince: v.optional(v.string()),
     companyDepartment: v.optional(v.string()),
+    printFormat: v.optional(v.union(v.literal("A4"), v.literal("A5"), v.literal("ticket58mm"), v.literal("ticket80mm"))),
   }).index("email", ["email"]),
   products: defineTable({
     name: v.string(),

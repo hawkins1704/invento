@@ -5,7 +5,7 @@ import { useConvex } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import CodePinInput from "../components/CodePinInput";
 import { AREA_STORAGE_KEY, BRANCH_STORAGE_KEY } from "../hooks/useSalesShift";
-import { PiMoney } from "react-icons/pi";
+import { MdStorefront } from "react-icons/md";
 import { RiAdminLine } from "react-icons/ri";
 type AreaKey = "admin" | "sales";
 
@@ -131,7 +131,7 @@ const SelectArea = () => {
                 type="button"
                 key={area.key}
                 onClick={() => handleAreaSelect(area.key)}
-                className={`group relative overflow-hidden rounded-3xl border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 focus-visible:ring-[#fa7316] ${
+                className={`group relative overflow-hidden rounded-lg border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 focus-visible:ring-[#fa7316] ${
                   isSelected ? "border-[#fa7316] bg-[#fa7316]/10" : "border-slate-800 bg-slate-900"
                 }`}
               >
@@ -146,7 +146,7 @@ const SelectArea = () => {
                       {area.badge}
                     </span>
                     <span className="text-3xl" aria-hidden>
-                      {area.key === "admin" ? <RiAdminLine color={PRIMARY_COLOR} /> : <PiMoney color={PRIMARY_COLOR} />}
+                      {area.key === "admin" ? <RiAdminLine color={PRIMARY_COLOR} /> : <MdStorefront color={PRIMARY_COLOR} />}
                     </span>
                   </div>
                   <div className="space-y-2">
@@ -161,7 +161,7 @@ const SelectArea = () => {
 
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-8"
+          className="flex flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-8"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
@@ -191,7 +191,7 @@ const SelectArea = () => {
           </div>
 
           {error && (
-            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
               {error}
             </div>
           )}
@@ -200,22 +200,11 @@ const SelectArea = () => {
             
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-6 py-3 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-60"
               disabled={!selectedArea || isSubmitting}
             >
               {isSubmitting ? "Verificando..." : "Continuar"}
-              {!isSubmitting && (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5l6 6-6 6m-9-12l6 6-6 6" />
-                </svg>
-              )}
+              
             </button>
           </div>
         </form>

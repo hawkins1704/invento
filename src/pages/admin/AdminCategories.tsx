@@ -56,7 +56,7 @@ const AdminCategories = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
             Categorías
@@ -76,7 +76,7 @@ const AdminCategories = () => {
               setIsFormOpen(true);
               resetForm();
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811]"
           >
             Agregar categoría
             <span aria-hidden>＋</span>
@@ -84,7 +84,7 @@ const AdminCategories = () => {
         </div>
       </header>
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
         {sortedCategories.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
             <span className="text-4xl" aria-hidden>
@@ -95,7 +95,7 @@ const AdminCategories = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-800">
+          <div className="overflow-hidden rounded-lg border border-slate-800">
             <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
               <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.24em] text-slate-400">
                 <tr>

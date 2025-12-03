@@ -112,33 +112,18 @@ const AdminDocuments = () => {
     setIsDownloading(true);
     setDownloadError(null);
 
-
     try {
-      const blob = await downloadPDF(
+      await downloadPDF(
         selectedDocument.id,
         selectedFormat,
         selectedDocument.fileName,
       );
 
-      if (blob) {
-        // Crear URL del blob y descargar
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${selectedDocument.fileName}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        // Cerrar modal después de descargar
-        setSelectedDocument(null);
-      } else {
-        setDownloadError("No se pudo descargar el PDF. Intenta nuevamente.");
-      }
+      // Cerrar modal después de abrir el PDF
+      setSelectedDocument(null);
     } catch (err) {
       setDownloadError(
-        err instanceof Error ? err.message : "Error al descargar el PDF"
+        err instanceof Error ? err.message : "Error al abrir el PDF"
       );
     } finally {
       setIsDownloading(false);

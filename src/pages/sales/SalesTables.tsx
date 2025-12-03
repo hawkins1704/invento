@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
@@ -88,7 +89,7 @@ const SalesTablesContent = ({
     const createCustomer = useMutation(api.customers.create);
     const updateCustomer = useMutation(api.customers.update);
     const updateSaleDocumentId = useMutation(api.sales.updateDocumentId);
-    const { getLastDocument, emitDocument, downloadPDF, getDocument } = useAPISUNAT();
+    const { getLastDocument, emitDocument, downloadPDF } = useAPISUNAT();
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [tableForNewSale, setTableForNewSale] =
@@ -175,11 +176,9 @@ const SalesTablesContent = ({
 
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
+            <header className="flex flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
                 <div className="space-y-3">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
-                        Punto de venta
-                    </div>
+                 
                     <div className="space-y-2">
                         <h1 className="text-3xl font-semibold">
                             Mesas y pedidos
@@ -187,11 +186,6 @@ const SalesTablesContent = ({
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                    <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-2 text-sm font-semibold text-[#fa7316]">
-                        {branch.name}
-                    </span>
-                </div>
             </header>
 
             <section className="grid gap-4 lg:grid-cols-3">
@@ -218,7 +212,7 @@ const SalesTablesContent = ({
                     <button
                         type="button"
                         onClick={() => openCreateModal(null)}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
                         disabled={!hasActiveShift}
                     >
                         Venta sin mesa
@@ -247,7 +241,7 @@ const SalesTablesContent = ({
                             return (
                                 <article
                                     key={table._id}
-                                    className={`flex flex-col gap-4 rounded-3xl border p-5 text-white shadow-inner shadow-black/20 ${
+                                    className={`flex flex-col gap-4 rounded-lg border p-5 text-white shadow-inner shadow-black/20 ${
                                         activeSale
                                             ? "border-[#fa7316]/50 bg-[#fa7316]/10"
                                             : "border-slate-800 bg-slate-900/60"
@@ -320,7 +314,7 @@ const SalesTablesContent = ({
                                             onClick={() =>
                                                 openCreateModal(table)
                                             }
-                                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
+                                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
                                             disabled={
                                                 table.status ===
                                                     "out_of_service" ||
@@ -744,10 +738,11 @@ const SalesTablesContent = ({
                             documentType: "03", // Boleta
                         });
                         
-                        // Retornar éxito con documentId
+                        // Retornar éxito con documentId y fileName
                         return {
                             success: true,
                             documentId: emitResponse.documentId,
+                            fileName: fileName,
                         };
                     } catch (error) {
                         console.error("Error al emitir boleta:", error);
@@ -908,10 +903,11 @@ const SalesTablesContent = ({
                             documentType: "01", // Factura
                         });
                         
-                        // Retornar éxito con documentId
+                        // Retornar éxito con documentId y fileName
                         return {
                             success: true,
                             documentId: emitResponse.documentId,
+                            fileName: fileName,
                         };
                     } catch (error) {
                         console.error("Error al emitir factura:", error);
@@ -924,39 +920,14 @@ const SalesTablesContent = ({
                         setIsProcessingClose(false);
                     }
                 }}
-                onDownloadPDF={async (documentId: string) => {
-                    if (!currentUser?.personaToken) {
-                        alert("No se encontraron las credenciales necesarias para descargar el PDF");
-                        return;
-                    }
-
+                onDownloadPDF={async (documentId: string, fileName: string) => {
                     try {
-                        // Obtener el documento para obtener el fileName
-                        const docInfo = await getDocument(documentId, currentUser.personaToken);
-                        
-                        if (!docInfo) {
-                            throw new Error("No se pudo obtener la información del documento");
-                        }
-
-                        // Descargar el PDF en formato A4
-                        const blob = await downloadPDF(documentId, "A4", docInfo.fileName);
-                        
-                        if (!blob) {
-                            throw new Error("No se pudo descargar el PDF");
-                        }
-
-                        // Crear URL del blob y descargar
-                        const url = window.URL.createObjectURL(blob);
-                        const link = document.createElement("a");
-                        link.href = url;
-                        link.download = `${docInfo.fileName}.pdf`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        window.URL.revokeObjectURL(url);
+                        // Usar el formato del usuario o A4 por defecto
+                        const format = (currentUser as any)?.printFormat || "A4";
+                        await downloadPDF(documentId, format as "A4" | "A5" | "ticket58mm" | "ticket80mm", fileName);
                     } catch (error) {
-                        console.error("Error al descargar PDF:", error);
-                        alert(error instanceof Error ? error.message : "Error al descargar PDF");
+                        console.error("Error al abrir PDF:", error);
+                        alert(error instanceof Error ? error.message : "Error al abrir el PDF");
                     }
                 }}
             />
@@ -2522,8 +2493,8 @@ const SummaryCard = ({
     subtitle: string;
 }) => {
     return (
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+            <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
                 {title}
             </p>
             <p className="mt-3 text-2xl font-semibold text-white">{value}</p>

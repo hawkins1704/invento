@@ -51,15 +51,15 @@ type CloseSaleDialogProps = {
         paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
         notes?: string,
         customerEmail?: string
-    ) => Promise<{ success: boolean; documentId?: string; error?: string }>;
+    ) => Promise<{ success: boolean; documentId?: string; fileName?: string; error?: string }>;
     onEmitFactura: (
         customerData: CustomerFormState,
         customerMetadata: CustomerMetadata,
         paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
         notes?: string,
         customerEmail?: string
-    ) => Promise<{ success: boolean; documentId?: string; error?: string }>;
-    onDownloadPDF?: (documentId: string) => Promise<void>;
+    ) => Promise<{ success: boolean; documentId?: string; fileName?: string; error?: string }>;
+    onDownloadPDF?: (documentId: string, fileName: string) => Promise<void>;
 };
 
 const CloseSaleDialog = ({
@@ -87,6 +87,7 @@ const CloseSaleDialog = ({
     const [emissionStatus, setEmissionStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [emissionError, setEmissionError] = useState<string | null>(null);
     const [emittedDocumentId, setEmittedDocumentId] = useState<string | null>(null);
+    const [emittedFileName, setEmittedFileName] = useState<string | null>(null);
     const [originalCustomerData, setOriginalCustomerData] = useState<CustomerFormState | null>(null);
     const [customerIdFromConvex, setCustomerIdFromConvex] = useState<Id<"customers"> | null>(null);
     
@@ -382,6 +383,7 @@ const CloseSaleDialog = ({
         setEmissionStatus("idle");
         setEmissionError(null);
         setEmittedDocumentId(null);
+        setEmittedFileName(null);
         setOriginalCustomerData(null);
         setCustomerIdFromConvex(null);
         lastQueriedRef.current = "";
@@ -459,6 +461,7 @@ const CloseSaleDialog = ({
             if (result.success && result.documentId) {
                 setEmissionStatus("success");
                 setEmittedDocumentId(result.documentId);
+                setEmittedFileName(result.fileName || null);
             } else {
                 setEmissionStatus("error");
                 setEmissionError(result.error || "Error al emitir boleta");
@@ -514,6 +517,7 @@ const CloseSaleDialog = ({
             if (result.success && result.documentId) {
                 setEmissionStatus("success");
                 setEmittedDocumentId(result.documentId);
+                setEmittedFileName(result.fileName || null);
             } else {
                 setEmissionStatus("error");
                 setEmissionError(result.error || "Error al emitir factura");
@@ -861,8 +865,9 @@ const CloseSaleDialog = ({
                                     <button
                                         type="button"
                                         onClick={handleEmitFactura}
-                                        disabled={isProcessing || !isCustomerFormValid}
+                                        disabled={isProcessing || !isCustomerFormValid || customerForm.documentType === "DNI"}
                                         className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        title={customerForm.documentType === "DNI" ? "Las facturas solo se pueden emitir con RUC" : ""}
                                     >
                                         <HiOutlineReceiptTax className="h-5 w-5" />
                                         EMITIR FACTURA
@@ -945,12 +950,12 @@ const CloseSaleDialog = ({
                                 El documento se emitió de manera satisfactoria
                             </p>
                             <div className="flex flex-row gap-3 w-full max-w-md">
-                                {onDownloadPDF && emittedDocumentId && (
+                                {onDownloadPDF && emittedDocumentId && emittedFileName && (
                                     <button
                                         type="button"
                                         onClick={async () => {
-                                            if (onDownloadPDF && emittedDocumentId) {
-                                                await onDownloadPDF(emittedDocumentId);
+                                            if (onDownloadPDF && emittedDocumentId && emittedFileName) {
+                                                await onDownloadPDF(emittedDocumentId, emittedFileName);
                                             }
                                         }}
                                         className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"

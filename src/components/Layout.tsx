@@ -18,6 +18,7 @@ import { MdOutlineDinnerDining } from "react-icons/md";
 import { IoLogInOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
 import { FaFileInvoice } from "react-icons/fa6";
+import { MdStorefront } from "react-icons/md";
 const PRIMARY_COLOR = "#fa7316";
 
 const formatCurrency = (value: number) =>
@@ -391,7 +392,7 @@ const Layout = () => {
                       to={item.path}
                       end={item.exact}
                       className={({ isActive }) =>
-                        `group flex items-center gap-4 rounded-2xl border border-transparent px-4 py-3 text-sm transition hover:border-slate-700 hover:bg-slate-800/50 ${
+                        `group flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 text-sm transition hover:border-slate-700 hover:bg-slate-800/50 ${
                           isActive ? "border-[#fa7316]/60 bg-[#fa7316]/10 text-white" : "text-slate-300"
                         }`
                       }
@@ -416,7 +417,7 @@ const Layout = () => {
                         type="button"
                         onClick={handleShiftButtonClick}
                         disabled={shiftButtonDisabled}
-                        className={`group flex w-full items-center gap-4 rounded-2xl border px-4 py-3 text-sm transition ${
+                        className={`group flex w-full items-center gap-4 rounded-lg border px-4 py-3 text-sm transition ${
                           shiftButtonDisabled ? "cursor-not-allowed opacity-50" : "hover:border-slate-700 hover:bg-slate-800/50"
                         } ${shiftButtonClasses}`}
                       >
@@ -748,9 +749,9 @@ const Layout = () => {
                 type="button"
                 ref={branchButtonRef}
                 onClick={() => setIsBranchMenuOpen((previous) => !previous)}
-                className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm font-semibold text-white transition hover:border-[#fa7316] hover:bg-slate-800/80"
+                className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm font-semibold text-white transition hover:border-[#fa7316] hover:bg-slate-800/80"
               >
-                <BiSolidStore color={PRIMARY_COLOR} />
+                <MdStorefront color={PRIMARY_COLOR} />
                 <span>{selectedShiftBranch.name}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -767,9 +768,9 @@ const Layout = () => {
               {isBranchMenuOpen && branches && branches.length > 0 && (
                 <div
                   ref={branchMenuRef}
-                  className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-slate-800 bg-slate-900/95 p-3 shadow-xl"
+                  className="absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-slate-800 bg-slate-900/95 p-3 shadow-xl"
                 >
-                  <div className="mb-2 px-3 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  <div className="mb-2 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                     Seleccionar sucursal
                   </div>
                   {branches
@@ -784,13 +785,13 @@ const Layout = () => {
                             setBranchId(branch._id as string);
                             setIsBranchMenuOpen(false);
                           }}
-                          className={`flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${
+                          className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition ${
                             isSelected
                               ? "bg-[#fa7316]/10 text-[#fa7316] border border-[#fa7316]/30"
                               : "text-slate-200 hover:bg-slate-800/80"
                           }`}
                         >
-                          <BiSolidStore color={isSelected ? PRIMARY_COLOR : undefined} className="mt-0.5 flex-shrink-0" />
+                          <MdStorefront color={isSelected ? PRIMARY_COLOR : undefined} className="mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold">{branch.name}</div>
                             {branch.address && (

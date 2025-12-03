@@ -125,24 +125,22 @@ export function useAPISUNAT() {
  
 
   /**
-   * Descarga el PDF de un documento
+   * Abre el PDF de un documento en una nueva pestaña
    */
   const downloadPDF = async (
     documentId: string,
     format: PDFFormat,
     fileName: string,
-  ): Promise<Blob | null> => {
+  ): Promise<void> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const blob = await apisunatClient.downloadPDF(documentId, format, fileName);
-      return blob;
+      await apisunatClient.downloadPDF(documentId, format, fileName);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Error al descargar PDF";
+        err instanceof Error ? err.message : "Error al abrir PDF";
       setError(errorMessage);
-      return null;
     } finally {
       setIsLoading(false);
     }
