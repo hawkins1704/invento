@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, type ChangeEvent } from "react";
+import { useQuery } from "convex/react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { api } from "../../convex/_generated/api";
 import { useDecolecta } from "../hooks/useDecolecta";
 import type { RUCResponse, DNIResponse } from "../types/decolecta";
 import { HiOutlineReceiptTax } from "react-icons/hi";
@@ -24,6 +26,12 @@ const DEFAULT_CUSTOMER_FORM: CustomerFormState = {
     phone: "",
 };
 
+type CustomerMetadata = {
+    customerId: Id<"customers"> | null;
+    hasChanges: boolean;
+    originalData: CustomerFormState | null;
+};
+
 type CloseSaleDialogProps = {
     isOpen: boolean;
     saleId: Id<"sales"> | null;
@@ -33,17 +41,20 @@ type CloseSaleDialogProps = {
     onClose: () => void;
     onCloseWithoutEmit: (
         customerData: CustomerFormState | null,
+        customerMetadata: CustomerMetadata,
         paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
         notes?: string
     ) => void;
     onEmitBoleta: (
         customerData: CustomerFormState | null,
+        customerMetadata: CustomerMetadata,
         paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
         notes?: string,
         customerEmail?: string
     ) => Promise<{ success: boolean; documentId?: string; error?: string }>;
     onEmitFactura: (
         customerData: CustomerFormState,
+        customerMetadata: CustomerMetadata,
         paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
         notes?: string,
         customerEmail?: string
@@ -76,10 +87,23 @@ const CloseSaleDialog = ({
     const [emissionStatus, setEmissionStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [emissionError, setEmissionError] = useState<string | null>(null);
     const [emittedDocumentId, setEmittedDocumentId] = useState<string | null>(null);
+    const [originalCustomerData, setOriginalCustomerData] = useState<CustomerFormState | null>(null);
+    const [customerIdFromConvex, setCustomerIdFromConvex] = useState<Id<"customers"> | null>(null);
     
     const { consultarRUC, consultarDNI } = useDecolecta();
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastQueriedRef = useRef<string>(""); // Para evitar consultas duplicadas
+
+    // Query para buscar cliente en CONVEX
+    const customerFromConvex = useQuery(
+        api.customers.getByDocument,
+        customerForm.documentType && customerForm.documentNumber.trim().replace(/\D/g, "").length === (customerForm.documentType === "DNI" ? 8 : 11)
+            ? {
+                  documentType: customerForm.documentType as "RUC" | "DNI",
+                  documentNumber: customerForm.documentNumber.trim().replace(/\D/g, ""),
+              }
+            : "skip"
+    );
 
     const handleCustomerFormChange = (
         event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -96,6 +120,12 @@ const CloseSaleDialog = ({
                 const documentNumber = value.trim().replace(/\D/g, ""); // Solo números
                 const length = documentNumber.length;
                 
+                // Si cambió el número de documento, resetear datos originales y customerId
+                if (previous.documentNumber !== value) {
+                    setOriginalCustomerData(null);
+                    setCustomerIdFromConvex(null);
+                }
+                
                 // Si no hay tipo seleccionado, detectar automáticamente según la longitud
                 if (!previous.documentType) {
                     if (length === 8) {
@@ -110,15 +140,45 @@ const CloseSaleDialog = ({
                 }
             }
             
-            // Si se cambió manualmente el tipo de documento, resetear el ref para permitir nueva búsqueda
+            // Si se cambió manualmente el tipo de documento, resetear el ref y datos originales
             if (name === "documentType") {
                 lastQueriedRef.current = "";
+                setOriginalCustomerData(null);
+                setCustomerIdFromConvex(null);
                 return updated;
             }
             
             return updated;
         });
     };
+
+    // Efecto para cargar datos desde CONVEX cuando se encuentra un cliente
+    useEffect(() => {
+        if (!showCustomerForm || !customerFromConvex) {
+            return;
+        }
+
+        // Si encontramos un cliente en CONVEX, cargar sus datos
+        const convexData: CustomerFormState = {
+            documentType: customerFromConvex.documentType,
+            documentNumber: customerFromConvex.documentNumber,
+            name: customerFromConvex.name || "",
+            address: customerFromConvex.address || "",
+            email: customerFromConvex.email || "",
+            phone: customerFromConvex.phone || "",
+        };
+
+        // Solo actualizar si los datos son diferentes (evitar loops infinitos)
+        const currentData = JSON.stringify(customerForm);
+        const newData = JSON.stringify(convexData);
+        
+        if (currentData !== newData) {
+            setCustomerForm(convexData);
+            setOriginalCustomerData(convexData);
+            setCustomerIdFromConvex(customerFromConvex._id);
+            setIsLoadingCustomerData(false);
+        }
+    }, [customerFromConvex, showCustomerForm]);
 
     // Efecto para consultar datos automáticamente cuando se ingresa RUC o DNI
     useEffect(() => {
@@ -165,15 +225,19 @@ const CloseSaleDialog = ({
             }));
             // Resetear el ref para permitir búsqueda después de actualizar el tipo
             lastQueriedRef.current = "";
+            // Resetear datos originales cuando cambia el documento
+            setOriginalCustomerData(null);
+            setCustomerIdFromConvex(null);
             // No buscar todavía, esperar al siguiente render cuando el tipo ya esté actualizado
             return;
         }
 
-        // Solo consultar si:
+        // Solo consultar Decolecta si:
         // 1. El formulario de cliente está visible
         // 2. Se detectó un tipo de documento válido
         // 3. El número tiene exactamente la longitud requerida
-        if (documentType && length === requiredLength) {
+        // 4. La query de CONVEX terminó y NO encontramos el cliente (customerFromConvex es null, no undefined)
+        if (documentType && length === requiredLength && customerFromConvex === null) {
             const queryKey = `${documentType}-${documentNumber}`;
             
             // Evitar consultas duplicadas
@@ -210,6 +274,9 @@ const CloseSaleDialog = ({
                                 
                                 return updated;
                             });
+                            // Resetear datos originales ya que viene de Decolecta (nuevo cliente)
+                            setOriginalCustomerData(null);
+                            setCustomerIdFromConvex(null);
                         }
                     } else if (documentType === "DNI") {
                         const response = await consultarDNI(documentNumber);
@@ -234,6 +301,9 @@ const CloseSaleDialog = ({
                                 
                                 return updated;
                             });
+                            // Resetear datos originales ya que viene de Decolecta (nuevo cliente)
+                            setOriginalCustomerData(null);
+                            setCustomerIdFromConvex(null);
                         }
                     } else {
                         setIsLoadingCustomerData(false);
@@ -246,6 +316,16 @@ const CloseSaleDialog = ({
                     setIsLoadingCustomerData(false);
                 }
             }, 500); // 500ms de debounce
+        } else if (customerFromConvex === null && documentType && length === requiredLength) {
+            // Si la query de CONVEX retornó null (cliente no existe), mantener loading mientras esperamos el debounce
+            // El loading se ocultará cuando termine la consulta a Decolecta o cuando se cancele
+        } else if (!documentType || length !== requiredLength) {
+            // Si no hay tipo válido o longitud incorrecta, ocultar loading
+            setIsLoadingCustomerData(false);
+        } else if (customerFromConvex !== undefined) {
+            // Si customerFromConvex tiene un valor (ya sea el cliente o null), ocultar loading
+            // porque ya terminó la búsqueda en CONVEX
+            setIsLoadingCustomerData(false);
         }
 
         // Cleanup function
@@ -258,14 +338,34 @@ const CloseSaleDialog = ({
         showCustomerForm,
         customerForm.documentType,
         customerForm.documentNumber,
+        customerFromConvex,
         consultarRUC,
         consultarDNI,
     ]);
+
+    // Función para comparar si hay cambios en los datos del cliente
+    const hasCustomerChanges = (): boolean => {
+        if (!originalCustomerData) {
+            // Si no hay datos originales, significa que es un cliente nuevo (viene de Decolecta)
+            // En este caso, siempre hay "cambios" porque necesitamos crear el cliente
+            return true;
+        }
+
+        // Comparar todos los campos
+        return (
+            customerForm.name.trim() !== (originalCustomerData.name || "").trim() ||
+            customerForm.address.trim() !== (originalCustomerData.address || "").trim() ||
+            customerForm.email.trim() !== (originalCustomerData.email || "").trim() ||
+            customerForm.phone.trim() !== (originalCustomerData.phone || "").trim()
+        );
+    };
 
     // Limpiar el ref cuando se cierra el diálogo o se resetea el formulario
     useEffect(() => {
         if (!isOpen) {
             lastQueriedRef.current = "";
+            setOriginalCustomerData(null);
+            setCustomerIdFromConvex(null);
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
             }
@@ -282,6 +382,8 @@ const CloseSaleDialog = ({
         setEmissionStatus("idle");
         setEmissionError(null);
         setEmittedDocumentId(null);
+        setOriginalCustomerData(null);
+        setCustomerIdFromConvex(null);
         lastQueriedRef.current = "";
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
@@ -297,8 +399,16 @@ const CloseSaleDialog = ({
             customerForm.name
                 ? customerForm
                 : null;
+        
+        const customerMetadata: CustomerMetadata = {
+            customerId: customerIdFromConvex,
+            hasChanges: hasCustomerChanges(),
+            originalData: originalCustomerData,
+        };
+        
         onCloseWithoutEmit(
             customerData,
+            customerMetadata,
             paymentMethod,
             notes.trim() || undefined
         );
@@ -327,6 +437,12 @@ const CloseSaleDialog = ({
                 ? customerForm.email.trim()
                 : undefined;
 
+        const customerMetadata: CustomerMetadata = {
+            customerId: customerIdFromConvex,
+            hasChanges: hasCustomerChanges(),
+            originalData: originalCustomerData,
+        };
+
         setEmissionStatus("loading");
         setEmissionError(null);
         setEmittedDocumentId(null);
@@ -334,6 +450,7 @@ const CloseSaleDialog = ({
         try {
             const result = await onEmitBoleta(
                 customerData,
+                customerMetadata,
                 paymentMethod,
                 notes.trim() || undefined,
                 customerEmail
@@ -375,6 +492,12 @@ const CloseSaleDialog = ({
                 ? customerForm.email.trim()
                 : undefined;
 
+        const customerMetadata: CustomerMetadata = {
+            customerId: customerIdFromConvex,
+            hasChanges: hasCustomerChanges(),
+            originalData: originalCustomerData,
+        };
+
         setEmissionStatus("loading");
         setEmissionError(null);
         setEmittedDocumentId(null);
@@ -382,6 +505,7 @@ const CloseSaleDialog = ({
         try {
             const result = await onEmitFactura(
                 customerForm,
+                customerMetadata,
                 paymentMethod,
                 notes.trim() || undefined,
                 customerEmail

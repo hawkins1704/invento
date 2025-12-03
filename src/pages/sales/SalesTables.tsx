@@ -86,6 +86,7 @@ const SalesTablesContent = ({
     const closeSaleMutation = useMutation(api.sales.close);
     const cancelSaleMutation = useMutation(api.sales.cancel);
     const createCustomer = useMutation(api.customers.create);
+    const updateCustomer = useMutation(api.customers.update);
     const updateSaleDocumentId = useMutation(api.sales.updateDocumentId);
     const { getLastDocument, emitDocument, downloadPDF, getDocument } = useAPISUNAT();
 
@@ -535,7 +536,7 @@ const SalesTablesContent = ({
                         notes: "",
                     });
                 }}
-                onCloseWithoutEmit={async (customerData, paymentMethod, notes) => {
+                onCloseWithoutEmit={async (customerData, customerMetadata, paymentMethod, notes) => {
                     if (!closeState.saleId) {
                         return;
                     }
@@ -544,16 +545,34 @@ const SalesTablesContent = ({
                         let customerId: Id<"customers"> | undefined;
 
                         if (customerData) {
-                            customerId = await createCustomer({
-                                documentType: customerData.documentType as
-                                    | "RUC"
-                                    | "DNI",
-                                documentNumber: customerData.documentNumber,
-                                name: customerData.name,
-                                address: customerData.address || undefined,
-                                email: customerData.email || undefined,
-                                phone: customerData.phone || undefined,
-                            });
+                            // Si el cliente existe en CONVEX y hay cambios, actualizar
+                            if (customerMetadata.customerId && customerMetadata.hasChanges) {
+                                await updateCustomer({
+                                    customerId: customerMetadata.customerId,
+                                    name: customerData.name,
+                                    address: customerData.address || undefined,
+                                    email: customerData.email || undefined,
+                                    phone: customerData.phone || undefined,
+                                });
+                                customerId = customerMetadata.customerId;
+                            }
+                            // Si el cliente existe en CONVEX pero NO hay cambios, usar el ID existente
+                            else if (customerMetadata.customerId && !customerMetadata.hasChanges) {
+                                customerId = customerMetadata.customerId;
+                            }
+                            // Si el cliente NO existe en CONVEX, crear nuevo cliente
+                            else {
+                                customerId = await createCustomer({
+                                    documentType: customerData.documentType as
+                                        | "RUC"
+                                        | "DNI",
+                                    documentNumber: customerData.documentNumber,
+                                    name: customerData.name,
+                                    address: customerData.address || undefined,
+                                    email: customerData.email || undefined,
+                                    phone: customerData.phone || undefined,
+                                });
+                            }
                         }
 
                         await closeSaleMutation({
@@ -574,7 +593,7 @@ const SalesTablesContent = ({
                         setIsProcessingClose(false);
                     }
                 }}
-                onEmitBoleta={async (customerData, paymentMethod, notes, customerEmail) => {
+                onEmitBoleta={async (customerData, customerMetadata, paymentMethod, notes, customerEmail) => {
                     if (!closeState.saleId || !closeState.saleData) {
                         throw new Error("No se encontraron los datos de la venta");
                     }
@@ -583,16 +602,34 @@ const SalesTablesContent = ({
                         let customerId: Id<"customers"> | undefined;
 
                         if (customerData) {
-                            customerId = await createCustomer({
-                                documentType: customerData.documentType as
-                                    | "RUC"
-                                    | "DNI",
-                                documentNumber: customerData.documentNumber,
-                                name: customerData.name,
-                                address: customerData.address || undefined,
-                                email: customerData.email || undefined,
-                                phone: customerData.phone || undefined,
-                            });
+                            // Si el cliente existe en CONVEX y hay cambios, actualizar
+                            if (customerMetadata.customerId && customerMetadata.hasChanges) {
+                                await updateCustomer({
+                                    customerId: customerMetadata.customerId,
+                                    name: customerData.name,
+                                    address: customerData.address || undefined,
+                                    email: customerData.email || undefined,
+                                    phone: customerData.phone || undefined,
+                                });
+                                customerId = customerMetadata.customerId;
+                            }
+                            // Si el cliente existe en CONVEX pero NO hay cambios, usar el ID existente
+                            else if (customerMetadata.customerId && !customerMetadata.hasChanges) {
+                                customerId = customerMetadata.customerId;
+                            }
+                            // Si el cliente NO existe en CONVEX, crear nuevo cliente
+                            else {
+                                customerId = await createCustomer({
+                                    documentType: customerData.documentType as
+                                        | "RUC"
+                                        | "DNI",
+                                    documentNumber: customerData.documentNumber,
+                                    name: customerData.name,
+                                    address: customerData.address || undefined,
+                                    email: customerData.email || undefined,
+                                    phone: customerData.phone || undefined,
+                                });
+                            }
                         }
 
                         // PASO 1: Validar que tenemos los datos necesarios del usuario
@@ -723,22 +760,42 @@ const SalesTablesContent = ({
                         setIsProcessingClose(false);
                     }
                 }}
-                onEmitFactura={async (customerData, paymentMethod, notes, customerEmail) => {
+                onEmitFactura={async (customerData, customerMetadata, paymentMethod, notes, customerEmail) => {
                     if (!closeState.saleId || !closeState.saleData) {
                         throw new Error("No se encontraron los datos de la venta");
                     }
                     setIsProcessingClose(true);
                     try {
-                        const customerId = await createCustomer({
-                            documentType: customerData.documentType as
-                                | "RUC"
-                                | "DNI",
-                            documentNumber: customerData.documentNumber,
-                            name: customerData.name,
-                            address: customerData.address || undefined,
-                            email: customerData.email || undefined,
-                            phone: customerData.phone || undefined,
-                        });
+                        let customerId: Id<"customers">;
+
+                        // Si el cliente existe en CONVEX y hay cambios, actualizar
+                        if (customerMetadata.customerId && customerMetadata.hasChanges) {
+                            await updateCustomer({
+                                customerId: customerMetadata.customerId,
+                                name: customerData.name,
+                                address: customerData.address || undefined,
+                                email: customerData.email || undefined,
+                                phone: customerData.phone || undefined,
+                            });
+                            customerId = customerMetadata.customerId;
+                        }
+                        // Si el cliente existe en CONVEX pero NO hay cambios, usar el ID existente
+                        else if (customerMetadata.customerId && !customerMetadata.hasChanges) {
+                            customerId = customerMetadata.customerId;
+                        }
+                        // Si el cliente NO existe en CONVEX, crear nuevo cliente
+                        else {
+                            customerId = await createCustomer({
+                                documentType: customerData.documentType as
+                                    | "RUC"
+                                    | "DNI",
+                                documentNumber: customerData.documentNumber,
+                                name: customerData.name,
+                                address: customerData.address || undefined,
+                                email: customerData.email || undefined,
+                                phone: customerData.phone || undefined,
+                            });
+                        }
 
                         // PASO 1: Validar que tenemos los datos necesarios del usuario
                         if (!currentUser?.personaId || !currentUser?.personaToken || !currentUser?.ruc || !currentUser?.serieFactura) {
@@ -1191,7 +1248,7 @@ const NewSaleModal = ({
                         </div>
 
                         <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-3">
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-2">
                                 {availableProducts.map((product) => {
                                     const availableStock =
                                         product.stockByBranch.find(
@@ -1203,7 +1260,7 @@ const NewSaleModal = ({
                                             key={product._id}
                                             type="button"
                                             onClick={() => addProduct(product)}
-                                            className={`flex h-full gap-3 rounded-2xl border p-4 text-left text-sm transition ${
+                                            className={`flex h-full gap-3 rounded-2xl border p-2 text-left text-sm transition ${
                                                 isOutOfStock
                                                     ? "cursor-not-allowed border-red-500/40 bg-red-500/10 text-red-200"
                                                     : "border-slate-800 bg-slate-900/60 text-slate-200 hover:border-[#fa7316] hover:text-white"

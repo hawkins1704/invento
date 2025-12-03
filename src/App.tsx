@@ -3,6 +3,7 @@ import { SignIn } from './pages/SignIn'
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { Authenticated, AuthLoading, Unauthenticated } from 'convex/react'
 import Layout from './components/Layout'
+import LoadingSpinner from './components/LoadingSpinner'
 import SelectArea from './pages/SelectArea'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminInventory from './pages/admin/AdminInventory'
@@ -28,7 +29,7 @@ function App() {
   return (
     <>
     <AuthLoading>
-        <div>Loading...</div>
+        <LoadingSpinner />
     </AuthLoading>
     <Unauthenticated>
         <Router>

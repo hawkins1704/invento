@@ -81,6 +81,38 @@ export const getByDocument = query({
   },
 });
 
+export const update = mutation({
+  args: {
+    customerId: v.id("customers"),
+    name: v.string(),
+    address: v.optional(v.string()),
+    email: v.optional(v.string()),
+    phone: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new ConvexError("No autenticado");
+    }
+
+    // Verificar que el cliente existe
+    const customer = await ctx.db.get(args.customerId);
+    if (!customer) {
+      throw new ConvexError("Cliente no encontrado");
+    }
+
+    // Actualizar el cliente
+    await ctx.db.patch(args.customerId, {
+      name: args.name.trim(),
+      address: args.address?.trim(),
+      email: args.email?.trim().toLowerCase(),
+      phone: args.phone?.trim(),
+    });
+
+    return args.customerId;
+  },
+});
+
 export const list = query({
   args: {},
   handler: async (ctx) => {

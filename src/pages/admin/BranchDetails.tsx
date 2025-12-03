@@ -5,897 +5,1090 @@ import type { ChangeEvent, FormEvent } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import { FaArrowLeft } from "react-icons/fa";
+import { FiEdit3 } from "react-icons/fi";
+import { MdOutlineTableRestaurant } from "react-icons/md";
 
 type CategorySummary = {
-  category: Doc<"categories">;
-  productCount: number;
+    category: Doc<"categories">;
+    productCount: number;
 };
 
 type InventoryProduct = {
-  product: Doc<"products">;
-  stock: number;
-  inventoryId: Id<"branchInventories"> | null;
-  imageUrl: string | null;
+    product: Doc<"products">;
+    stock: number;
+    inventoryId: Id<"branchInventories"> | null;
+    imageUrl: string | null;
 };
 
 type BranchFormState = {
-  name: string;
-  address: string;
+    name: string;
+    address: string;
 };
 
 const DEFAULT_BRANCH_FORM: BranchFormState = {
-  name: "",
-  address: "",
+    name: "",
+    address: "",
 };
 
 type TableFormState = {
-  label: string;
-  capacity: string;
-  status: "available" | "occupied" | "reserved" | "out_of_service";
+    label: string;
+    capacity: string;
+    status: "available" | "occupied" | "reserved" | "out_of_service";
 };
 
 const DEFAULT_TABLE_FORM: TableFormState = {
-  label: "",
-  capacity: "",
-  status: "available",
+    label: "",
+    capacity: "",
+    status: "available",
 };
 
-const TABLE_STATUSES: Array<{ value: TableFormState["status"]; label: string }> = [
-  { value: "available", label: "Disponible" },
-  { value: "occupied", label: "Ocupada" },
-  { value: "reserved", label: "Reservada" },
-  { value: "out_of_service", label: "Fuera de servicio" },
+const TABLE_STATUSES: Array<{
+    value: TableFormState["status"];
+    label: string;
+}> = [
+    { value: "available", label: "Disponible" },
+    { value: "occupied", label: "Ocupada" },
+    { value: "reserved", label: "Reservada" },
+    { value: "out_of_service", label: "Fuera de servicio" },
 ];
 
 const BranchDetails = () => {
-  const params = useParams();
-  const branchIdParam = params.branchId;
-  const branchId = branchIdParam ? (branchIdParam as Id<"branches">) : undefined;
-  const navigate = useNavigate();
-  const location = useLocation();
+    const params = useParams();
+    const branchIdParam = params.branchId;
+    const branchId = branchIdParam
+        ? (branchIdParam as Id<"branches">)
+        : undefined;
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
-  const categories = useQuery(
-    api.branchInventory.categories,
-    branchId ? { branchId } : "skip"
-  ) as CategorySummary[] | undefined;
-  const tables = useQuery(
-    api.branchTables.list,
-    branchId ? { branchId } : "skip"
-  ) as Doc<"branchTables">[] | undefined;
+    const branches = useQuery(api.branches.list) as
+        | Doc<"branches">[]
+        | undefined;
+    const categories = useQuery(
+        api.branchInventory.categories,
+        branchId ? { branchId } : "skip"
+    ) as CategorySummary[] | undefined;
+    const tables = useQuery(
+        api.branchTables.list,
+        branchId ? { branchId } : "skip"
+    ) as Doc<"branchTables">[] | undefined;
 
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
-  const [savingProductId, setSavingProductId] = useState<string | null>(null);
-  const updateStock = useMutation(api.branchInventory.updateStock);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+        null
+    );
+    const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
+    const [savingProductId, setSavingProductId] = useState<string | null>(null);
+    const updateStock = useMutation(api.branchInventory.updateStock);
 
-  const [isEditingBranch, setIsEditingBranch] = useState(false);
-  const [branchForm, setBranchForm] = useState<BranchFormState>(DEFAULT_BRANCH_FORM);
-  const [branchFormError, setBranchFormError] = useState<string | null>(null);
-  const [isSavingBranch, setIsSavingBranch] = useState(false);
-  const updateBranch = useMutation(api.branches.update);
-  const createTable = useMutation(api.branchTables.create);
-  const updateTable = useMutation(api.branchTables.update);
-  const removeTable = useMutation(api.branchTables.remove);
+    const [isEditingBranch, setIsEditingBranch] = useState(false);
+    const [branchForm, setBranchForm] =
+        useState<BranchFormState>(DEFAULT_BRANCH_FORM);
+    const [branchFormError, setBranchFormError] = useState<string | null>(null);
+    const [isSavingBranch, setIsSavingBranch] = useState(false);
+    const updateBranch = useMutation(api.branches.update);
+    const createTable = useMutation(api.branchTables.create);
+    const updateTable = useMutation(api.branchTables.update);
+    const removeTable = useMutation(api.branchTables.remove);
 
-  const [isTableModalOpen, setIsTableModalOpen] = useState(false);
-  const [tableForm, setTableForm] = useState<TableFormState>(DEFAULT_TABLE_FORM);
-  const [tableFormError, setTableFormError] = useState<string | null>(null);
-  const [isSavingTable, setIsSavingTable] = useState(false);
-  const [editingTableId, setEditingTableId] = useState<Id<"branchTables"> | null>(null);
-  const [tableToDelete, setTableToDelete] = useState<Doc<"branchTables"> | null>(null);
+    const [isTableModalOpen, setIsTableModalOpen] = useState(false);
+    const [tableForm, setTableForm] =
+        useState<TableFormState>(DEFAULT_TABLE_FORM);
+    const [tableFormError, setTableFormError] = useState<string | null>(null);
+    const [isSavingTable, setIsSavingTable] = useState(false);
+    const [editingTableId, setEditingTableId] =
+        useState<Id<"branchTables"> | null>(null);
+    const [tableToDelete, setTableToDelete] =
+        useState<Doc<"branchTables"> | null>(null);
 
-  useEffect(() => {
-    if (!categories || categories.length === 0) {
-      if (selectedCategoryId !== null) {
-        setSelectedCategoryId(null);
-      }
-      return;
-    }
-
-    if (!selectedCategoryId) {
-      const firstCategoryWithProducts = categories.find((item) => item.productCount > 0);
-      const fallbackCategory = firstCategoryWithProducts ?? categories[0];
-      setSelectedCategoryId(fallbackCategory.category._id as unknown as string);
-    } else if (!categories.some((item) => (item.category._id as unknown as string) === selectedCategoryId)) {
-      setSelectedCategoryId(categories[0].category._id as unknown as string);
-    }
-  }, [categories, selectedCategoryId, branchId]);
-
-  const products =
-    useQuery(
-      api.branchInventory.productsByCategory,
-      branchId && selectedCategoryId
-        ? { branchId, categoryId: selectedCategoryId as Id<"categories"> }
-        : "skip"
-    ) ?? [];
-
-  useEffect(() => {
-    const initialDrafts = products.reduce<Record<string, string>>((accumulator, item) => {
-      const key = item.product._id as unknown as string;
-      accumulator[key] = item.stock.toString();
-      return accumulator;
-    }, {});
-    setStockDrafts(initialDrafts);
-  }, [products]);
-
-  const branch = useMemo(
-    () => (branchId ? branches?.find((item) => item._id === branchId) ?? null : null),
-    [branches, branchId]
-  );
-  const branchTables = tables ?? [];
-  const totalTables = branchTables.length;
-  const availableTables = branchTables.filter((table) => (table.status ?? "available") === "available").length;
-  const occupiedTables = branchTables.filter((table) => table.status === "occupied").length;
-  const branchName =
-    (location.state as { branchName?: string } | null)?.branchName ?? branch?.name ?? "Sucursal";
-
-  useEffect(() => {
-    if (isEditingBranch) {
-      return;
-    }
-
-    if (branch) {
-      setBranchForm((previous) => {
-        const next = {
-          name: branch.name,
-          address: branch.address,
-        };
-
-        if (
-          previous.name === next.name &&
-          previous.address === next.address
-        ) {
-          return previous;
+    useEffect(() => {
+        if (!categories || categories.length === 0) {
+            if (selectedCategoryId !== null) {
+                setSelectedCategoryId(null);
+            }
+            return;
         }
 
-        return next;
-      });
-    } else if (
-      branchForm.name !== DEFAULT_BRANCH_FORM.name ||
-      branchForm.address !== DEFAULT_BRANCH_FORM.address
-    ) {
-      setBranchForm({ ...DEFAULT_BRANCH_FORM });
-    }
-  }, [branch, isEditingBranch, branchForm.name, branchForm.address]);
+        if (!selectedCategoryId) {
+            const firstCategoryWithProducts = categories.find(
+                (item) => item.productCount > 0
+            );
+            const fallbackCategory = firstCategoryWithProducts ?? categories[0];
+            setSelectedCategoryId(
+                fallbackCategory.category._id as unknown as string
+            );
+        } else if (
+            !categories.some(
+                (item) =>
+                    (item.category._id as unknown as string) ===
+                    selectedCategoryId
+            )
+        ) {
+            setSelectedCategoryId(
+                categories[0].category._id as unknown as string
+            );
+        }
+    }, [categories, selectedCategoryId, branchId]);
 
-  if (!branchId) {
-    return (
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
-        <h1 className="text-2xl font-semibold text-white">Sucursal no encontrada</h1>
-        <p className="mt-2 text-sm text-slate-400">
-          No se encontró el identificador de la sucursal. Regresa al listado e inténtalo nuevamente.
-        </p>
-        <button
-          type="button"
-          onClick={() => navigate("/admin/branches")}
-          className="mt-6 inline-flex items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
-        >
-          Volver a sucursales
-        </button>
-      </div>
+    const products =
+        useQuery(
+            api.branchInventory.productsByCategory,
+            branchId && selectedCategoryId
+                ? {
+                      branchId,
+                      categoryId: selectedCategoryId as Id<"categories">,
+                  }
+                : "skip"
+        ) ?? [];
+
+    useEffect(() => {
+        const initialDrafts = products.reduce<Record<string, string>>(
+            (accumulator, item) => {
+                const key = item.product._id as unknown as string;
+                accumulator[key] = item.stock.toString();
+                return accumulator;
+            },
+            {}
+        );
+        setStockDrafts(initialDrafts);
+    }, [products]);
+
+    const branch = useMemo(
+        () =>
+            branchId
+                ? (branches?.find((item) => item._id === branchId) ?? null)
+                : null,
+        [branches, branchId]
     );
-  }
+    const branchTables = tables ?? [];
+    const totalTables = branchTables.length;
+    const availableTables = branchTables.filter(
+        (table) => (table.status ?? "available") === "available"
+    ).length;
+    const occupiedTables = branchTables.filter(
+        (table) => table.status === "occupied"
+    ).length;
+    const branchName =
+        (location.state as { branchName?: string } | null)?.branchName ??
+        branch?.name ??
+        "Sucursal";
 
-  if (branches && branch === null) {
-    return (
-      <div className="space-y-6">
-        <header className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
-          <button
-            type="button"
-            onClick={() => navigate("/admin/branches")}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-300 transition hover:border-[#fa7316] hover:text-white"
-          >
-            ← Volver
-          </button>
-          <h1 className="mt-4 text-3xl font-semibold text-white">Sucursal no disponible</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            No pudimos encontrar la información de esta sucursal. Verifica el enlace o regresa al listado.
-          </p>
-        </header>
-      </div>
-    );
-  }
+    useEffect(() => {
+        if (isEditingBranch) {
+            return;
+        }
 
-  const formattedAddress = branch
-    ? `${branch.address}${totalTables > 0 ? ` · ${totalTables} mesa${totalTables === 1 ? "" : "s"}` : ""}`
-    : "";
+        if (branch) {
+            setBranchForm((previous) => {
+                const next = {
+                    name: branch.name,
+                    address: branch.address,
+                };
 
-  const handleStockChange = (productId: string, event: ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    setStockDrafts((previous) => ({
-      ...previous,
-      [productId]: value,
-    }));
-  };
+                if (
+                    previous.name === next.name &&
+                    previous.address === next.address
+                ) {
+                    return previous;
+                }
 
-  const handleSaveStock = async (product: InventoryProduct) => {
-    const productId = product.product._id as unknown as string;
-    const rawValue = stockDrafts[productId] ?? "0";
-    const parsed = Number(rawValue);
+                return next;
+            });
+        } else if (
+            branchForm.name !== DEFAULT_BRANCH_FORM.name ||
+            branchForm.address !== DEFAULT_BRANCH_FORM.address
+        ) {
+            setBranchForm({ ...DEFAULT_BRANCH_FORM });
+        }
+    }, [branch, isEditingBranch, branchForm.name, branchForm.address]);
 
-    if (Number.isNaN(parsed) || parsed < 0) {
-      setStockDrafts((previous) => ({
-        ...previous,
-        [productId]: product.stock.toString(),
-      }));
-      return;
-    }
-
-    try {
-      setSavingProductId(productId);
-      if (branchId) {
-        await updateStock({
-          branchId,
-          productId: product.product._id,
-          stock: Math.floor(parsed),
-        });
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setSavingProductId(null);
-    }
-  };
-
-  const handleBranchFormChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setBranchForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-  };
-
-  const resetBranchForm = () => {
-    if (branch) {
-      setBranchForm({
-        name: branch.name,
-        address: branch.address,
-      });
-    } else {
-      setBranchForm(DEFAULT_BRANCH_FORM);
-    }
-    setBranchFormError(null);
-    setIsSavingBranch(false);
-  };
-
-  const handleBranchFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
     if (!branchId) {
-      return;
-    }
-
-    setBranchFormError(null);
-
-    if (!branchForm.name.trim() || !branchForm.address.trim()) {
-      setBranchFormError("Completa el nombre y la dirección de la sucursal.");
-      return;
-    }
-
-    try {
-      setIsSavingBranch(true);
-      await updateBranch({
-        branchId,
-        name: branchForm.name.trim(),
-        address: branchForm.address.trim(),
-      });
-      setIsEditingBranch(false);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "No se pudo actualizar la sucursal. Inténtalo de nuevo.";
-      setBranchFormError(message);
-    } finally {
-      setIsSavingBranch(false);
-    }
-  };
-
-  const handleTableFormChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = event.target;
-    setTableForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-  };
-
-  const handleTableFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!branchId) {
-      return;
-    }
-
-    setTableFormError(null);
-
-    const normalizedLabel = tableForm.label.trim();
-    if (!normalizedLabel) {
-      setTableFormError("Ingresa un nombre para la mesa.");
-      return;
-    }
-
-    let capacityValue: number | undefined;
-    if (tableForm.capacity.trim()) {
-      const parsed = Number(tableForm.capacity);
-      if (Number.isNaN(parsed) || parsed < 0) {
-        setTableFormError("La capacidad debe ser un número positivo.");
-        return;
-      }
-      capacityValue = Math.floor(parsed);
-    }
-
-    try {
-      setIsSavingTable(true);
-      if (editingTableId) {
-        await updateTable({
-          tableId: editingTableId,
-          label: normalizedLabel,
-          capacity: capacityValue,
-          status: tableForm.status,
-        });
-      } else {
-        await createTable({
-          branchId,
-          label: normalizedLabel,
-          capacity: capacityValue,
-        });
-      }
-      setIsTableModalOpen(false);
-      setEditingTableId(null);
-      setTableForm(DEFAULT_TABLE_FORM);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "No se pudo guardar la mesa. Inténtalo de nuevo.";
-      setTableFormError(message);
-    } finally {
-      setIsSavingTable(false);
-    }
-  };
-
-  const handleConfirmDeleteTable = async () => {
-    if (!tableToDelete) {
-      return;
-    }
-    try {
-      await removeTable({ tableId: tableToDelete._id });
-      setTableToDelete(null);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={() => navigate("/admin/branches")}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-300 transition hover:border-[#fa7316] hover:text-white"
-          >
-            ← Volver
-          </button>
-          <div>
-            <h1 className="text-3xl font-semibold text-white">Sucursal · {branchName}</h1>
-            {formattedAddress && <p className="mt-1 text-sm text-slate-400">{formattedAddress}</p>}
-            <p className="mt-2 text-sm text-slate-400">
-              Ajusta los datos de la sucursal y gestiona el inventario disponible en este local.
-            </p>
-          </div>
-        </div>
-      </header>
-
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-              Información de la sucursal
-            </h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Mantén actualizados el nombre, la dirección y la cantidad de mesas.
-            </p>
-          </div>
-          {!isEditingBranch && (
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditingBranch(true);
-                resetBranchForm();
-              }}
-              className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 transition hover:border-[#fa7316] hover:text-white"
-            >
-              Editar información
-            </button>
-          )}
-        </div>
-
-        {isEditingBranch ? (
-          <form className="mt-6 space-y-5" onSubmit={handleBranchFormSubmit}>
-            <div className="grid gap-4 lg:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium text-slate-200">
-                  Nombre de la sucursal
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  value={branchForm.name}
-                  onChange={handleBranchFormChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                />
-              </div>
-              <div className="space-y-2 lg:col-span-2">
-                <label htmlFor="address" className="text-sm font-medium text-slate-200">
-                  Dirección
-                </label>
-                <input
-                  id="address"
-                  name="address"
-                  type="text"
-                  required
-                  value={branchForm.address}
-                  onChange={handleBranchFormChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                />
-              </div>
+        return (
+            <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+                <h1 className="text-2xl font-semibold text-white">
+                    Sucursal no encontrada
+                </h1>
+                <p className="mt-2 text-sm text-slate-400">
+                    No se encontró el identificador de la sucursal. Regresa al
+                    listado e inténtalo nuevamente.
+                </p>
+                <button
+                    type="button"
+                    onClick={() => navigate("/admin/branches")}
+                    className="mt-6 inline-flex items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                >
+                    Volver a sucursales
+                </button>
             </div>
+        );
+    }
 
-            {branchFormError && (
-              <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                {branchFormError}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  resetBranchForm();
-                  setIsEditingBranch(false);
-                }}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
-                disabled={isSavingBranch}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
-                disabled={isSavingBranch}
-              >
-                {isSavingBranch ? "Guardando..." : "Guardar cambios"}
-              </button>
-            </div>
-          </form>
-        ) : (
-          <>
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Nombre</span>
-                <p className="mt-2 text-lg font-semibold text-white">{branch?.name ?? "—"}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5 lg:col-span-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Dirección</span>
-                <p className="mt-2 text-lg font-semibold text-white">{branch?.address ?? "—"}</p>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
-              <SummaryStatCard title="Mesas registradas" value={totalTables.toString()} helper="Total de mesas configuradas." />
-              <SummaryStatCard
-                title="Disponibles"
-                value={availableTables.toString()}
-                helper="Mesas listas para asignar."
-              />
-              <SummaryStatCard
-                title="Ocupadas"
-                value={occupiedTables.toString()}
-                helper="Mesas con ventas activas."
-              />
-            </div>
-          </>
-        )}
-      </section>
-
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Mesas de la sucursal</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Configura las mesas disponibles en esta sucursal y controla su capacidad y estado.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setEditingTableId(null);
-              setTableForm(DEFAULT_TABLE_FORM);
-              setTableFormError(null);
-              setIsTableModalOpen(true);
-            }}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
-            disabled={!branchId}
-          >
-            Registrar mesa
-          </button>
-        </div>
-
-        {branchTables.length === 0 ? (
-          <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 px-6 py-12 text-center text-slate-400">
-            <span className="text-3xl" aria-hidden>
-              🍽️
-            </span>
-            <p className="max-w-sm text-sm">
-              Aún no has creado mesas para esta sucursal. Agrega mesas para que el punto de venta pueda asignar pedidos.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {branchTables.map((table) => (
-              <article
-                key={table._id as string}
-                className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-5 text-white shadow-inner shadow-black/20"
-              >
-                <header className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Mesa</p>
-                    <h3 className="text-xl font-semibold text-white">{table.label}</h3>
-                  </div>
-                  <TableStatusBadge status={table.status ?? "available"} />
+    if (branches && branch === null) {
+        return (
+            <div className="space-y-6">
+                <header className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+                    <button
+                        type="button"
+                        onClick={() => navigate("/admin/branches")}
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-1 text-xs font-semibold  tracking-[0.24em] text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                    >
+                        ← Volver
+                    </button>
+                    <h1 className="mt-4 text-3xl font-semibold text-white">
+                        Sucursal no disponible
+                    </h1>
+                    <p className="mt-2 text-sm text-slate-400">
+                        No pudimos encontrar la información de esta sucursal.
+                        Verifica el enlace o regresa al listado.
+                    </p>
                 </header>
-                <div className="space-y-2 text-sm text-slate-300">
-                  <p>
-                    Capacidad:{" "}
-                    <span className="font-semibold text-white">
-                      {table.capacity !== undefined ? `${table.capacity} persona${table.capacity === 1 ? "" : "s"}` : "Sin definir"}
-                    </span>
-                  </p>
-                  <p>
-                    Venta activa:{" "}
-                    <span className="font-semibold text-white">
-                      {table.currentSaleId ? "Sí" : "No"}
-                    </span>
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingTableId(table._id);
-                      setTableForm({
-                        label: table.label,
-                        capacity: table.capacity !== undefined ? table.capacity.toString() : "",
-                        status: table.status ?? "available",
-                      });
-                      setTableFormError(null);
-                      setIsTableModalOpen(true);
-                    }}
-                    className="inline-flex flex-1 items-center justify-center rounded-xl border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTableToDelete(table)}
-                    className="inline-flex items-center justify-center rounded-xl border border-red-500/40 px-3 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200"
-                    disabled={Boolean(table.currentSaleId)}
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
+            </div>
+        );
+    }
 
-      {isTableModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-10">
-          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
-          <div className="relative w-full max-w-lg rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
-            <header className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                  {editingTableId ? "Editar mesa" : "Nueva mesa"}
-                </span>
-                <h3 className="mt-2 text-2xl font-semibold text-white">
-                  {editingTableId ? "Actualizar información" : "Registrar nueva mesa"}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsTableModalOpen(false);
-                  setEditingTableId(null);
-                  setTableForm(DEFAULT_TABLE_FORM);
-                }}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-300 transition hover:text-white"
-                aria-label="Cerrar"
-              >
-                ✕
-              </button>
+    const formattedAddress = branch
+        ? `${branch.address}${totalTables > 0 ? ` · ${totalTables} mesa${totalTables === 1 ? "" : "s"}` : ""}`
+        : "";
+
+    const handleStockChange = (
+        productId: string,
+        event: ChangeEvent<HTMLInputElement>
+    ) => {
+        const { value } = event.target;
+        setStockDrafts((previous) => ({
+            ...previous,
+            [productId]: value,
+        }));
+    };
+
+    const handleSaveStock = async (product: InventoryProduct) => {
+        const productId = product.product._id as unknown as string;
+        const rawValue = stockDrafts[productId] ?? "0";
+        const parsed = Number(rawValue);
+
+        if (Number.isNaN(parsed) || parsed < 0) {
+            setStockDrafts((previous) => ({
+                ...previous,
+                [productId]: product.stock.toString(),
+            }));
+            return;
+        }
+
+        try {
+            setSavingProductId(productId);
+            if (branchId) {
+                await updateStock({
+                    branchId,
+                    productId: product.product._id,
+                    stock: Math.floor(parsed),
+                });
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setSavingProductId(null);
+        }
+    };
+
+    const handleBranchFormChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setBranchForm((previous) => ({
+            ...previous,
+            [name]: value,
+        }));
+    };
+
+    const resetBranchForm = () => {
+        if (branch) {
+            setBranchForm({
+                name: branch.name,
+                address: branch.address,
+            });
+        } else {
+            setBranchForm(DEFAULT_BRANCH_FORM);
+        }
+        setBranchFormError(null);
+        setIsSavingBranch(false);
+    };
+
+    const handleBranchFormSubmit = async (
+        event: FormEvent<HTMLFormElement>
+    ) => {
+        event.preventDefault();
+        if (!branchId) {
+            return;
+        }
+
+        setBranchFormError(null);
+
+        if (!branchForm.name.trim() || !branchForm.address.trim()) {
+            setBranchFormError(
+                "Completa el nombre y la dirección de la sucursal."
+            );
+            return;
+        }
+
+        try {
+            setIsSavingBranch(true);
+            await updateBranch({
+                branchId,
+                name: branchForm.name.trim(),
+                address: branchForm.address.trim(),
+            });
+            setIsEditingBranch(false);
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo actualizar la sucursal. Inténtalo de nuevo.";
+            setBranchFormError(message);
+        } finally {
+            setIsSavingBranch(false);
+        }
+    };
+
+    const handleTableFormChange = (
+        event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
+        const { name, value } = event.target;
+        setTableForm((previous) => ({
+            ...previous,
+            [name]: value,
+        }));
+    };
+
+    const handleTableFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (!branchId) {
+            return;
+        }
+
+        setTableFormError(null);
+
+        const normalizedLabel = tableForm.label.trim();
+        if (!normalizedLabel) {
+            setTableFormError("Ingresa un nombre para la mesa.");
+            return;
+        }
+
+        let capacityValue: number | undefined;
+        if (tableForm.capacity.trim()) {
+            const parsed = Number(tableForm.capacity);
+            if (Number.isNaN(parsed) || parsed < 0) {
+                setTableFormError("La capacidad debe ser un número positivo.");
+                return;
+            }
+            capacityValue = Math.floor(parsed);
+        }
+
+        try {
+            setIsSavingTable(true);
+            if (editingTableId) {
+                await updateTable({
+                    tableId: editingTableId,
+                    label: normalizedLabel,
+                    capacity: capacityValue,
+                    status: tableForm.status,
+                });
+            } else {
+                await createTable({
+                    branchId,
+                    label: normalizedLabel,
+                    capacity: capacityValue,
+                });
+            }
+            setIsTableModalOpen(false);
+            setEditingTableId(null);
+            setTableForm(DEFAULT_TABLE_FORM);
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo guardar la mesa. Inténtalo de nuevo.";
+            setTableFormError(message);
+        } finally {
+            setIsSavingTable(false);
+        }
+    };
+
+    const handleConfirmDeleteTable = async () => {
+        if (!tableToDelete) {
+            return;
+        }
+        try {
+            await removeTable({ tableId: tableToDelete._id });
+            setTableToDelete(null);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    return (
+        <div className="space-y-8">
+            <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
+                <div className="space-y-3">
+                    <button
+                        type="button"
+                        onClick={() => navigate("/admin/branches")}
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                    >
+                      <FaArrowLeft />
+                        <span>Volver</span>
+                    </button>
+                    <div>
+                        <h1 className="text-3xl font-semibold text-white">
+                            Sucursal · {branchName}
+                        </h1>
+                        {formattedAddress && (
+                            <p className="mt-1 text-sm text-slate-400">
+                                {formattedAddress}
+                            </p>
+                        )}
+                        <p className="mt-2 text-sm text-slate-400">
+                            Ajusta los datos de la sucursal y gestiona el
+                            inventario disponible en este local.
+                        </p>
+                    </div>
+                </div>
             </header>
 
-            <form className="mt-6 space-y-4" onSubmit={handleTableFormSubmit}>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-200" htmlFor="label">
-                  Nombre de la mesa
-                </label>
-                <input
-                  id="label"
-                  name="label"
-                  type="text"
-                  autoFocus
-                  value={tableForm.label}
-                  onChange={handleTableFormChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                  placeholder="Ej. Terraza 1"
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200" htmlFor="capacity">
-                    Capacidad (opcional)
-                  </label>
-                  <input
-                    id="capacity"
-                    name="capacity"
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={tableForm.capacity}
-                    onChange={handleTableFormChange}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                    placeholder="Número de personas"
-                  />
-                </div>
-                {editingTableId && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-200" htmlFor="status">
-                      Estado
-                    </label>
-                    <select
-                      id="status"
-                      name="status"
-                      value={tableForm.status}
-                      onChange={handleTableFormChange}
-                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-                    >
-                      {TABLE_STATUSES.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              {tableFormError && (
-                <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                  {tableFormError}
-                </div>
-              )}
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsTableModalOpen(false);
-                    setEditingTableId(null);
-                    setTableForm(DEFAULT_TABLE_FORM);
-                    setTableFormError(null);
-                  }}
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
-                  disabled={isSavingTable}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
-                  disabled={isSavingTable}
-                >
-                  {isSavingTable ? "Guardando..." : editingTableId ? "Guardar cambios" : "Crear mesa"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <ConfirmDialog
-        isOpen={Boolean(tableToDelete)}
-        title="Eliminar mesa"
-        tone="danger"
-        description="¿Deseas eliminar esta mesa? Solo puedes eliminar mesas que no tengan ventas abiertas."
-        confirmLabel="Eliminar"
-        onCancel={() => setTableToDelete(null)}
-        onConfirm={handleConfirmDeleteTable}
-      />
-
-      <section>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-          Categorías
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {categories?.map((item) => {
-            const categoryId = item.category._id as unknown as string;
-            const isSelected = categoryId === selectedCategoryId;
-            return (
-              <button
-                key={categoryId}
-                type="button"
-                onClick={() => setSelectedCategoryId(categoryId)}
-                className={`flex flex-col gap-3 rounded-3xl border px-6 py-5 text-left transition ${
-                  isSelected
-                    ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
-                    : "border-slate-800 bg-slate-900 text-slate-300 hover:border-[#fa7316]/50 hover:text-white"
-                }`}
-              >
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                  {item.productCount} productos
-                </span>
-                <span className="text-lg font-semibold">{item.category.name}</span>
-                <span className="text-xs text-slate-500">
-                  {isSelected ? "Seleccionado" : "Toca para gestionar"}
-                </span>
-              </button>
-            );
-          })}
-          {(!categories || categories.length === 0) && (
-            <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 px-6 py-6 text-sm text-slate-400">
-              Crea categorías para comenzar a clasificar productos en esta sucursal.
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-        {selectedCategoryId === null ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-            <span className="text-4xl" aria-hidden>
-              🗂️
-            </span>
-            <p className="text-sm text-slate-400">
-              Selecciona una categoría para gestionar el inventario de sus productos.
-            </p>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-            <span className="text-4xl" aria-hidden>
-              📦
-            </span>
-            <p className="text-sm text-slate-400">
-              No hay productos en esta categoría. Agrega productos desde el catálogo general.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-800">
-            <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.24em] text-slate-400">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Producto
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Precio
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Stock
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
-                {products.map((item) => {
-                  const productId = item.product._id as unknown as string;
-                  return (
-                    <tr key={productId} className="transition hover:bg-slate-900/60">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
-                            {item.imageUrl ? (
-                              <img src={item.imageUrl} alt={item.product.name} className="h-full w-full object-cover" />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-xl text-slate-600">
-                                🍽️
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-white">{item.product.name}</p>
-                            <p className="text-xs text-slate-400">{item.product.description}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-white">
-                        {formatCurrency(item.product.price)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-white">
-                        <input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={stockDrafts[productId] ?? item.stock.toString()}
-                          onChange={(event) => handleStockChange(productId, event)}
-                          className="w-24 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
+            <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                            Información de la sucursal
+                        </h2>
+                    </div>
+                    {!isEditingBranch && (
                         <button
-                          type="button"
-                          onClick={() => handleSaveStock(item)}
-                          className="inline-flex items-center justify-center rounded-xl bg-[#fa7316] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white shadow-[#fa7316]/30 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
-                          disabled={savingProductId === productId}
+                            type="button"
+                            onClick={() => {
+                                setIsEditingBranch(true);
+                                resetBranchForm();
+                            }}
+                            className="inline-flex items-center gap-2 justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                         >
-                          {savingProductId === productId ? "Guardando..." : "Guardar"}
+                          <FiEdit3 />
+                          <span>Editar información</span>
                         </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-    </div>
-  );
+                    )}
+                </div>
+
+                {isEditingBranch ? (
+                    <form
+                        className="mt-6 space-y-5"
+                        onSubmit={handleBranchFormSubmit}
+                    >
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="name"
+                                    className="text-sm font-medium text-slate-200"
+                                >
+                                    Nombre de la sucursal
+                                </label>
+                                <input
+                                    id="name"
+                                    name="name"
+                                    type="text"
+                                    required
+                                    value={branchForm.name}
+                                    onChange={handleBranchFormChange}
+                                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                />
+                            </div>
+                            <div className="space-y-2 lg:col-span-2">
+                                <label
+                                    htmlFor="address"
+                                    className="text-sm font-medium text-slate-200"
+                                >
+                                    Dirección
+                                </label>
+                                <input
+                                    id="address"
+                                    name="address"
+                                    type="text"
+                                    required
+                                    value={branchForm.address}
+                                    onChange={handleBranchFormChange}
+                                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                />
+                            </div>
+                        </div>
+
+                        {branchFormError && (
+                            <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                                {branchFormError}
+                            </div>
+                        )}
+
+                        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    resetBranchForm();
+                                    setIsEditingBranch(false);
+                                }}
+                                className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                disabled={isSavingBranch}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                disabled={isSavingBranch}
+                            >
+                                {isSavingBranch
+                                    ? "Guardando..."
+                                    : "Guardar cambios"}
+                            </button>
+                        </div>
+                    </form>
+                ) : (
+                    <>
+                        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+                            <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-5">
+                                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                                    Nombre
+                                </span>
+                                <p className="mt-2 text-lg font-semibold text-white">
+                                    {branch?.name ?? "—"}
+                                </p>
+                            </div>
+                            <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-5 lg:col-span-2">
+                                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                                    Dirección
+                                </span>
+                                <p className="mt-2 text-lg font-semibold text-white">
+                                    {branch?.address ?? "—"}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 grid gap-4 md:grid-cols-3">
+                            <SummaryStatCard
+                                title="Mesas registradas"
+                                value={totalTables.toString()}
+                                helper="Total de mesas configuradas."
+                            />
+                            <SummaryStatCard
+                                title="Disponibles"
+                                value={availableTables.toString()}
+                                helper="Mesas listas para asignar."
+                            />
+                            <SummaryStatCard
+                                title="Ocupadas"
+                                value={occupiedTables.toString()}
+                                helper="Mesas con ventas activas."
+                            />
+                        </div>
+                    </>
+                )}
+            </section>
+
+            <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                            Mesas de la sucursal
+                        </h2>
+                      
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setEditingTableId(null);
+                            setTableForm(DEFAULT_TABLE_FORM);
+                            setTableFormError(null);
+                            setIsTableModalOpen(true);
+                        }}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                        disabled={!branchId}
+                    >
+                        <MdOutlineTableRestaurant />
+                        <span>Registrar mesa</span>
+                    </button>
+                </div>
+
+                {branchTables.length === 0 ? (
+                    <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 px-6 py-12 text-center text-slate-400">
+                        <span className="text-3xl" aria-hidden>
+                            🍽️
+                        </span>
+                        <p className="max-w-sm text-sm">
+                            Aún no has creado mesas para esta sucursal. Agrega
+                            mesas para que el punto de venta pueda asignar
+                            pedidos.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        {branchTables.map((table) => (
+                            <article
+                                key={table._id as string}
+                                className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-950/40 p-5 text-white shadow-inner shadow-black/20"
+                            >
+                                <header className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                                            Mesa
+                                        </p>
+                                        <h3 className="text-xl font-semibold text-white">
+                                            {table.label}
+                                        </h3>
+                                    </div>
+                                    <TableStatusBadge
+                                        status={table.status ?? "available"}
+                                    />
+                                </header>
+                                <div className="space-y-2 text-sm text-slate-300">
+                                    <p>
+                                        Capacidad:{" "}
+                                        <span className="font-semibold text-white">
+                                            {table.capacity !== undefined
+                                                ? `${table.capacity} persona${table.capacity === 1 ? "" : "s"}`
+                                                : "Sin definir"}
+                                        </span>
+                                    </p>
+                                    <p>
+                                        Venta activa:{" "}
+                                        <span className="font-semibold text-white">
+                                            {table.currentSaleId ? "Sí" : "No"}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setEditingTableId(table._id);
+                                            setTableForm({
+                                                label: table.label,
+                                                capacity:
+                                                    table.capacity !== undefined
+                                                        ? table.capacity.toString()
+                                                        : "",
+                                                status:
+                                                    table.status ?? "available",
+                                            });
+                                            setTableFormError(null);
+                                            setIsTableModalOpen(true);
+                                        }}
+                                        className="inline-flex flex-1 items-center justify-center rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
+                                    >
+                                        Editar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTableToDelete(table)}
+                                        className="inline-flex items-center justify-center rounded-lg border border-red-500/40 px-3 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200"
+                                        disabled={Boolean(table.currentSaleId)}
+                                    >
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            {isTableModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-10">
+                    <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
+                    <div className="relative w-full max-w-lg rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+                        <header className="flex items-center justify-between">
+                            <div>
+                                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                                    {editingTableId
+                                        ? "Editar mesa"
+                                        : "Nueva mesa"}
+                                </span>
+                                <h3 className="mt-2 text-2xl font-semibold text-white">
+                                    {editingTableId
+                                        ? "Actualizar información"
+                                        : "Registrar nueva mesa"}
+                                </h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsTableModalOpen(false);
+                                    setEditingTableId(null);
+                                    setTableForm(DEFAULT_TABLE_FORM);
+                                }}
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 text-slate-300 transition hover:text-white"
+                                aria-label="Cerrar"
+                            >
+                                ✕
+                            </button>
+                        </header>
+
+                        <form
+                            className="mt-6 space-y-4"
+                            onSubmit={handleTableFormSubmit}
+                        >
+                            <div className="space-y-2">
+                                <label
+                                    className="text-sm font-medium text-slate-200"
+                                    htmlFor="label"
+                                >
+                                    Nombre de la mesa
+                                </label>
+                                <input
+                                    id="label"
+                                    name="label"
+                                    type="text"
+                                    autoFocus
+                                    value={tableForm.label}
+                                    onChange={handleTableFormChange}
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    placeholder="Ej. Terraza 1"
+                                />
+                            </div>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="space-y-2">
+                                    <label
+                                        className="text-sm font-medium text-slate-200"
+                                        htmlFor="capacity"
+                                    >
+                                        Capacidad (opcional)
+                                    </label>
+                                    <input
+                                        id="capacity"
+                                        name="capacity"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value={tableForm.capacity}
+                                        onChange={handleTableFormChange}
+                                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                        placeholder="Número de personas"
+                                    />
+                                </div>
+                                {editingTableId && (
+                                    <div className="space-y-2">
+                                        <label
+                                            className="text-sm font-medium text-slate-200"
+                                            htmlFor="status"
+                                        >
+                                            Estado
+                                        </label>
+                                        <select
+                                            id="status"
+                                            name="status"
+                                            value={tableForm.status}
+                                            onChange={handleTableFormChange}
+                                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                        >
+                                            {TABLE_STATUSES.map((option) => (
+                                                <option
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+
+                            {tableFormError && (
+                                <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                                    {tableFormError}
+                                </div>
+                            )}
+
+                            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsTableModalOpen(false);
+                                        setEditingTableId(null);
+                                        setTableForm(DEFAULT_TABLE_FORM);
+                                        setTableFormError(null);
+                                    }}
+                                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                    disabled={isSavingTable}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                    disabled={isSavingTable}
+                                >
+                                    {isSavingTable
+                                        ? "Guardando..."
+                                        : editingTableId
+                                          ? "Guardar cambios"
+                                          : "Crear mesa"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            <ConfirmDialog
+                isOpen={Boolean(tableToDelete)}
+                title="Eliminar mesa"
+                tone="danger"
+                description="¿Deseas eliminar esta mesa? Solo puedes eliminar mesas que no tengan ventas abiertas."
+                confirmLabel="Eliminar"
+                onCancel={() => setTableToDelete(null)}
+                onConfirm={handleConfirmDeleteTable}
+            />
+
+            <section>
+                <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                    Inventario
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {categories?.map((item) => {
+                        const categoryId = item.category
+                            ._id as unknown as string;
+                        const isSelected = categoryId === selectedCategoryId;
+                        return (
+                            <button
+                                key={categoryId}
+                                type="button"
+                                onClick={() =>
+                                    setSelectedCategoryId(categoryId)
+                                }
+                                className={`flex flex-col gap-1 rounded-lg border p-4 text-left transition ${
+                                    isSelected
+                                        ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
+                                        : "border-slate-800 bg-slate-900 text-slate-300 hover:border-[#fa7316]/50 hover:text-white"
+                                }`}
+                            >
+                                <span className="text-md font-semibold ">
+                                    {item.category.name}
+                                </span>
+                                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
+                                    {item.productCount} productos
+                                </span>
+                            </button>
+                        );
+                    })}
+                    {(!categories || categories.length === 0) && (
+                        <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/40 px-6 py-6 text-sm text-slate-400">
+                            Crea categorías para comenzar a clasificar productos
+                            en esta sucursal.
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+                {selectedCategoryId === null ? (
+                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
+                        <span className="text-4xl" aria-hidden>
+                            🗂️
+                        </span>
+                        <p className="text-sm text-slate-400">
+                            Selecciona una categoría para gestionar el
+                            inventario de sus productos.
+                        </p>
+                    </div>
+                ) : products.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
+                        <span className="text-4xl" aria-hidden>
+                            📦
+                        </span>
+                        <p className="text-sm text-slate-400">
+                            No hay productos en esta categoría. Agrega productos
+                            desde el catálogo general.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-hidden rounded-2xl border border-slate-800">
+                        <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
+                            <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.24em] text-slate-400">
+                                <tr>
+                                    <th
+                                        scope="col"
+                                        className="px-6 py-4 font-semibold"
+                                    >
+                                        Producto
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        className="px-6 py-4 font-semibold"
+                                    >
+                                        Precio
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        className="px-6 py-4 font-semibold"
+                                    >
+                                        Stock
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        className="px-6 py-4 font-semibold"
+                                    >
+                                        Acciones
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
+                                {products.map((item) => {
+                                    const productId = item.product
+                                        ._id as unknown as string;
+                                    return (
+                                        <tr
+                                            key={productId}
+                                            className="transition hover:bg-slate-900/60"
+                                        >
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+                                                        {item.imageUrl ? (
+                                                            <img
+                                                                src={
+                                                                    item.imageUrl
+                                                                }
+                                                                alt={
+                                                                    item.product
+                                                                        .name
+                                                                }
+                                                                className="h-full w-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex h-full w-full items-center justify-center text-xl text-slate-600">
+                                                                🍽️
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-white">
+                                                            {item.product.name}
+                                                        </p>
+                                                        <p className="text-xs text-slate-400">
+                                                            {
+                                                                item.product
+                                                                    .description
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-white">
+                                                {formatCurrency(
+                                                    item.product.price
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-white">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="1"
+                                                    value={
+                                                        stockDrafts[
+                                                            productId
+                                                        ] ??
+                                                        item.stock.toString()
+                                                    }
+                                                    onChange={(event) =>
+                                                        handleStockChange(
+                                                            productId,
+                                                            event
+                                                        )
+                                                    }
+                                                    className="w-24 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                />
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleSaveStock(item)
+                                                    }
+                                                    className="inline-flex items-center justify-center rounded-lg bg-[#fa7316] px-4 py-2 text-xs font-semibold text-white shadow-[#fa7316]/30 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                                    disabled={
+                                                        savingProductId ===
+                                                        productId
+                                                    }
+                                                >
+                                                    {savingProductId ===
+                                                    productId
+                                                        ? "Guardando..."
+                                                        : "Guardar"}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </section>
+        </div>
+    );
 };
 
 const SummaryStatCard = ({
-  title,
-  value,
-  helper,
+    title,
+    value,
+    helper,
 }: {
-  title: string;
-  value: string;
-  helper: string;
+    title: string;
+    value: string;
+    helper: string;
 }) => (
-  <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-    <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">{title}</span>
-    <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-    <p className="mt-1 text-xs text-slate-400">{helper}</p>
-  </div>
+    <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-5">
+        <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+            {title}
+        </span>
+        <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
+        <p className="mt-1 text-xs text-slate-400">{helper}</p>
+    </div>
 );
 
 const TableStatusBadge = ({ status }: { status: TableFormState["status"] }) => {
-  const config: Record<TableFormState["status"], { label: string; className: string }> = {
-    available: {
-      label: "Disponible",
-      className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
-    },
-    occupied: {
-      label: "Ocupada",
-      className: "border-[#fa7316]/40 bg-[#fa7316]/10 text-[#fa7316]",
-    },
-    reserved: {
-      label: "Reservada",
-      className: "border-sky-500/40 bg-sky-500/10 text-sky-300",
-    },
-    out_of_service: {
-      label: "Fuera de servicio",
-      className: "border-red-500/40 bg-red-500/10 text-red-300",
-    },
-  };
+    const config: Record<
+        TableFormState["status"],
+        { label: string; className: string }
+    > = {
+        available: {
+            label: "Disponible",
+            className:
+                "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+        },
+        occupied: {
+            label: "Ocupada",
+            className: "border-[#fa7316]/40 bg-[#fa7316]/10 text-[#fa7316]",
+        },
+        reserved: {
+            label: "Reservada",
+            className: "border-sky-500/40 bg-sky-500/10 text-sky-300",
+        },
+        out_of_service: {
+            label: "Fuera de servicio",
+            className: "border-red-500/40 bg-red-500/10 text-red-300",
+        },
+    };
 
-  const data = config[status];
-  return (
-    <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${data.className}`}>
-      {data.label}
-    </span>
-  );
+    const data = config[status];
+    return (
+        <span
+            className={`rounded-lg border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${data.className}`}
+        >
+            {data.label}
+        </span>
+    );
 };
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(value);
+    return new Intl.NumberFormat("es-PE", {
+        style: "currency",
+        currency: "PEN",
+    }).format(value);
 }
 
 export default BranchDetails;
-
-
