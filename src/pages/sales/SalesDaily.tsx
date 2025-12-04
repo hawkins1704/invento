@@ -1,15 +1,8 @@
-import type { Doc } from "../../../convex/_generated/dataModel";
 import SalesShiftGuard from "../../components/SalesShiftGuard";
 import type { ShiftSummary } from "../../hooks/useSalesShift";
 import { formatCurrency, formatDate } from "../../utils/format";
 
-const SalesDailyContent = ({
-    branch,
-    activeShift,
-}: {
-    branch: Doc<"branches">;
-    activeShift: ShiftSummary;
-}) => {
+const SalesDailyContent = ({ activeShift }: { activeShift: ShiftSummary }) => {
     return (
         <div className="space-y-8">
             <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
@@ -19,7 +12,6 @@ const SalesDailyContent = ({
                             Ventas del día
                         </h1>
                     </div>
-                   
                 </div>
                 <div className="text-xs uppercase tracking-[0.1em] text-slate-400">
                     {formatDate(Date.now())}

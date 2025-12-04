@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import type { ChangeEvent, FormEvent } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
+import Chip from "../../components/Chip";
+import { IoMdAdd } from "react-icons/io";
+import CloseButton from "../../components/CloseButton";
 
 type StaffFormState = {
   branchId: string;
@@ -88,16 +91,13 @@ const AdminStaff = () => {
     }
   };
 
-  const totalActive = sortedStaff.filter((member) => member.active).length;
-  const totalInactive = sortedStaff.length - totalActive;
+
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
-            Personal
-          </div>
+          <Chip label="Personal" />
           <div>
             <h1 className="text-3xl font-semibold">Equipo operativo</h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-400">
@@ -106,22 +106,15 @@ const AdminStaff = () => {
           </div>
         </div>
         <div className="flex flex-col items-stretch gap-3 md:items-end">
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-semibold uppercase tracking-[0.18em] text-emerald-300">
-              {totalActive} activos
-            </span>
-            <span className="rounded-full border border-slate-700 px-3 py-1 font-semibold uppercase tracking-[0.18em] text-slate-300">
-              {totalInactive} inactivos
-            </span>
-          </div>
+         
           <button
             type="button"
             onClick={openForm}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
             disabled={!branches || branches.length === 0}
           >
-            Agregar personal
-            <span aria-hidden>＋</span>
+            <IoMdAdd />
+            <span>Agregar personal</span>
           </button>
           {!branches || branches.length === 0 ? (
             <span className="text-xs text-red-300">Crea una sucursal antes de registrar personal.</span>
@@ -129,7 +122,7 @@ const AdminStaff = () => {
         </div>
       </header>
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
         {sortedStaff.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
             <span className="text-4xl" aria-hidden>
@@ -140,7 +133,7 @@ const AdminStaff = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-800">
+          <div className="overflow-hidden rounded-lg border border-slate-800">
             <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
               <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.24em] text-slate-400">
                 <tr>
@@ -173,11 +166,11 @@ const AdminStaff = () => {
                       <td className="px-6 py-4 text-sm text-slate-300">{branch?.name ?? "Sucursal"}</td>
                       <td className="px-6 py-4 text-sm">
                         {member.active ? (
-                          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-emerald-300">
                             Activo
                           </span>
                         ) : (
-                          <span className="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                          <span className="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
                             Inactivo
                           </span>
                         )}
@@ -192,23 +185,10 @@ const AdminStaff = () => {
       </section>
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-          <div className="relative w-full max-w-2xl rounded-3xl border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
-            <button
-              type="button"
-              onClick={() => setIsFormOpen(false)}
-              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900 text-slate-300 transition hover:text-white"
-              aria-label="Cerrar"
-            >
-              ✕
-            </button>
+          <div className="relative w-full max-w-2xl rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
+            <CloseButton onClick={() => setIsFormOpen(false)} />
             <header className="mb-6 space-y-2">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
-                Nuevo personal
-              </span>
               <h2 className="text-2xl font-semibold text-white">Registrar trabajador</h2>
-              <p className="text-sm text-slate-400">
-                Asigna el colaborador a una sucursal y define sus datos de contacto.
-              </p>
             </header>
             <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="space-y-2">
@@ -220,7 +200,7 @@ const AdminStaff = () => {
                   name="branchId"
                   value={formState.branchId}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                   required
                 >
                   <option value="">Selecciona una sucursal</option>
@@ -242,7 +222,7 @@ const AdminStaff = () => {
                   required
                   value={formState.name}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -256,7 +236,7 @@ const AdminStaff = () => {
                     type="text"
                     value={formState.role}
                     onChange={handleChange}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                     placeholder="Ej. Cajero, Mozo"
                   />
                 </div>
@@ -270,7 +250,7 @@ const AdminStaff = () => {
                     type="tel"
                     value={formState.phone}
                     onChange={handleChange}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                     placeholder="+51 ..."
                   />
                 </div>
@@ -285,13 +265,13 @@ const AdminStaff = () => {
                   type="email"
                   value={formState.email}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                   placeholder="nombre@invento.com"
                 />
               </div>
 
               {formError && (
-                <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                   {formError}
                 </div>
               )}
@@ -300,14 +280,14 @@ const AdminStaff = () => {
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                   disabled={isSubmitting}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : "Guardar personal"}

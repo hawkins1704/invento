@@ -317,10 +317,7 @@ const CloseSaleDialog = ({
                     setIsLoadingCustomerData(false);
                 }
             }, 500); // 500ms de debounce
-        } else if (customerFromConvex === null && documentType && length === requiredLength) {
-            // Si la query de CONVEX retornó null (cliente no existe), mantener loading mientras esperamos el debounce
-            // El loading se ocultará cuando termine la consulta a Decolecta o cuando se cancele
-        } else if (!documentType || length !== requiredLength) {
+        }  else if (!documentType || length !== requiredLength) {
             // Si no hay tipo válido o longitud incorrecta, ocultar loading
             setIsLoadingCustomerData(false);
         } else if (customerFromConvex !== undefined) {

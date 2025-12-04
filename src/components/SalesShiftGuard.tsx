@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { useSalesShift, type ShiftSummary } from "../hooks/useSalesShift";
 import { FaRegClock } from "react-icons/fa";
-import { MdStorefront } from "react-icons/md";
+import { LuStore } from "react-icons/lu";
 type GuardRenderProps = {
   branch: Doc<"branches">;
   branchId: string;
@@ -42,7 +42,7 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
   if (!branchId || !branch) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300 shadow-inner shadow-black/20">
-        <MdStorefront color={PRIMARY_COLOR} size={32}/>
+        <LuStore color={PRIMARY_COLOR} size={32}/>
         <p className="max-w-md text-sm text-slate-400">
           Selecciona la sucursal en la que trabajarás para continuar con las ventas.
         </p>

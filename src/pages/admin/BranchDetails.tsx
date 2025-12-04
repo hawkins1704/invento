@@ -230,9 +230,10 @@ const BranchDetails = () => {
                     <button
                         type="button"
                         onClick={() => navigate("/admin/branches")}
-                        className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-1 text-xs font-semibold  tracking-[0.24em] text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-xs font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                     >
-                        ← Volver
+                         <FaArrowLeft />
+                         <span>Volver</span>
                     </button>
                     <h1 className="mt-4 text-3xl font-semibold text-white">
                         Sucursal no disponible
@@ -494,7 +495,7 @@ const BranchDetails = () => {
                                     required
                                     value={branchForm.name}
                                     onChange={handleBranchFormChange}
-                                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                                 />
                             </div>
                             <div className="space-y-2 lg:col-span-2">
@@ -511,7 +512,7 @@ const BranchDetails = () => {
                                     required
                                     value={branchForm.address}
                                     onChange={handleBranchFormChange}
-                                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                                 />
                             </div>
                         </div>
@@ -529,14 +530,14 @@ const BranchDetails = () => {
                                     resetBranchForm();
                                     setIsEditingBranch(false);
                                 }}
-                                className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                                 disabled={isSavingBranch}
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="submit"
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                                 disabled={isSavingBranch}
                             >
                                 {isSavingBranch
@@ -700,11 +701,6 @@ const BranchDetails = () => {
                     <div className="relative w-full max-w-lg rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
                         <header className="flex items-center justify-between">
                             <div>
-                                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                                    {editingTableId
-                                        ? "Editar mesa"
-                                        : "Nueva mesa"}
-                                </span>
                                 <h3 className="mt-2 text-2xl font-semibold text-white">
                                     {editingTableId
                                         ? "Actualizar información"
@@ -905,7 +901,7 @@ const BranchDetails = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-hidden rounded-2xl border border-slate-800">
+                    <div className="overflow-hidden rounded-lg border border-slate-800">
                         <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
                             <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.24em] text-slate-400">
                                 <tr>
@@ -1008,7 +1004,7 @@ const BranchDetails = () => {
                                                     onClick={() =>
                                                         handleSaveStock(item)
                                                     }
-                                                    className="inline-flex items-center justify-center rounded-lg bg-[#fa7316] px-4 py-2 text-xs font-semibold text-white shadow-[#fa7316]/30 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                                    className="inline-flex items-center justify-center rounded-lg bg-[#fa7316] px-4 py-2 text-xs font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                                                     disabled={
                                                         savingProductId ===
                                                         productId
@@ -1077,7 +1073,7 @@ const TableStatusBadge = ({ status }: { status: TableFormState["status"] }) => {
     const data = config[status];
     return (
         <span
-            className={`rounded-lg border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${data.className}`}
+            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] ${data.className}`}
         >
             {data.label}
         </span>

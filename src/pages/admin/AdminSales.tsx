@@ -3,6 +3,9 @@ import { useQuery } from "convex/react";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { api } from "../../../convex/_generated/api";
 import { formatCurrency, formatDate, formatDateTime, formatDuration } from "../../utils/format";
+import Chip from "../../components/Chip";
+import { FaRegSadTear } from "react-icons/fa";
+import { LuStore } from "react-icons/lu";
 
 type PeriodKey = "day" | "week" | "month";
 
@@ -196,11 +199,9 @@ const AdminSales = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
+      <header className="flex flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
-            Ventas
-          </div>
+          <Chip label="Ventas" />
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold">Panel de ventas</h1>
             <p className="max-w-2xl text-sm text-slate-300">
@@ -213,9 +214,9 @@ const AdminSales = () => {
           <button
             type="button"
             onClick={() => setViewMode("history")}
-            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
               viewMode === "history"
-                ? "bg-[#fa7316] text-white shadow-lg shadow-[#fa7316]/40"
+                ? "bg-[#fa7316] text-white"
                 : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
             }`}
           >
@@ -224,9 +225,9 @@ const AdminSales = () => {
           <button
             type="button"
             onClick={() => setViewMode("live")}
-            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
               viewMode === "live"
-                ? "bg-[#fa7316] text-white shadow-lg shadow-[#fa7316]/40"
+                ? "bg-[#fa7316] text-white "
                 : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
             }`}
           >
@@ -323,18 +324,18 @@ const HistoryView = ({
         />
       </section>
 
-      <section className="flex flex-wrap items-center gap-4 rounded-3xl border border-slate-800 bg-slate-900/50 p-5 text-white shadow-inner shadow-black/20">
+      <section className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-800 bg-slate-900/50 p-5 text-white shadow-inner shadow-black/20">
         <div className="flex flex-col gap-2">
-          <span className="text-xs uppercase tracking-[0.24em] text-slate-500">Periodo</span>
+          <span className="text-xs uppercase tracking-[0.1em] text-slate-500">Periodo</span>
           <div className="flex flex-wrap gap-2">
             {PERIOD_OPTIONS.map((option) => (
               <button
                 key={option.key}
                 type="button"
                 onClick={() => onPeriodChange(option.key)}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                   option.key === period
-                    ? "bg-[#fa7316] text-white shadow-lg shadow-[#fa7316]/30"
+                    ? "bg-[#fa7316] text-white "
                     : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
                 }`}
               >
@@ -345,7 +346,7 @@ const HistoryView = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs uppercase tracking-[0.24em] text-slate-500">Sucursal</label>
+          <label className="text-xs uppercase tracking-[0.1em] text-slate-500">Sucursal</label>
           <select
             value={selectedBranch === "all" ? "all" : (selectedBranch as string)}
             onChange={(event) => {
@@ -356,7 +357,7 @@ const HistoryView = ({
                 onBranchChange(value as Id<"branches">);
               }
             }}
-            className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+            className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
           >
             <option value="all">Todas las sucursales</option>
             {branches.map((branch) => (
@@ -368,7 +369,7 @@ const HistoryView = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs uppercase tracking-[0.24em] text-slate-500">Personal</label>
+          <label className="text-xs uppercase tracking-[0.1em] text-slate-500">Personal</label>
           <select
             value={selectedStaff === "all" ? "all" : (selectedStaff as string)}
             onChange={(event) => {
@@ -379,7 +380,7 @@ const HistoryView = ({
                 onStaffChange(value as Id<"staff">);
               }
             }}
-            className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+            className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
           >
             <option value="all">Todo el personal</option>
             {staffMembers.map((member) => (
@@ -392,19 +393,16 @@ const HistoryView = ({
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1fr,0.45fr]">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/60 text-white shadow-inner shadow-black/20">
+        <div className="rounded-lg border border-slate-800 bg-slate-900/60 text-white shadow-inner shadow-black/20">
           <header className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
             <h2 className="text-lg font-semibold">Ventas cerradas</h2>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
-              {data.length} registros
-            </span>
+            
+            <Chip label={data.length.toString() + " registros"} />
           </header>
 
           {data.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-slate-400">
-              <span className="text-3xl" aria-hidden>
-                📉
-              </span>
+              <FaRegSadTear size={40} />
               <p className="text-sm">
                 No se encontraron ventas en el periodo seleccionado. Ajusta los filtros para ver otros resultados.
               </p>
@@ -457,18 +455,18 @@ const HistoryView = ({
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 text-white shadow-inner shadow-black/20">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Métodos de pago</h3>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-5 text-white shadow-inner shadow-black/20">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">Métodos de pago</h3>
             <ul className="mt-4 space-y-3 text-sm">
               {paymentBreakdown.length === 0 ? (
-                <li className="rounded-xl border border-slate-800/60 bg-slate-950/60 px-4 py-3 text-slate-400">
+                <li className="rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3 text-slate-400">
                   Aún no se registran métodos de pago en este periodo.
                 </li>
               ) : (
                 paymentBreakdown.map(([method, total]) => (
                   <li
                     key={method}
-                    className="flex items-center justify-between rounded-xl border border-slate-800/60 bg-slate-950/60 px-4 py-3"
+                    className="flex items-center justify-between rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3"
                   >
                     <span className="text-slate-200">{method}</span>
                     <span className="font-semibold text-white">{formatCurrency(total)}</span>
@@ -478,18 +476,18 @@ const HistoryView = ({
             </ul>
           </div>
 
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 text-white shadow-inner shadow-black/20">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Top personal</h3>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-5 text-white shadow-inner shadow-black/20">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">Top personal</h3>
             <ul className="mt-4 space-y-3 text-sm">
               {topStaff.length === 0 ? (
-                <li className="rounded-xl border border-slate-800/60 bg-slate-950/60 px-4 py-3 text-slate-400">
+                <li className="rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3 text-slate-400">
                   Aún no se registran ventas por personal en este periodo.
                 </li>
               ) : (
                 topStaff.map(([staffId, total]) => (
                   <li
                     key={staffId}
-                    className="flex items-center justify-between rounded-xl border border-slate-800/60 bg-slate-950/60 px-4 py-3"
+                    className="flex items-center justify-between rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3"
                   >
                     <span className="text-slate-200">
                       {staffNameById.get(staffId) ?? "Personal"}
@@ -531,9 +529,9 @@ const LiveView = ({
               key={branch._id}
               type="button"
               onClick={() => onSelectBranch(branch._id)}
-              className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${
+              className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
                 isActive
-                  ? "border-transparent bg-[#fa7316] text-white shadow-lg shadow-[#fa7316]/40"
+                  ? "border-transparent bg-[#fa7316] text-white "
                   : "border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
               }`}
             >
@@ -542,7 +540,7 @@ const LiveView = ({
           );
         })}
         {branches.length === 0 && (
-          <span className="rounded-xl border border-dashed border-slate-700 bg-slate-950/50 px-4 py-2 text-sm text-slate-400">
+          <span className="rounded-lg border border-dashed border-slate-700 bg-slate-950/50 px-4 py-2 text-sm text-slate-400">
             Crea una sucursal para comenzar a registrar ventas.
           </span>
         )}
@@ -559,33 +557,23 @@ const LiveView = ({
           value={formatCurrency(summary.totalAmount)}
           subtitle="Suma de los tickets abiertos."
         />
-        <SummaryCard
-          title="Última actualización"
-          value={formatDateTime(Date.now())}
-          subtitle="Refresca la página para forzar una actualización manual."
-        />
+        
       </section>
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 text-white shadow-inner shadow-black/20">
+      <section className="rounded-lg border border-slate-800 bg-slate-900/60 text-white shadow-inner shadow-black/20">
         <header className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
           <h2 className="text-lg font-semibold">Pedidos en vivo</h2>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
-            {data.length} activos
-          </span>
+          <Chip label={data.length.toString() + " activos"} />
         </header>
 
         {selectedBranch === null ? (
           <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-slate-400">
-            <span className="text-3xl" aria-hidden>
-              🏬
-            </span>
+            <LuStore size={40} />
             <p className="text-sm">Selecciona una sucursal para visualizar los pedidos en vivo.</p>
           </div>
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-slate-400">
-            <span className="text-3xl" aria-hidden>
-              ✅
-            </span>
+            <FaRegSadTear size={40} />
             <p className="text-sm">
               No hay pedidos abiertos actualmente en esta sucursal. Las ventas cerradas se enviarán al historial
               automáticamente.
@@ -596,16 +584,16 @@ const LiveView = ({
             {data.map((entry) => (
               <article
                 key={entry.sale._id}
-                className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-950/50 p-5 shadow-inner shadow-black/20"
+                className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-950/50 p-5 shadow-inner shadow-black/20"
               >
                 <header className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                    <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
                       {entry.table?.label ?? "Pedido sin mesa"}
                     </p>
                     <h3 className="text-xl font-semibold text-white">{formatCurrency(entry.sale.total)}</h3>
                   </div>
-                  <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#fa7316]">
+                  <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#fa7316]">
                     {formatDuration(entry.sale.openedAt, Date.now())}
                   </span>
                 </header>
@@ -626,15 +614,15 @@ const LiveView = ({
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Productos</h4>
+                  <h4 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Productos</h4>
                   <ul className="space-y-2 text-sm text-slate-200">
                     {entry.items.length === 0 ? (
-                      <li className="rounded-xl border border-dashed border-slate-700 px-3 py-2 text-slate-400">
+                      <li className="rounded-lg border border-dashed border-slate-700 px-3 py-2 text-slate-400">
                         No hay productos aún en este pedido.
                       </li>
                     ) : (
                       entry.items.map((item) => (
-                        <li key={item._id} className="flex items-center justify-between rounded-xl bg-slate-900/60 px-3 py-2">
+                        <li key={item._id} className="flex items-center justify-between rounded-lg bg-slate-900/60 px-3 py-2">
                           <span className="text-slate-300">
                             {item.quantity} × {formatCurrency(item.unitPrice)}
                           </span>
@@ -646,7 +634,7 @@ const LiveView = ({
                 </div>
 
                 {entry.sale.notes && (
-                  <p className="rounded-xl border border-slate-800/60 bg-slate-950/60 px-3 py-2 text-sm text-slate-300">
+                  <p className="rounded-lg border border-slate-800/60 bg-slate-950/60 px-3 py-2 text-sm text-slate-300">
                     {entry.sale.notes}
                   </p>
                 )}
@@ -669,8 +657,8 @@ const SummaryCard = ({
   subtitle: string;
 }) => {
   return (
-    <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{title}</p>
+    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+      <p className="text-xs uppercase tracking-[0.1em] text-slate-500">{title}</p>
       <p className="mt-3 text-2xl font-semibold text-white">{value}</p>
       <p className="mt-2 text-xs text-slate-400">{subtitle}</p>
     </div>

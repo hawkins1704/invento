@@ -5,6 +5,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import { FaArrowLeft } from "react-icons/fa";
 
 type StaffFormState = {
   branchId: string;
@@ -165,9 +166,10 @@ const AdminStaffDetail = () => {
           <button
             type="button"
             onClick={() => navigate("/admin/staff")}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
           >
-            ← Volver
+            <FaArrowLeft />
+            <span>Volver</span>
           </button>
           <h1 className="mt-4 text-3xl font-semibold text-white">Personal no disponible</h1>
           <p className="mt-2 text-sm text-slate-400">
@@ -188,14 +190,15 @@ const AdminStaffDetail = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
+      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-3">
           <button
             type="button"
             onClick={() => navigate("/admin/staff")}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
           >
-            ← Volver
+            <FaArrowLeft />
+            <span>Volver</span>
           </button>
           <div>
             <h1 className="text-3xl font-semibold text-white">Personal · {staffMember.name}</h1>
@@ -208,7 +211,7 @@ const AdminStaffDetail = () => {
         <button
           type="button"
           onClick={() => setConfirmDelete(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/40 px-4 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200"
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/40 px-4 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200"
           disabled={isDeleting}
         >
           Eliminar personal
@@ -223,7 +226,7 @@ const AdminStaffDetail = () => {
               name="branchId"
               value={formState.branchId}
               onChange={handleChange}
-              className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+              className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
               required
             >
               {branchOptions.map((branch) => (
@@ -239,7 +242,7 @@ const AdminStaffDetail = () => {
               name="active"
               checked={formState.active}
               onChange={handleChange}
-              className="h-5 w-5 rounded border-slate-700 bg-slate-900 text-[#fa7316] focus:ring-[#fa7316]"
+              className="h-5 w-5 rounded-lg border-slate-700 bg-slate-900 text-[#fa7316] focus:ring-[#fa7316]"
             />
             Activo en la sucursal
           </label>
@@ -254,7 +257,7 @@ const AdminStaffDetail = () => {
               required
               value={formState.name}
               onChange={handleChange}
-              className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+              className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
@@ -264,7 +267,7 @@ const AdminStaffDetail = () => {
               type="text"
               value={formState.role}
               onChange={handleChange}
-              className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+              className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
               placeholder="Ej. Cajero, Supervisor"
             />
           </label>
@@ -275,7 +278,7 @@ const AdminStaffDetail = () => {
               type="tel"
               value={formState.phone}
               onChange={handleChange}
-              className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+              className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
               placeholder="+51 ..."
             />
           </label>
@@ -286,14 +289,14 @@ const AdminStaffDetail = () => {
               type="email"
               value={formState.email}
               onChange={handleChange}
-              className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+              className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
               placeholder="nombre@invento.com"
             />
           </label>
         </div>
 
         {formError && (
-          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
             {formError}
           </div>
         )}
@@ -302,13 +305,13 @@ const AdminStaffDetail = () => {
           <button
             type="button"
             onClick={() => navigate("/admin/staff")}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
             disabled={isSaving}
           >
             {isSaving ? "Guardando..." : "Guardar cambios"}

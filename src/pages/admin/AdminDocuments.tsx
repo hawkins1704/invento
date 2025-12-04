@@ -6,6 +6,7 @@ import { useAPISUNAT } from "../../hooks/useAPISUNAT";
 import type { APISUNATDocument, PDFFormat } from "../../types/apisunat";
 import { formatDate } from "../../utils/format";
 import { FaDownload } from "react-icons/fa";
+import CloseButton from "../../components/CloseButton";
 
 const getStatusBadge = (status: string) => {
   const statusConfig = {
@@ -166,16 +167,16 @@ const AdminDocuments = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
           <h1 className="text-3xl font-semibold">Documentos Emitidos</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-400">
-            Visualiza todos los documentos electrónicos emitidos a través de APISUNAT.
+            Visualiza todos los documentos electrónicos emitidos como boletas de venta o facturas.
           </p>
         </div>
       </header>
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
         {isLoadingDocuments || isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
             <span className="text-4xl" aria-hidden>
@@ -200,9 +201,9 @@ const AdminDocuments = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-800">
+          <div className="overflow-hidden rounded-lg border border-slate-800">
             <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.24em] text-slate-400">
+              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
                 <tr>
                   <th scope="col" className="px-6 py-4 font-semibold">
                     Filename
@@ -251,7 +252,7 @@ const AdminDocuments = () => {
                       <button
                         type="button"
                         onClick={() => handleDownloadClick(document)}
-                        className="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-900/50 p-2 text-slate-300 transition hover:border-[#fa7316] hover:bg-slate-800 hover:text-[#fa7316]"
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900/50 p-2 text-slate-300 transition hover:border-[#fa7316]  hover:text-[#fa7316] cursor-pointer"
                         aria-label="Descargar PDF"
                       >
                         <FaDownload className="text-lg" />
@@ -268,16 +269,8 @@ const AdminDocuments = () => {
       {/* Modal de descarga */}
       {selectedDocument && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-          <div className="relative w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
-            <button
-              type="button"
-              onClick={handleCloseModal}
-              disabled={isDownloading}
-              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-300 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label="Cerrar"
-            >
-              ✕
-            </button>
+          <div className="relative w-full max-w-md rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+           <CloseButton onClick={handleCloseModal} />
 
             <div className="space-y-5 pt-6">
               <header className="space-y-2">
@@ -287,14 +280,14 @@ const AdminDocuments = () => {
                 </p>
               </header>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Documento</p>
+              <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+                <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Documento</p>
                 <p className="mt-2 text-lg font-semibold text-white">{selectedDocument.fileName}</p>
                 <p className="text-xs text-slate-500">{getDocumentTypeName(selectedDocument.type)}</p>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500" htmlFor="pdf-format">
+                <label className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500" htmlFor="pdf-format">
                   Formato
                 </label>
                 <select
@@ -302,7 +295,7 @@ const AdminDocuments = () => {
                   value={selectedFormat}
                   onChange={(e) => setSelectedFormat(e.target.value as PDFFormat)}
                   disabled={isDownloading}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="A4">A4</option>
                   <option value="A5">A5</option>
@@ -315,7 +308,7 @@ const AdminDocuments = () => {
               </div>
 
               {downloadError && (
-                <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                   {downloadError}
                 </div>
               )}
@@ -325,7 +318,7 @@ const AdminDocuments = () => {
                   type="button"
                   onClick={handleCloseModal}
                   disabled={isDownloading}
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Cancelar
                 </button>
@@ -333,7 +326,7 @@ const AdminDocuments = () => {
                   type="button"
                   onClick={handleDownload}
                   disabled={isDownloading}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {isDownloading ? (
                     <>

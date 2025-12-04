@@ -12,13 +12,12 @@ import { FaTags } from "react-icons/fa";
 import { FaBoxArchive } from "react-icons/fa6";
 import { PiMoney } from "react-icons/pi";
 import { BsFillPeopleFill } from "react-icons/bs";
-import { BiSolidStore } from "react-icons/bi";
 import { FaRegClock } from "react-icons/fa";
 import { MdOutlineDinnerDining } from "react-icons/md";
 import { IoLogInOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
 import { FaFileInvoice } from "react-icons/fa6";
-import { MdStorefront } from "react-icons/md";
+import { LuStore } from "react-icons/lu";
 const PRIMARY_COLOR = "#fa7316";
 
 const formatCurrency = (value: number) =>
@@ -81,7 +80,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     label: "Sucursales",
     description: "Configuración de locales",
     path: "/admin/branches",
-    icon: <BiSolidStore color={PRIMARY_COLOR} />,
+    icon: <LuStore color={PRIMARY_COLOR} />,
   },
 ];
 
@@ -751,7 +750,7 @@ const Layout = () => {
                 onClick={() => setIsBranchMenuOpen((previous) => !previous)}
                 className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm font-semibold text-white transition hover:border-[#fa7316] hover:bg-slate-800/80"
               >
-                <MdStorefront color={PRIMARY_COLOR} />
+                <LuStore color={PRIMARY_COLOR} />
                 <span>{selectedShiftBranch.name}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -791,7 +790,7 @@ const Layout = () => {
                               : "text-slate-200 hover:bg-slate-800/80"
                           }`}
                         >
-                          <MdStorefront color={isSelected ? PRIMARY_COLOR : undefined} className="mt-0.5 flex-shrink-0" />
+                          <LuStore color={isSelected ? PRIMARY_COLOR : undefined} className="mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold">{branch.name}</div>
                             {branch.address && (

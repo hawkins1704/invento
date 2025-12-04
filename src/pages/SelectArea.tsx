@@ -5,7 +5,7 @@ import { useConvex } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import CodePinInput from "../components/CodePinInput";
 import { AREA_STORAGE_KEY, BRANCH_STORAGE_KEY } from "../hooks/useSalesShift";
-import { MdStorefront } from "react-icons/md";
+import { LuStore } from "react-icons/lu";
 import { RiAdminLine } from "react-icons/ri";
 type AreaKey = "admin" | "sales";
 
@@ -146,7 +146,7 @@ const SelectArea = () => {
                       {area.badge}
                     </span>
                     <span className="text-3xl" aria-hidden>
-                      {area.key === "admin" ? <RiAdminLine color={PRIMARY_COLOR} /> : <MdStorefront color={PRIMARY_COLOR} />}
+                      {area.key === "admin" ? <RiAdminLine color={PRIMARY_COLOR} /> : <LuStore color={PRIMARY_COLOR} />}
                     </span>
                   </div>
                   <div className="space-y-2">
