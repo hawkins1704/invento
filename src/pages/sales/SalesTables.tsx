@@ -19,6 +19,7 @@ import type { ShiftSummary } from "../../hooks/useSalesShift";
 import { MdDeleteOutline } from "react-icons/md";
 import { FaRegEdit } from "react-icons/fa";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
+import { BiDish } from "react-icons/bi";
 
 type LiveSale = {
     sale: Doc<"sales">;
@@ -221,10 +222,8 @@ const SalesTablesContent = ({
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {branchTables.length === 0 ? (
-                        <div className="col-span-full flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-800 bg-slate-950/50 p-12 text-center text-slate-400">
-                            <span className="text-3xl" aria-hidden>
-                                🍽️
-                            </span>
+                        <div className="col-span-full flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-800 bg-slate-950/50 p-12 text-center text-slate-400 flex-col items-center justify-center">
+                            <BiDish className="h-6 w-6 text-slate-600" />
                             <p className="max-w-sm text-sm">
                                 Aún no se han configurado mesas para esta
                                 sucursal. Crea mesas desde el panel de

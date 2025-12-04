@@ -4,6 +4,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
+import { IoMdAdd } from "react-icons/io";
 
 const DEFAULT_FORM = {
   name: "",
@@ -76,10 +77,10 @@ const AdminCategories = () => {
               setIsFormOpen(true);
               resetForm();
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811]"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
           >
-            Agregar categoría
-            <span aria-hidden>＋</span>
+            <IoMdAdd />
+            <span>Agregar categoría</span>
           </button>
         </div>
       </header>

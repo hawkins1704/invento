@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import type { ProductListItem } from "../../types/products";
+import { IoMdAdd } from "react-icons/io";
+import { BiDish } from "react-icons/bi";
 
 type ProductFormState = {
   name: string;
@@ -235,7 +237,7 @@ const updateStockField = (branchId: string, value: string) => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
             Inventario
@@ -255,11 +257,11 @@ const updateStockField = (branchId: string, value: string) => {
               setIsFormOpen(true);
               initializeForm();
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
             disabled={!canCreateProducts}
           >
-            Agregar producto
-            <span aria-hidden>＋</span>
+            <IoMdAdd />
+            <span>Agregar producto</span>
           </button>
           {!canCreateProducts && (
             <span className="text-xs text-[#fa7316]">
@@ -269,7 +271,7 @@ const updateStockField = (branchId: string, value: string) => {
         </div>
       </header>
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
         {sortedProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
             <span className="text-4xl" aria-hidden>
@@ -280,9 +282,9 @@ const updateStockField = (branchId: string, value: string) => {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-800">
+          <div className="overflow-hidden rounded-lg border border-slate-800">
             <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.24em] text-slate-400">
+              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
                 <tr>
                   <th scope="col" className="px-6 py-4 font-semibold">
                     Producto
@@ -318,11 +320,11 @@ const updateStockField = (branchId: string, value: string) => {
 
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-          <div className="relative w-full max-w-2xl rounded-3xl border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
+          <div className="relative w-full max-w-2xl rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
             <button
               type="button"
               onClick={() => setIsFormOpen(false)}
-              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900 text-slate-300 transition hover:text-white"
+              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 text-slate-300 transition hover:text-white"
               aria-label="Cerrar"
             >
               ✕
@@ -349,7 +351,7 @@ const updateStockField = (branchId: string, value: string) => {
                     required
                     value={formState.name}
                     onChange={updateField}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                   />
                 </div>
                 {categories && categories.length > 0 ? (
@@ -362,7 +364,7 @@ const updateStockField = (branchId: string, value: string) => {
                       name="categoryId"
                       value={formState.categoryId}
                       onChange={updateField}
-                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                     >
                       {categories.map((category) => {
                         const categoryKey = category._id as unknown as string;
@@ -377,7 +379,7 @@ const updateStockField = (branchId: string, value: string) => {
                 ) : (
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-200">Categoría</label>
-                    <div className="rounded-xl border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
+                    <div className="rounded-lg border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
                       Crea una categoría antes de agregar productos.
                     </div>
                   </div>
@@ -393,7 +395,7 @@ const updateStockField = (branchId: string, value: string) => {
                   rows={3}
                   value={formState.description}
                   onChange={updateField}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 />
               </div>
               <div className="grid gap-5 md:grid-cols-3">
@@ -410,7 +412,7 @@ const updateStockField = (branchId: string, value: string) => {
                     required
                     value={formState.unitValue}
                     onChange={updateField}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                   />
                 </div>
                 <div className="space-y-2">
@@ -423,7 +425,7 @@ const updateStockField = (branchId: string, value: string) => {
                     type="number"
                     disabled
                     value={igv.toFixed(2)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-400 cursor-not-allowed"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-400 cursor-not-allowed"
                   />
                 </div>
                 <div className="space-y-2">
@@ -439,7 +441,7 @@ const updateStockField = (branchId: string, value: string) => {
                     required
                     value={formState.price}
                     onChange={updateField}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                   />
                 </div>
               </div>
@@ -453,7 +455,7 @@ const updateStockField = (branchId: string, value: string) => {
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
-                  className="w-full cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
+                  className="w-full cursor-pointer rounded-lg border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
                 />
                 <p className="text-xs text-slate-500">
                   Se optimizará automáticamente antes de subirla. Tamaño recomendado máx. 1280px.
@@ -470,7 +472,7 @@ const updateStockField = (branchId: string, value: string) => {
                       return (
                         <div
                           key={branchKey}
-                          className="space-y-1 rounded-2xl border border-slate-800 bg-slate-900/70 p-4"
+                          className="space-y-1 rounded-lg border border-slate-800 bg-slate-900/70 p-4"
                         >
                           <p className="text-sm font-semibold text-white">{branch.name}</p>
                           <p className="text-xs text-slate-500">
@@ -482,21 +484,21 @@ const updateStockField = (branchId: string, value: string) => {
                             step="1"
                             value={formState.stocks[branchKey] ?? "0"}
                             onChange={(event) => updateStockField(branchKey, event.target.value)}
-                            className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                            className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                           />
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
+                  <div className="rounded-lg border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
                     Crea una sucursal para asignar stock.
                   </div>
                 )}
               </div>
 
               {formError && (
-                <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                   {formError}
                 </div>
               )}
@@ -505,14 +507,14 @@ const updateStockField = (branchId: string, value: string) => {
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                   disabled={isSubmitting}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : "Guardar producto"}
@@ -548,11 +550,12 @@ const ProductRow = ({
     >
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+          <div className="h-12 w-12 overflow-hidden rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center">
             {product.imageUrl ? (
               <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-xl text-slate-600">🍽️</div>
+              <BiDish className="h-6 w-6 text-slate-600" />
+
             )}
           </div>
           <div>

@@ -1,3 +1,4 @@
+import { BiDish } from "react-icons/bi";
 import type { Doc } from "../../convex/_generated/dataModel";
 import SalesShiftGuard from "../components/SalesShiftGuard";
 import type { ShiftSummary } from "../hooks/useSalesShift";
@@ -62,9 +63,7 @@ const SalesDashboardContent = ({
             </button>
           </div>
           <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-700 bg-slate-950/70 p-10 text-center">
-            <span className="text-4xl" aria-hidden>
-              🍽️
-            </span>
+            <BiDish className="h-12 w-12 text-slate-600" />
             <p className="max-w-xs text-sm text-slate-400">
               Aún no tienes ventas registradas hoy. Abre una mesa para comenzar y monitorea aquí cada pedido en curso.
             </p>

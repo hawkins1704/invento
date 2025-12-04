@@ -8,6 +8,7 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import { FaArrowLeft } from "react-icons/fa";
 import { FiEdit3 } from "react-icons/fi";
 import { MdOutlineTableRestaurant } from "react-icons/md";
+import { BiDish } from "react-icons/bi";
 
 type CategorySummary = {
     category: Doc<"categories">;
@@ -613,10 +614,8 @@ const BranchDetails = () => {
                 </div>
 
                 {branchTables.length === 0 ? (
-                    <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 px-6 py-12 text-center text-slate-400">
-                        <span className="text-3xl" aria-hidden>
-                            🍽️
-                        </span>
+                    <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-700 bg-slate-950/40 px-6 py-12 text-center text-slate-400 flex-col items-center justify-center">
+                        <BiDish className="h-6 w-6 text-slate-600" />
                         <p className="max-w-sm text-sm">
                             Aún no has creado mesas para esta sucursal. Agrega
                             mesas para que el punto de venta pueda asignar
@@ -942,7 +941,7 @@ const BranchDetails = () => {
                                         >
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+                                                    <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 flex items-center justify-center">
                                                         {item.imageUrl ? (
                                                             <img
                                                                 src={
@@ -955,9 +954,7 @@ const BranchDetails = () => {
                                                                 className="h-full w-full object-cover"
                                                             />
                                                         ) : (
-                                                            <div className="flex h-full w-full items-center justify-center text-xl text-slate-600">
-                                                                🍽️
-                                                            </div>
+                                                            <BiDish className="h-6 w-6 text-slate-600" />
                                                         )}
                                                     </div>
                                                     <div>

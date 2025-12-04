@@ -7,6 +7,9 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import type { ProductListItem } from "../../types/products";
+import { MdDeleteOutline } from "react-icons/md";
+import { FaArrowLeft } from "react-icons/fa";
+import { BiDish } from "react-icons/bi";
 
 type ProductEditFormState = {
     name: string;
@@ -48,7 +51,9 @@ const AdminProductDetail = () => {
     const branches = useQuery(api.branches.list) as
         | Doc<"branches">[]
         | undefined;
-    const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
+    const currentUser = useQuery(api.users.getCurrent) as
+        | Doc<"users">
+        | undefined;
 
     const generateUploadUrl = useMutation(api.products.generateUploadUrl);
     const updateProduct = useMutation(api.products.update);
@@ -66,7 +71,9 @@ const AdminProductDetail = () => {
     const [pendingAction, setPendingAction] = useState<
         "delete-product" | "remove-image" | null
     >(null);
-    const [lastEditedField, setLastEditedField] = useState<"unitValue" | "price" | null>(null);
+    const [lastEditedField, setLastEditedField] = useState<
+        "unitValue" | "price" | null
+    >(null);
 
     const productFromState = location.state?.product;
 
@@ -86,7 +93,10 @@ const AdminProductDetail = () => {
         }
 
         // Fallback: usar productFromState solo si la query no está lista
-        if (productFromState && (productFromState._id as unknown as string) === productId) {
+        if (
+            productFromState &&
+            (productFromState._id as unknown as string) === productId
+        ) {
             return productFromState;
         }
 
@@ -94,12 +104,12 @@ const AdminProductDetail = () => {
     }, [productFromState, productId, products]);
 
     const IGVPercentage = currentUser?.IGVPercentage ?? 18;
-    
+
     // Función para redondear a 2 decimales (centavos)
     const roundToCents = (value: number): number => {
         return Math.round(value * 100) / 100;
     };
-    
+
     // Calcular valores basado en qué campo fue editado
     const unitValue = useMemo(() => {
         if (lastEditedField === "price") {
@@ -132,38 +142,44 @@ const AdminProductDetail = () => {
         );
 
         // Función para redondear a 2 decimales
-        const roundToCents = (val: number): number => Math.round(val * 100) / 100;
-        
+        const roundToCents = (val: number): number =>
+            Math.round(val * 100) / 100;
+
         // Si el producto tiene unitValue, usarlo directamente
         // Si no, calcularlo desde el price
         const productIGVPercentage = currentUser?.IGVPercentage ?? 18;
         let productUnitValue: number;
         let productPrice: number;
-        
+
         if (product.unitValue !== undefined && product.unitValue !== null) {
             // El producto ya tiene unitValue guardado, usarlo
             productUnitValue = roundToCents(product.unitValue);
-            const productIGV = roundToCents((productUnitValue * productIGVPercentage) / 100);
+            const productIGV = roundToCents(
+                (productUnitValue * productIGVPercentage) / 100
+            );
             productPrice = roundToCents(productUnitValue + productIGV);
         } else {
             // Producto antiguo sin unitValue, calcular desde price
             productPrice = roundToCents(product.price);
-            productUnitValue = roundToCents(productPrice / (1 + (productIGVPercentage / 100)));
+            productUnitValue = roundToCents(
+                productPrice / (1 + productIGVPercentage / 100)
+            );
         }
-        
+
         // Solo actualizar el formulario si los valores han cambiado
         // para evitar limpiar el successMessage después de guardar
         setFormState((previous) => {
             const newUnitValue = productUnitValue.toFixed(2);
             const newPrice = productPrice.toFixed(2);
-            
+
             // Si los valores son diferentes, actualizar
             if (
                 previous.unitValue !== newUnitValue ||
                 previous.price !== newPrice ||
                 previous.name !== product.name ||
                 previous.description !== product.description ||
-                previous.categoryId !== (product.categoryId as unknown as string)
+                previous.categoryId !==
+                    (product.categoryId as unknown as string)
             ) {
                 return {
                     name: product.name,
@@ -200,27 +216,34 @@ const AdminProductDetail = () => {
         >
     ) => {
         const { name, value } = event.target;
-        setLastEditedField(name === "unitValue" || name === "price" ? name : null);
+        setLastEditedField(
+            name === "unitValue" || name === "price" ? name : null
+        );
         setFormState((previous) => {
             const updated = { ...previous, [name]: value };
-            
+
             // Función para redondear a 2 decimales
-            const roundToCents = (val: number): number => Math.round(val * 100) / 100;
-            
+            const roundToCents = (val: number): number =>
+                Math.round(val * 100) / 100;
+
             // Si se editó unitValue, actualizar price calculado
             if (name === "unitValue") {
                 const newUnitValue = roundToCents(Number(value) || 0);
-                const newIGV = roundToCents((newUnitValue * IGVPercentage) / 100);
+                const newIGV = roundToCents(
+                    (newUnitValue * IGVPercentage) / 100
+                );
                 const newPrice = roundToCents(newUnitValue + newIGV);
                 updated.price = newPrice.toFixed(2);
             }
             // Si se editó price, actualizar unitValue calculado
             else if (name === "price") {
                 const newPrice = roundToCents(Number(value) || 0);
-                const newUnitValue = roundToCents(newPrice / (1 + IGVPercentage / 100));
+                const newUnitValue = roundToCents(
+                    newPrice / (1 + IGVPercentage / 100)
+                );
                 updated.unitValue = newUnitValue.toFixed(2);
             }
-            
+
             return updated;
         });
     };
@@ -322,8 +345,9 @@ const AdminProductDetail = () => {
         }
 
         // Función para redondear a 2 decimales
-        const roundToCents = (val: number): number => Math.round(val * 100) / 100;
-        
+        const roundToCents = (val: number): number =>
+            Math.round(val * 100) / 100;
+
         // Siempre usar el valor unitario del estado (ya está calculado correctamente)
         const finalUnitValue = roundToCents(Number(formState.unitValue));
         if (Number.isNaN(finalUnitValue) || finalUnitValue < 0) {
@@ -426,13 +450,6 @@ const AdminProductDetail = () => {
         }
     };
 
-    const totalStock = branches.reduce((sum, branch) => {
-        const key = branch._id as unknown as string;
-        const rawValue = formState.stocks[key] ?? "0";
-        const parsed = Number(rawValue);
-        return Number.isNaN(parsed) ? sum : sum + parsed;
-    }, 0);
-
     const requestDeleteProduct = () => {
         if (!product) {
             return;
@@ -491,14 +508,15 @@ const AdminProductDetail = () => {
 
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+            <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
                 <div className="space-y-3">
                     <button
                         type="button"
                         onClick={() => navigate("/admin/inventory")}
-                        className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white transition hover:bg-white/10"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                     >
-                        ← Inventario
+                        <FaArrowLeft />
+                        <span>Volver</span>
                     </button>
                     <div>
                         <h1 className="text-3xl font-semibold">
@@ -518,18 +536,15 @@ const AdminProductDetail = () => {
                         className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-200 transition hover:border-red-500/60 hover:text-red-100"
                         disabled={isDeleting || isSubmitting}
                     >
-                        <span aria-hidden>🗑️</span>
+                        <MdDeleteOutline />
                         Eliminar producto
                     </button>
-                    <span className="rounded-full border border-[#fa7316]/40 bg-[#fa7316]/10 px-4 py-1 text-[#fa7316] text-sm">
-                        Stock : {totalStock}
-                    </span>
                 </div>
             </header>
 
             <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
                 <form
-                    className="space-y-5 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20"
+                    className="space-y-5 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20"
                     onSubmit={handleSubmit}
                 >
                     <div className="grid gap-5 md:grid-cols-2">
@@ -547,7 +562,7 @@ const AdminProductDetail = () => {
                                 required
                                 value={formState.name}
                                 onChange={updateField}
-                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                             />
                         </div>
                         {categories.length > 0 ? (
@@ -563,7 +578,7 @@ const AdminProductDetail = () => {
                                     name="categoryId"
                                     value={formState.categoryId}
                                     onChange={updateField}
-                                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                                 >
                                     {categories.map((category) => {
                                         const categoryKey =
@@ -584,7 +599,7 @@ const AdminProductDetail = () => {
                                 <label className="text-sm font-medium text-slate-200">
                                     Categoría
                                 </label>
-                                <div className="rounded-xl border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
+                                <div className="rounded-lg border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
                                     Agrega una categoría antes de editar el
                                     producto.
                                 </div>
@@ -605,7 +620,7 @@ const AdminProductDetail = () => {
                             rows={3}
                             value={formState.description}
                             onChange={updateField}
-                            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                         />
                     </div>
 
@@ -626,7 +641,7 @@ const AdminProductDetail = () => {
                                 required
                                 value={formState.unitValue}
                                 onChange={updateField}
-                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                             />
                         </div>
                         <div className="space-y-2">
@@ -642,7 +657,7 @@ const AdminProductDetail = () => {
                                 type="number"
                                 disabled
                                 value={igv.toFixed(2)}
-                                className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-400 cursor-not-allowed"
+                                className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-400 cursor-not-allowed"
                             />
                         </div>
                         <div className="space-y-2">
@@ -661,7 +676,7 @@ const AdminProductDetail = () => {
                                 required
                                 value={formState.price}
                                 onChange={updateField}
-                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                             />
                         </div>
                     </div>
@@ -678,12 +693,12 @@ const AdminProductDetail = () => {
                             type="file"
                             accept="image/*"
                             onChange={handleImageChange}
-                            className="w-full cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
+                            className="w-full cursor-pointer rounded-lg border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
                         />
                         <p className="text-xs text-slate-500">
-                            Si no seleccionas una nueva imagen, se mantendrá
-                            la actual. Tamaño recomendado máx. 1280px. Este
-                            campo es opcional.
+                            Si no seleccionas una nueva imagen, se mantendrá la
+                            actual. Tamaño recomendado máx. 1280px. Este campo
+                            es opcional.
                         </p>
                     </div>
 
@@ -699,7 +714,7 @@ const AdminProductDetail = () => {
                                     return (
                                         <div
                                             key={branchKey}
-                                            className="space-y-1 rounded-2xl border border-slate-800 bg-slate-900/70 p-4"
+                                            className="space-y-1 rounded-lg border border-slate-800 bg-slate-900/70 p-4"
                                         >
                                             <p className="text-sm font-semibold text-white">
                                                 {branch.name}
@@ -722,26 +737,26 @@ const AdminProductDetail = () => {
                                                         event.target.value
                                                     )
                                                 }
-                                                className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                                             />
                                         </div>
                                     );
                                 })}
                             </div>
                         ) : (
-                            <div className="rounded-xl border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
+                            <div className="rounded-lg border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
                                 Crea una sucursal para asignar stock.
                             </div>
                         )}
                     </div>
 
                     {formError && (
-                        <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                        <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                             {formError}
                         </div>
                     )}
                     {successMessage && (
-                        <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+                        <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
                             {successMessage}
                         </div>
                     )}
@@ -750,14 +765,14 @@ const AdminProductDetail = () => {
                         <button
                             type="button"
                             onClick={() => navigate("/admin/inventory")}
-                            className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                            className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                             disabled={isSubmitting}
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                             disabled={isSubmitting}
                         >
                             {isSubmitting
@@ -768,13 +783,13 @@ const AdminProductDetail = () => {
                 </form>
 
                 <aside className="space-y-4">
-                    <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
                         <h2 className="text-lg font-semibold">Vista previa</h2>
                         <p className="mt-1 text-sm text-slate-400">
                             Así se muestra el producto actualmente.
                         </p>
                         <div className="mt-4 flex flex-col items-center gap-4">
-                            <div className="h-48 w-48 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
+                            <div className="h-48 w-48 overflow-hidden rounded-lg border border-slate-800 bg-slate-950 flex items-center justify-center">
                                 {formState.imageFile ? (
                                     <img
                                         src={previewImageUrl ?? ""}
@@ -788,22 +803,22 @@ const AdminProductDetail = () => {
                                         className="h-full w-full object-cover"
                                     />
                                 ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-4xl text-slate-600">
-                                        🍽️
-                                    </div>
+                                    <BiDish className="h-12 w-12 text-slate-600" />
                                 )}
                             </div>
                             <button
                                 type="button"
                                 onClick={requestRemoveImage}
-                                className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-200 transition hover:border-red-500/60 hover:text-red-100 disabled:opacity-50"
+                                className="inline-flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-200 transition hover:border-red-500/60 hover:text-red-100 disabled:opacity-50"
                                 disabled={
                                     isSubmitting ||
                                     isDeleting ||
-                                    (!currentImageUrl && !formState.imageFile && !previewImageUrl)
+                                    (!currentImageUrl &&
+                                        !formState.imageFile &&
+                                        !previewImageUrl)
                                 }
                             >
-                                <span aria-hidden>🧹</span>
+                                <MdDeleteOutline />
                                 Quitar imagen
                             </button>
                             <div className="w-full space-y-1 text-center">
@@ -813,14 +828,16 @@ const AdminProductDetail = () => {
                                 <p className="text-xs text-slate-400">
                                     {formState.description}
                                 </p>
-                                <p className="text-sm font-semibold text-[#fa7316]">
-                                    {formatCurrency(Number(formState.price) || 0)}
+                                <p className="text-lg font-semibold text-[#fa7316]">
+                                    {formatCurrency(
+                                        Number(formState.price) || 0
+                                    )}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
                         <h2 className="text-lg font-semibold">
                             Stock por sucursal
                         </h2>
@@ -830,7 +847,7 @@ const AdminProductDetail = () => {
                                 return (
                                     <div
                                         key={key}
-                                        className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-3"
+                                        className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/40 px-4 py-3"
                                     >
                                         <div>
                                             <p className="font-semibold text-white">
@@ -863,11 +880,15 @@ const AdminProductDetail = () => {
                         : "Se quitará la imagen actual del producto. Para aplicar el cambio recuerda guardar antes de salir."
                 }
                 confirmLabel={
-                    pendingAction === "delete-product" ? "Eliminar" : "Quitar imagen"
+                    pendingAction === "delete-product"
+                        ? "Eliminar"
+                        : "Quitar imagen"
                 }
                 cancelLabel="Cancelar"
                 tone="danger"
-                isConfirming={pendingAction === "delete-product" ? isDeleting : false}
+                isConfirming={
+                    pendingAction === "delete-product" ? isDeleting : false
+                }
                 onCancel={() => {
                     if (isDeleting) {
                         return;
