@@ -12,7 +12,7 @@ const SalesInventoryContent = ({
 }) => {
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
@@ -27,7 +27,7 @@ const SalesInventoryContent = ({
         </div>
       </header>
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
         <p className="text-sm text-slate-400">
           Turno iniciado el {formatDateTime(activeShift.shift.openedAt)} en {branch.name}. Caja inicial:
           <span className="ml-1 font-semibold text-white">{formatCurrency(activeShift.shift.openingCash)}</span>.

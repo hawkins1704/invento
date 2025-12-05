@@ -72,7 +72,7 @@ const AdminCategoryDetail = () => {
   if (!category) {
     return (
       <div className="space-y-6 text-white">
-        <div className="rounded-3xl border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-200">
+        <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-200">
           La categoría solicitada no existe o fue eliminada.
         </div>
         <button
@@ -140,7 +140,7 @@ const AdminCategoryDetail = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
           <button
             type="button"
@@ -167,7 +167,7 @@ const AdminCategoryDetail = () => {
         </button>
       </header>
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-medium text-slate-200">

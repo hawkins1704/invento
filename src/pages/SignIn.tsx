@@ -82,7 +82,7 @@ export function SignIn() {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col overflow-hidden rounded-none bg-slate-950 shadow-none lg:flex-row lg:rounded-3xl lg:border lg:border-slate-800">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col overflow-hidden rounded-none bg-slate-950 shadow-none lg:flex-row lg:rounded-lg lg:border lg:border-slate-800">
         <aside
           className="relative hidden w-full flex-1 items-end justify-between overflow-hidden bg-slate-900 px-12 py-14 text-white lg:flex"
           style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #1f2937)` }}

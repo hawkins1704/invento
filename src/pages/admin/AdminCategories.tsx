@@ -125,7 +125,7 @@ const AdminCategories = () => {
 
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-          <div className="relative w-full max-w-lg rounded-3xl border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
+          <div className="relative w-full max-w-lg rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
             <button
               type="button"
               onClick={() => setIsFormOpen(false)}

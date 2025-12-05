@@ -316,7 +316,7 @@ const AdminProductDetail = () => {
     if (!product) {
         return (
             <div className="space-y-6 text-white">
-                <div className="rounded-3xl border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-200">
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-200">
                     El producto solicitado no existe o fue eliminado.
                 </div>
                 <button

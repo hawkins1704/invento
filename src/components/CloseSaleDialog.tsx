@@ -7,6 +7,7 @@ import type { RUCResponse, DNIResponse } from "../types/decolecta";
 import { HiOutlineReceiptTax } from "react-icons/hi";
 import { MdErrorOutline } from "react-icons/md";
 import { BiBadgeCheck } from "react-icons/bi";
+import CloseButton from "./CloseButton";
 
 type CustomerFormState = {
     documentType: "RUC" | "DNI" | "";
@@ -560,21 +561,13 @@ const CloseSaleDialog = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 py-10">
             <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
-            <div className="relative flex w-full max-w-2xl flex-col gap-6 rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 max-h-[90vh] overflow-hidden">
+            <div className="relative flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 max-h-[90vh] overflow-hidden">
                 {emissionStatus === "idle" ? (
                     <>
                         <header className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-2xl font-semibold">Cerrar venta</h2>
-                                <button
-                                    type="button"
-                                    onClick={handleClose}
-                                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-300 transition hover:text-white"
-                                    aria-label="Cerrar"
-                                    disabled={isProcessing}
-                                >
-                                    ✕
-                                </button>
+                                <CloseButton onClick={handleClose} />
                             </div>
                             <p className="text-sm text-slate-400">
                                 Completa la información del cliente (opcional) y
@@ -618,7 +611,7 @@ const CloseSaleDialog = ({
                             </div>
 
                             {showCustomerForm && (
-                                <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+                                <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900/70 p-4">
                                     <div className="grid gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
                                             <label
@@ -636,7 +629,7 @@ const CloseSaleDialog = ({
                                                 onChange={
                                                     handleCustomerFormChange
                                                 }
-                                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                                                 disabled={isProcessing}
                                             >
                                                 <option value="">
@@ -670,7 +663,7 @@ const CloseSaleDialog = ({
                                                 onChange={
                                                     handleCustomerFormChange
                                                 }
-                                                    className={`w-full rounded-xl border px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
+                                                    className={`w-full rounded-lg border px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
                                                         showDocumentNumberError
                                                             ? "border-red-500 focus:border-red-500 focus:ring-red-500/30"
                                                             : "border-slate-700 bg-slate-900 focus:border-[#fa7316] focus:ring-[#fa7316]/30"
@@ -705,7 +698,7 @@ const CloseSaleDialog = ({
                                             type="text"
                                             value={customerForm.name}
                                             onChange={handleCustomerFormChange}
-                                            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                                             placeholder="Nombre del cliente"
                                             disabled={isProcessing}
                                         />
@@ -724,7 +717,7 @@ const CloseSaleDialog = ({
                                             type="text"
                                             value={customerForm.address}
                                             onChange={handleCustomerFormChange}
-                                            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                                             placeholder="Dirección del cliente"
                                             disabled={isProcessing}
                                         />
@@ -746,7 +739,7 @@ const CloseSaleDialog = ({
                                                 onChange={
                                                     handleCustomerFormChange
                                                 }
-                                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                                                 placeholder="email@ejemplo.com"
                                                 disabled={isProcessing}
                                             />
@@ -767,7 +760,7 @@ const CloseSaleDialog = ({
                                                 onChange={
                                                     handleCustomerFormChange
                                                 }
-                                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                                                 placeholder="Teléfono"
                                                 disabled={isProcessing}
                                             />
@@ -790,7 +783,7 @@ const CloseSaleDialog = ({
                                                 .value as typeof paymentMethod
                                         )
                                     }
-                                    className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                     disabled={isProcessing}
                                 >
                                     <option value="Contado">Efectivo</option>
@@ -812,7 +805,7 @@ const CloseSaleDialog = ({
                                         setNotes(event.target.value)
                                     }
                                     rows={3}
-                                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                     placeholder="Comentario opcional para el cierre"
                                     disabled={isProcessing}
                                 />
@@ -863,7 +856,7 @@ const CloseSaleDialog = ({
                                         type="button"
                                         onClick={handleEmitFactura}
                                         disabled={isProcessing || !isCustomerFormValid || customerForm.documentType === "DNI"}
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                                         title={customerForm.documentType === "DNI" ? "Las facturas solo se pueden emitir con RUC" : ""}
                                     >
                                         <HiOutlineReceiptTax className="h-5 w-5" />
@@ -874,7 +867,7 @@ const CloseSaleDialog = ({
                                         type="button"
                                         onClick={handleEmitBoleta}
                                         disabled={isProcessing}
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <HiOutlineReceiptTax className="h-5 w-5" />
                                         EMITIR BOLETA
@@ -884,7 +877,7 @@ const CloseSaleDialog = ({
                                         type="button"
                                         onClick={handleCloseWithoutEmit}
                                         disabled={isProcessing}
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         CERRAR SIN EMITIR
                                     </button>
@@ -928,7 +921,7 @@ const CloseSaleDialog = ({
                                     setEmissionStatus("idle");
                                     setEmissionError(null);
                                 }}
-                                className="rounded-xl border border-slate-700 bg-slate-800 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
+                                className="rounded-lg border border-slate-700 bg-slate-800 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
                             >
                                 INTENTARLO NUEVAMENTE
                             </button>
@@ -955,7 +948,7 @@ const CloseSaleDialog = ({
                                                 await onDownloadPDF(emittedDocumentId, emittedFileName);
                                             }
                                         }}
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
                                     >
                                         DESCARGAR PDF
                                     </button>
@@ -963,7 +956,7 @@ const CloseSaleDialog = ({
                                 <button
                                     type="button"
                                     onClick={handleClose}
-                                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
+                                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
                                 >
                                     CERRAR
                                 </button>

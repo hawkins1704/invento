@@ -28,7 +28,7 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
 
   if (branches.length === 0) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300 shadow-inner shadow-black/20">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300 shadow-inner shadow-black/20">
         <span className="text-3xl" aria-hidden>
           🏬
         </span>
@@ -41,7 +41,7 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
 
   if (!branchId || !branch) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300 shadow-inner shadow-black/20">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300 shadow-inner shadow-black/20">
         <LuStore color={PRIMARY_COLOR} size={32}/>
         <p className="max-w-md text-sm text-slate-400">
           Selecciona la sucursal en la que trabajarás para continuar con las ventas.
@@ -67,7 +67,7 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
 
   if (!activeShift) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-10 text-center text-slate-300 shadow-inner shadow-black/20">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-10 text-center text-slate-300 shadow-inner shadow-black/20">
         <div className="space-y-3">
         <FaRegClock color={PRIMARY_COLOR} />
           <p className="max-w-md text-sm text-slate-400">

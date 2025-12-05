@@ -34,7 +34,7 @@ const AdminDashboard = () => {
         <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
           Panel administrador
         </span>
-        <div className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/40 p-8">
+        <div className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/40 p-8">
           <h1 className="text-3xl font-semibold text-white">Resumen general</h1>
           <p className="max-w-2xl text-sm text-slate-400">
             Aquí verás tus métricas clave, alertas de inventario y un resumen rápido de lo que ocurre en tus sucursales. Completa la configuración inicial para empezar a ver datos en tiempo real.
@@ -49,7 +49,7 @@ const AdminDashboard = () => {
         {metricCards.map((metric) => (
           <div
             key={metric.label}
-            className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6"
+            className="rounded-lg border border-slate-800 bg-slate-900/40 p-6"
           >
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
               {metric.label}
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
-        <div className="space-y-4 rounded-3xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900/50 p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-white">Próximos pasos sugeridos</h2>
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
           </ul>
         </div>
 
-        <div className="flex flex-col gap-5 rounded-3xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="flex flex-col gap-5 rounded-lg border border-slate-800 bg-slate-900/50 p-6">
           <div>
             <h2 className="text-xl font-semibold text-white">Estado de inventario</h2>
             <p className="text-xs text-slate-500">Configura productos para ver alertas.</p>

@@ -50,7 +50,7 @@ const SalesDailyContent = ({ activeShift }: { activeShift: ShiftSummary }) => {
                 ))}
             </section>
 
-            <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+            <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
                 <h2 className="text-lg font-semibold">Notas del turno</h2>
                 <p className="mt-3 text-sm text-slate-400">
                     Documenta incidencias o transferencias de caja para mantener

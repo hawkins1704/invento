@@ -26,7 +26,7 @@ const SalesDashboardContent = ({
 
   return (
     <div className="space-y-10">
-      <header className="flex flex-col gap-5 rounded-3xl border border-slate-800 bg-slate-900/50 p-8">
+      <header className="flex flex-col gap-5 rounded-lg border border-slate-800 bg-slate-900/50 p-8">
         <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
           Punto de venta
         </div>
@@ -52,7 +52,7 @@ const SalesDashboardContent = ({
       </header>
 
       <section className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
-        <div className="space-y-5 rounded-3xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="space-y-5 rounded-lg border border-slate-800 bg-slate-900/50 p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-white">Tickets abiertos</h2>
             <button
@@ -70,7 +70,7 @@ const SalesDashboardContent = ({
           </div>
         </div>
 
-        <div className="space-y-4 rounded-3xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900/50 p-6">
           <h2 className="text-xl font-semibold text-white">Tips rápidos</h2>
           <ul className="space-y-3 text-sm text-slate-200">
             {tips.map((tip) => (
@@ -83,7 +83,7 @@ const SalesDashboardContent = ({
         </div>
       </section>
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/50 p-6">
+      <section className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold text-white">Control de caja</h2>

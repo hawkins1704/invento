@@ -20,6 +20,8 @@ import { MdDeleteOutline } from "react-icons/md";
 import { FaRegEdit } from "react-icons/fa";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { BiDish } from "react-icons/bi";
+import CloseButton from "../../components/CloseButton";
+import { IoMdAdd, IoMdRemove } from "react-icons/io";
 
 type LiveSale = {
     sale: Doc<"sales">;
@@ -80,7 +82,9 @@ const SalesTablesContent = ({
             : { includeInactive: false }
     ) as Doc<"staff">[] | undefined;
 
-    const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
+    const currentUser = useQuery(api.users.getCurrent) as
+        | Doc<"users">
+        | undefined;
 
     const createSale = useMutation(api.sales.create);
     const setSaleItems = useMutation(api.sales.setItems);
@@ -151,7 +155,12 @@ const SalesTablesContent = ({
 
     const openCloseDialog = (saleId: Id<"sales">) => {
         const saleData = liveSales?.find((s) => s.sale._id === saleId) ?? null;
-        setCloseState({ saleId, saleData, paymentMethod: "Contado", notes: "" });
+        setCloseState({
+            saleId,
+            saleData,
+            paymentMethod: "Contado",
+            notes: "",
+        });
         setIsClosingSale(true);
     };
 
@@ -179,14 +188,12 @@ const SalesTablesContent = ({
         <div className="space-y-8">
             <header className="flex flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
                 <div className="space-y-3">
-                 
                     <div className="space-y-2">
                         <h1 className="text-3xl font-semibold">
                             Mesas y pedidos
                         </h1>
                     </div>
                 </div>
-
             </header>
 
             <section className="grid gap-4 lg:grid-cols-3">
@@ -213,7 +220,7 @@ const SalesTablesContent = ({
                     <button
                         type="button"
                         onClick={() => openCreateModal(null)}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                         disabled={!hasActiveShift}
                     >
                         Venta sin mesa
@@ -222,7 +229,7 @@ const SalesTablesContent = ({
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {branchTables.length === 0 ? (
-                        <div className="col-span-full flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-800 bg-slate-950/50 p-12 text-center text-slate-400 flex-col items-center justify-center">
+                        <div className="col-span-full flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-800 bg-slate-950/50 p-12 text-center text-slate-400 flex-col items-center justify-center">
                             <BiDish className="h-6 w-6 text-slate-600" />
                             <p className="max-w-sm text-sm">
                                 Aún no se han configurado mesas para esta
@@ -248,7 +255,7 @@ const SalesTablesContent = ({
                                 >
                                     <header className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
+                                            <p className="text-xs uppercase tracking-[0.1em] text-slate-400">
                                                 Mesa
                                             </p>
                                             <h3 className="text-2xl font-semibold text-white">
@@ -274,7 +281,7 @@ const SalesTablesContent = ({
                                     </div>
 
                                     {activeSale ? (
-                                        <div className="space-y-2 rounded-2xl border border-[#fa7316]/40 bg-[#fa7316]/10 p-4 text-sm text-slate-200">
+                                        <div className="space-y-2 rounded-lg border border-[#fa7316]/40 bg-[#fa7316]/10 p-4 text-sm text-slate-200">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-slate-300">
                                                     Ticket
@@ -302,7 +309,7 @@ const SalesTablesContent = ({
                                                         activeSale.sale._id
                                                     )
                                                 }
-                                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+                                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 cursor-pointer"
                                             >
                                                 Ver pedido
                                             </button>
@@ -313,7 +320,7 @@ const SalesTablesContent = ({
                                             onClick={() =>
                                                 openCreateModal(table)
                                             }
-                                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
+                                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                                             disabled={
                                                 table.status ===
                                                     "out_of_service" ||
@@ -333,13 +340,13 @@ const SalesTablesContent = ({
             <section className="space-y-4">
                 <header className="flex items-center justify-between text-white">
                     <h2 className="text-lg font-semibold">Pedidos abiertos</h2>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-300">
                         {branchLiveSales.length} activos
                     </span>
                 </header>
 
                 {branchLiveSales.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-slate-800 bg-slate-900/60 p-12 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-slate-800 bg-slate-900/60 p-12 text-center text-slate-400">
                         <span className="text-3xl" aria-hidden>
                             ✅
                         </span>
@@ -353,7 +360,7 @@ const SalesTablesContent = ({
                         {branchLiveSales.map((entry) => (
                             <article
                                 key={entry.sale._id}
-                                className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-5 text-white shadow-inner shadow-black/20"
+                                className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-5 text-white shadow-inner shadow-black/20"
                             >
                                 <header className="flex items-center justify-between">
                                     <div>
@@ -365,7 +372,7 @@ const SalesTablesContent = ({
                                             {formatCurrency(entry.sale.total)}
                                         </h3>
                                     </div>
-                                    <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#fa7316]">
+                                    <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#fa7316]">
                                         {formatDuration(
                                             entry.sale.openedAt,
                                             Date.now()
@@ -399,7 +406,7 @@ const SalesTablesContent = ({
                                     </h4>
                                     <ul className="space-y-2">
                                         {entry.items.length === 0 ? (
-                                            <li className="rounded-xl border border-dashed border-slate-700 px-3 py-2 text-slate-400">
+                                            <li className="rounded-lg border border-dashed border-slate-700 px-3 py-2 text-slate-400">
                                                 Pendiente de agregar productos
                                             </li>
                                         ) : (
@@ -410,7 +417,7 @@ const SalesTablesContent = ({
                                                 return (
                                                     <li
                                                         key={item._id}
-                                                        className="flex items-center justify-between gap-3 rounded-xl bg-slate-950/40 px-3 py-2"
+                                                        className="flex items-center justify-between gap-3 rounded-lg bg-slate-950/40 px-3 py-2"
                                                     >
                                                         <div className="flex flex-col">
                                                             <span className="text-sm font-semibold text-white">
@@ -443,7 +450,7 @@ const SalesTablesContent = ({
                                         onClick={() =>
                                             setSelectedSaleId(entry.sale._id)
                                         }
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/20 cursor-pointer"
                                     >
                                         Gestionar
                                     </button>
@@ -452,7 +459,7 @@ const SalesTablesContent = ({
                                         onClick={() =>
                                             openCloseDialog(entry.sale._id)
                                         }
-                                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/50 px-3 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200"
+                                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 px-3 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200 cursor-pointer"
                                     >
                                         Concluir
                                     </button>
@@ -461,7 +468,7 @@ const SalesTablesContent = ({
                                         onClick={() =>
                                             openCancelDialog(entry.sale._id)
                                         }
-                                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/40 px-3 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200"
+                                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/40 px-3 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200 cursor-pointer"
                                     >
                                         Cancelar
                                     </button>
@@ -503,7 +510,12 @@ const SalesTablesContent = ({
                         await updateSaleDetails(payload);
                     }}
                     onCloseSale={(saleId, saleData, paymentMethod, notes) => {
-                        setCloseState({ saleId, saleData, paymentMethod, notes });
+                        setCloseState({
+                            saleId,
+                            saleData,
+                            paymentMethod,
+                            notes,
+                        });
                         setIsClosingSale(true);
                     }}
                     onCancelSale={(saleId) => {
@@ -529,7 +541,12 @@ const SalesTablesContent = ({
                         notes: "",
                     });
                 }}
-                onCloseWithoutEmit={async (customerData, customerMetadata, paymentMethod, notes) => {
+                onCloseWithoutEmit={async (
+                    customerData,
+                    customerMetadata,
+                    paymentMethod,
+                    notes
+                ) => {
                     if (!closeState.saleId) {
                         return;
                     }
@@ -539,7 +556,10 @@ const SalesTablesContent = ({
 
                         if (customerData) {
                             // Si el cliente existe en CONVEX y hay cambios, actualizar
-                            if (customerMetadata.customerId && customerMetadata.hasChanges) {
+                            if (
+                                customerMetadata.customerId &&
+                                customerMetadata.hasChanges
+                            ) {
                                 await updateCustomer({
                                     customerId: customerMetadata.customerId,
                                     name: customerData.name,
@@ -550,7 +570,10 @@ const SalesTablesContent = ({
                                 customerId = customerMetadata.customerId;
                             }
                             // Si el cliente existe en CONVEX pero NO hay cambios, usar el ID existente
-                            else if (customerMetadata.customerId && !customerMetadata.hasChanges) {
+                            else if (
+                                customerMetadata.customerId &&
+                                !customerMetadata.hasChanges
+                            ) {
                                 customerId = customerMetadata.customerId;
                             }
                             // Si el cliente NO existe en CONVEX, crear nuevo cliente
@@ -586,9 +609,17 @@ const SalesTablesContent = ({
                         setIsProcessingClose(false);
                     }
                 }}
-                onEmitBoleta={async (customerData, customerMetadata, paymentMethod, notes, customerEmail) => {
+                onEmitBoleta={async (
+                    customerData,
+                    customerMetadata,
+                    paymentMethod,
+                    notes,
+                    customerEmail
+                ) => {
                     if (!closeState.saleId || !closeState.saleData) {
-                        throw new Error("No se encontraron los datos de la venta");
+                        throw new Error(
+                            "No se encontraron los datos de la venta"
+                        );
                     }
                     setIsProcessingClose(true);
                     try {
@@ -596,7 +627,10 @@ const SalesTablesContent = ({
 
                         if (customerData) {
                             // Si el cliente existe en CONVEX y hay cambios, actualizar
-                            if (customerMetadata.customerId && customerMetadata.hasChanges) {
+                            if (
+                                customerMetadata.customerId &&
+                                customerMetadata.hasChanges
+                            ) {
                                 await updateCustomer({
                                     customerId: customerMetadata.customerId,
                                     name: customerData.name,
@@ -607,7 +641,10 @@ const SalesTablesContent = ({
                                 customerId = customerMetadata.customerId;
                             }
                             // Si el cliente existe en CONVEX pero NO hay cambios, usar el ID existente
-                            else if (customerMetadata.customerId && !customerMetadata.hasChanges) {
+                            else if (
+                                customerMetadata.customerId &&
+                                !customerMetadata.hasChanges
+                            ) {
                                 customerId = customerMetadata.customerId;
                             }
                             // Si el cliente NO existe en CONVEX, crear nuevo cliente
@@ -626,8 +663,15 @@ const SalesTablesContent = ({
                         }
 
                         // PASO 1: Validar que tenemos los datos necesarios del usuario
-                        if (!currentUser?.personaId || !currentUser?.personaToken || !currentUser?.ruc || !currentUser?.serieBoleta) {
-                            throw new Error("Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Boleta");
+                        if (
+                            !currentUser?.personaId ||
+                            !currentUser?.personaToken ||
+                            !currentUser?.ruc ||
+                            !currentUser?.serieBoleta
+                        ) {
+                            throw new Error(
+                                "Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Boleta"
+                            );
                         }
 
                         // PASO 2: Obtener el número correlativo desde SUNAT
@@ -639,7 +683,9 @@ const SalesTablesContent = ({
                         });
 
                         if (!lastDocResponse) {
-                            throw new Error("No se pudo obtener el número correlativo desde SUNAT");
+                            throw new Error(
+                                "No se pudo obtener el número correlativo desde SUNAT"
+                            );
                         }
 
                         // PASO 3: Construir el fileName
@@ -652,9 +698,15 @@ const SalesTablesContent = ({
 
                         // PASO 4 - Construir documentBody (estructura UBL completa)
                         // Crear mapeo de productos con información completa (productId -> {name, unitValue, igv})
-                        const productsMap = new Map<string, { name: string; unitValue: number; igv: number }>();
+                        const productsMap = new Map<
+                            string,
+                            { name: string; unitValue: number; igv: number }
+                        >();
                         (products ?? []).forEach((product) => {
-                            if (product.unitValue !== undefined && product.igv !== undefined) {
+                            if (
+                                product.unitValue !== undefined &&
+                                product.igv !== undefined
+                            ) {
                                 productsMap.set(product._id as string, {
                                     name: product.name,
                                     unitValue: product.unitValue,
@@ -671,29 +723,38 @@ const SalesTablesContent = ({
                                 sale: {
                                     total: closeState.saleData.sale.total,
                                 },
-                                items: closeState.saleData.items.map((item) => ({
-                                    productId: item.productId as string,
-                                    quantity: item.quantity,
-                                    unitPrice: item.unitPrice,
-                                    discountAmount: item.discountAmount,
-                                })),
+                                items: closeState.saleData.items.map(
+                                    (item) => ({
+                                        productId: item.productId as string,
+                                        quantity: item.quantity,
+                                        unitPrice: item.unitPrice,
+                                        discountAmount: item.discountAmount,
+                                    })
+                                ),
                             },
                             customerData: customerData
                                 ? {
-                                      documentType: customerData.documentType as "RUC" | "DNI",
-                                      documentNumber: customerData.documentNumber,
+                                      documentType:
+                                          customerData.documentType as
+                                              | "RUC"
+                                              | "DNI",
+                                      documentNumber:
+                                          customerData.documentNumber,
                                       name: customerData.name,
-                                      address: customerData.address || undefined,
+                                      address:
+                                          customerData.address || undefined,
                                   }
                                 : null,
                             userData: {
                                 ruc: currentUser.ruc!,
                                 companyName: currentUser.companyName,
-                                companyCommercialName: currentUser.companyCommercialName,
+                                companyCommercialName:
+                                    currentUser.companyCommercialName,
                                 companyAddress: currentUser.companyAddress,
                                 companyDistrict: currentUser.companyDistrict,
                                 companyProvince: currentUser.companyProvince,
-                                companyDepartment: currentUser.companyDepartment,
+                                companyDepartment:
+                                    currentUser.companyDepartment,
                                 IGVPercentage: currentUser.IGVPercentage || 18,
                             },
                             products: productsMap,
@@ -712,9 +773,11 @@ const SalesTablesContent = ({
                             documentBody,
                             ...(customerEmail && { customerEmail }),
                         });
-                        
+
                         if (!emitResponse) {
-                            throw new Error("Error al emitir documento en SUNAT");
+                            throw new Error(
+                                "Error al emitir documento en SUNAT"
+                            );
                         }
 
                         // PASO 7 - Guardar el documentId en la venta
@@ -724,9 +787,15 @@ const SalesTablesContent = ({
                         });
 
                         console.log("fileName generado:", fileName);
-                        console.log("saleData disponible:", closeState.saleData);
+                        console.log(
+                            "saleData disponible:",
+                            closeState.saleData
+                        );
                         console.log("documentBody:", documentBody);
-                        console.log("customerEmail:", customerEmail || "No se enviará correo");
+                        console.log(
+                            "customerEmail:",
+                            customerEmail || "No se enviará correo"
+                        );
                         console.log("Documento emitido:", emitResponse);
 
                         await closeSaleMutation({
@@ -736,7 +805,7 @@ const SalesTablesContent = ({
                             customerId,
                             documentType: "03", // Boleta
                         });
-                        
+
                         // Retornar éxito con documentId y fileName
                         return {
                             success: true,
@@ -745,7 +814,10 @@ const SalesTablesContent = ({
                         };
                     } catch (error) {
                         console.error("Error al emitir boleta:", error);
-                        const errorMessage = error instanceof Error ? error.message : "Error al emitir boleta";
+                        const errorMessage =
+                            error instanceof Error
+                                ? error.message
+                                : "Error al emitir boleta";
                         return {
                             success: false,
                             error: errorMessage,
@@ -754,16 +826,27 @@ const SalesTablesContent = ({
                         setIsProcessingClose(false);
                     }
                 }}
-                onEmitFactura={async (customerData, customerMetadata, paymentMethod, notes, customerEmail) => {
+                onEmitFactura={async (
+                    customerData,
+                    customerMetadata,
+                    paymentMethod,
+                    notes,
+                    customerEmail
+                ) => {
                     if (!closeState.saleId || !closeState.saleData) {
-                        throw new Error("No se encontraron los datos de la venta");
+                        throw new Error(
+                            "No se encontraron los datos de la venta"
+                        );
                     }
                     setIsProcessingClose(true);
                     try {
                         let customerId: Id<"customers">;
 
                         // Si el cliente existe en CONVEX y hay cambios, actualizar
-                        if (customerMetadata.customerId && customerMetadata.hasChanges) {
+                        if (
+                            customerMetadata.customerId &&
+                            customerMetadata.hasChanges
+                        ) {
                             await updateCustomer({
                                 customerId: customerMetadata.customerId,
                                 name: customerData.name,
@@ -774,7 +857,10 @@ const SalesTablesContent = ({
                             customerId = customerMetadata.customerId;
                         }
                         // Si el cliente existe en CONVEX pero NO hay cambios, usar el ID existente
-                        else if (customerMetadata.customerId && !customerMetadata.hasChanges) {
+                        else if (
+                            customerMetadata.customerId &&
+                            !customerMetadata.hasChanges
+                        ) {
                             customerId = customerMetadata.customerId;
                         }
                         // Si el cliente NO existe en CONVEX, crear nuevo cliente
@@ -792,8 +878,15 @@ const SalesTablesContent = ({
                         }
 
                         // PASO 1: Validar que tenemos los datos necesarios del usuario
-                        if (!currentUser?.personaId || !currentUser?.personaToken || !currentUser?.ruc || !currentUser?.serieFactura) {
-                            throw new Error("Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Factura");
+                        if (
+                            !currentUser?.personaId ||
+                            !currentUser?.personaToken ||
+                            !currentUser?.ruc ||
+                            !currentUser?.serieFactura
+                        ) {
+                            throw new Error(
+                                "Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Factura"
+                            );
                         }
 
                         // PASO 2: Obtener el número correlativo desde SUNAT
@@ -805,7 +898,9 @@ const SalesTablesContent = ({
                         });
 
                         if (!lastDocResponse) {
-                            throw new Error("No se pudo obtener el número correlativo desde SUNAT");
+                            throw new Error(
+                                "No se pudo obtener el número correlativo desde SUNAT"
+                            );
                         }
 
                         // PASO 3: Construir el fileName
@@ -818,9 +913,15 @@ const SalesTablesContent = ({
 
                         // PASO 4 - Construir documentBody (estructura UBL completa)
                         // Crear mapeo de productos con información completa (productId -> {name, unitValue, igv})
-                        const productsMap = new Map<string, { name: string; unitValue: number; igv: number }>();
+                        const productsMap = new Map<
+                            string,
+                            { name: string; unitValue: number; igv: number }
+                        >();
                         (products ?? []).forEach((product) => {
-                            if (product.unitValue !== undefined && product.igv !== undefined) {
+                            if (
+                                product.unitValue !== undefined &&
+                                product.igv !== undefined
+                            ) {
                                 productsMap.set(product._id as string, {
                                     name: product.name,
                                     unitValue: product.unitValue,
@@ -837,15 +938,19 @@ const SalesTablesContent = ({
                                 sale: {
                                     total: closeState.saleData.sale.total,
                                 },
-                                items: closeState.saleData.items.map((item) => ({
-                                    productId: item.productId as string,
-                                    quantity: item.quantity,
-                                    unitPrice: item.unitPrice,
-                                    discountAmount: item.discountAmount,
-                                })),
+                                items: closeState.saleData.items.map(
+                                    (item) => ({
+                                        productId: item.productId as string,
+                                        quantity: item.quantity,
+                                        unitPrice: item.unitPrice,
+                                        discountAmount: item.discountAmount,
+                                    })
+                                ),
                             },
                             customerData: {
-                                documentType: customerData.documentType as "RUC" | "DNI",
+                                documentType: customerData.documentType as
+                                    | "RUC"
+                                    | "DNI",
                                 documentNumber: customerData.documentNumber,
                                 name: customerData.name,
                                 address: customerData.address || undefined,
@@ -853,11 +958,13 @@ const SalesTablesContent = ({
                             userData: {
                                 ruc: currentUser.ruc!,
                                 companyName: currentUser.companyName,
-                                companyCommercialName: currentUser.companyCommercialName,
+                                companyCommercialName:
+                                    currentUser.companyCommercialName,
                                 companyAddress: currentUser.companyAddress,
                                 companyDistrict: currentUser.companyDistrict,
                                 companyProvince: currentUser.companyProvince,
-                                companyDepartment: currentUser.companyDepartment,
+                                companyDepartment:
+                                    currentUser.companyDepartment,
                                 IGVPercentage: currentUser.IGVPercentage || 18,
                             },
                             products: productsMap,
@@ -877,9 +984,11 @@ const SalesTablesContent = ({
                             documentBody,
                             ...(customerEmail && { customerEmail }),
                         });
-                        
+
                         if (!emitResponse) {
-                            throw new Error("Error al emitir documento en SUNAT");
+                            throw new Error(
+                                "Error al emitir documento en SUNAT"
+                            );
                         }
 
                         // PASO 7 - Guardar el documentId en la venta
@@ -889,9 +998,15 @@ const SalesTablesContent = ({
                         });
 
                         console.log("fileName generado:", fileName);
-                        console.log("saleData disponible:", closeState.saleData);
+                        console.log(
+                            "saleData disponible:",
+                            closeState.saleData
+                        );
                         console.log("documentBody:", documentBody);
-                        console.log("customerEmail:", customerEmail || "No se enviará correo");
+                        console.log(
+                            "customerEmail:",
+                            customerEmail || "No se enviará correo"
+                        );
                         console.log("Documento emitido:", emitResponse);
 
                         await closeSaleMutation({
@@ -901,7 +1016,7 @@ const SalesTablesContent = ({
                             customerId,
                             documentType: "01", // Factura
                         });
-                        
+
                         // Retornar éxito con documentId y fileName
                         return {
                             success: true,
@@ -910,7 +1025,10 @@ const SalesTablesContent = ({
                         };
                     } catch (error) {
                         console.error("Error al emitir factura:", error);
-                        const errorMessage = error instanceof Error ? error.message : "Error al emitir factura";
+                        const errorMessage =
+                            error instanceof Error
+                                ? error.message
+                                : "Error al emitir factura";
                         return {
                             success: false,
                             error: errorMessage,
@@ -922,11 +1040,20 @@ const SalesTablesContent = ({
                 onDownloadPDF={async (documentId: string, fileName: string) => {
                     try {
                         // Usar el formato del usuario o A4 por defecto
-                        const format = (currentUser as any)?.printFormat || "A4";
-                        await downloadPDF(documentId, format as "A4" | "A5" | "ticket58mm" | "ticket80mm", fileName);
+                        const format =
+                            (currentUser as any)?.printFormat || "A4";
+                        await downloadPDF(
+                            documentId,
+                            format as "A4" | "A5" | "ticket58mm" | "ticket80mm",
+                            fileName
+                        );
                     } catch (error) {
                         console.error("Error al abrir PDF:", error);
-                        alert(error instanceof Error ? error.message : "Error al abrir el PDF");
+                        alert(
+                            error instanceof Error
+                                ? error.message
+                                : "Error al abrir el PDF"
+                        );
                     }
                 }}
             />
@@ -943,7 +1070,7 @@ const SalesTablesContent = ({
                             auditoría.
                         </p>
                         <label className="flex flex-col gap-1 text-left text-slate-200">
-                            <span className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                            <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                                 Motivo (opcional)
                             </span>
                             <textarea
@@ -955,7 +1082,7 @@ const SalesTablesContent = ({
                                     }))
                                 }
                                 rows={3}
-                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                 placeholder="Describe el motivo de la cancelación"
                             />
                         </label>
@@ -1150,31 +1277,21 @@ const NewSaleModal = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 py-10 ">
             <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
-            <div className="relative flex w-full max-w-5xl flex-col gap-6 rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 h-[90vh] overflow-hidden">
+            <div className="relative flex w-full max-w-5xl flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 h-[90vh] overflow-hidden">
                 <header className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-semibold">Nueva venta</h2>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-300 transition hover:text-white"
-                            aria-label="Cerrar"
-                        >
-                            ✕
-                        </button>
+                        <CloseButton onClick={onClose} />
                     </div>
                 </header>
 
                 <div className="flex flex-1 flex-col gap-6 overflow-hidden lg:flex-row lg:gap-8 ">
-                    <div className="flex flex-3 flex-col gap-4 overflow-y-auto">
+                    <div className="flex flex-3 flex-col gap-4 ">
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+                                <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500">
                                     Categorías
                                 </h3>
-                                <span className="text-xs text-slate-400">
-                                    {categories.length} en catálogo
-                                </span>
                             </div>
                             <div className="flex items-center gap-2 overflow-x-auto pb-1">
                                 {categoryOptions.map((category) => {
@@ -1189,7 +1306,7 @@ const NewSaleModal = ({
                                                     category.key
                                                 )
                                             }
-                                            className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] transition ${
+                                            className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] transition ${
                                                 isActive
                                                     ? "border-[#fa7316] bg-[#fa7316]/10 text-white shadow-inner shadow-[#fa7316]/30"
                                                     : "border-slate-700 bg-slate-950/40 text-slate-300 hover:border-[#fa7316]/40 hover:text-white"
@@ -1210,14 +1327,14 @@ const NewSaleModal = ({
                                     setSearch(event.target.value)
                                 }
                                 placeholder="Buscar productos"
-                                className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                             />
-                            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
+                            <span className="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-300">
                                 {availableProducts.length}
                             </span>
                         </div>
 
-                        <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-3">
+                        <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-3 overflow-y-auto">
                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-2">
                                 {availableProducts.map((product) => {
                                     const availableStock =
@@ -1230,7 +1347,7 @@ const NewSaleModal = ({
                                             key={product._id}
                                             type="button"
                                             onClick={() => addProduct(product)}
-                                            className={`flex h-full gap-3 rounded-2xl border p-2 text-left text-sm transition ${
+                                            className={`flex h-full gap-3 rounded-lg border p-2 text-left text-sm transition ${
                                                 isOutOfStock
                                                     ? "cursor-not-allowed border-red-500/40 bg-red-500/10 text-red-200"
                                                     : "border-slate-800 bg-slate-900/60 text-slate-200 hover:border-[#fa7316] hover:text-white"
@@ -1246,19 +1363,7 @@ const NewSaleModal = ({
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-slate-500">
-                                                        <svg
-                                                            className="w-10 h-10"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                                            />
-                                                        </svg>
+                                                        <BiDish className="w-10 h-10" />
                                                     </div>
                                                 )}
                                             </div>
@@ -1284,9 +1389,7 @@ const NewSaleModal = ({
                                                     <p className="text-xs text-slate-400">
                                                         Stock: {availableStock}
                                                     </p>
-                                                   
                                                 </div>
-                                              
                                             </div>
                                         </button>
                                     );
@@ -1307,7 +1410,7 @@ const NewSaleModal = ({
                     </div>
 
                     <div className="flex flex-2 flex-col gap-4 overflow-y-auto ">
-                        <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
+                        <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
                             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
                                 Personal asignado
                                 <select
@@ -1319,7 +1422,7 @@ const NewSaleModal = ({
                                                 | ""
                                         )
                                     }
-                                    className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                 >
                                     <option value="">Sin asignar</option>
                                     {staffMembers.map((member) => (
@@ -1340,23 +1443,23 @@ const NewSaleModal = ({
                                         setNotes(event.target.value)
                                     }
                                     rows={3}
-                                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                     placeholder="Agregar algún detalle del pedido o mesa"
                                 />
                             </label>
                         </div>
 
-                        <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
+                        <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-950/50 p-4 overflow-y-auto">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+                                <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500">
                                     Pedido
                                 </h3>
-                                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
+                                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-300">
                                     {items.length} items
                                 </span>
                             </div>
                             {items.length === 0 ? (
-                                <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/50 p-6 text-center text-sm text-slate-400">
+                                <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/50 p-6 text-center text-sm text-slate-400">
                                     Selecciona productos para construir el
                                     ticket.
                                 </div>
@@ -1478,7 +1581,7 @@ const NewSaleModal = ({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                         disabled={isSubmitting}
                     >
                         Cancelar
@@ -1486,7 +1589,7 @@ const NewSaleModal = ({
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
                         disabled={isSubmitting}
                     >
                         {isSubmitting ? "Guardando..." : "Crear venta"}
@@ -1500,19 +1603,15 @@ const NewSaleModal = ({
                         className="absolute inset-0 bg-slate-950/80 backdrop-blur"
                         onClick={() => setEditingItemId(null)}
                     />
-                    <div className="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 text-white shadow-2xl">
+                    <div className="relative w-full max-w-md rounded-lg border border-slate-800 bg-slate-900 p-6 text-white shadow-2xl">
                         <div className="mb-4 flex items-center justify-between">
                             <h3 className="text-lg font-semibold">
                                 Editar producto
                             </h3>
-                            <button
-                                type="button"
+
+                            <CloseButton
                                 onClick={() => setEditingItemId(null)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded border border-slate-700 text-slate-300 transition hover:text-white"
-                                aria-label="Cerrar"
-                            >
-                                ✕
-                            </button>
+                            />
                         </div>
                         <div className="mb-4">
                             <p className="font-semibold text-white">
@@ -1534,10 +1633,10 @@ const NewSaleModal = ({
                                                 editingItem.quantity - 1
                                             )
                                         }
-                                        className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                        className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                                         aria-label="Disminuir cantidad"
                                     >
-                                        −
+                                        <IoMdRemove className="w-4 h-4" />
                                     </button>
                                     <input
                                         type="number"
@@ -1549,7 +1648,7 @@ const NewSaleModal = ({
                                                 Number(event.target.value)
                                             )
                                         }
-                                        className="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-center text-sm font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-1 focus:ring-[#fa7316]/30"
+                                        className="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-center text-sm font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-1 focus:ring-[#fa7316]/30 cursor-pointer"
                                     />
                                     <button
                                         type="button"
@@ -1562,7 +1661,7 @@ const NewSaleModal = ({
                                         className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                                         aria-label="Aumentar cantidad"
                                     >
-                                        +
+                                        <IoMdAdd className="w-4 h-4" />
                                     </button>
                                 </div>
                             </label>
@@ -1594,12 +1693,12 @@ const NewSaleModal = ({
                                             )
                                         )
                                     }
-                                    className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                     placeholder="0.00"
                                 />
                             </label>
                             {editingItem.discountAmount > 0 && (
-                                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm">
+                                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm">
                                     <div className="flex items-center justify-between text-slate-200">
                                         <span>Subtotal:</span>
                                         <span className="line-through text-slate-400">
@@ -1626,14 +1725,14 @@ const NewSaleModal = ({
                             <button
                                 type="button"
                                 onClick={() => setEditingItemId(null)}
-                                className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setEditingItemId(null)}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white  transition hover:bg-[#e86811] cursor-pointer"
                             >
                                 Guardar
                             </button>
@@ -1872,33 +1971,23 @@ const SaleEditorDrawer = ({
         <div className="fixed inset-y-0 right-0 z-40 flex flex-col w-full border-l border-slate-800 bg-slate-950/95 text-white shadow-xl shadow-black/50">
             <header className="flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-800">
                 <div>
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
+                    <p className="text-xs uppercase tracking-[0.1em] text-slate-400">
                         {sale.table?.label ?? "Venta sin mesa"}
                     </p>
                     <h2 className="text-2xl font-semibold text-white">
                         {formatCurrency(sale.sale.total)}
                     </h2>
                 </div>
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-300 transition hover:text-white"
-                    aria-label="Cerrar panel"
-                >
-                    ✕
-                </button>
+               <CloseButton onClick={onClose} />
             </header>
 
             <div className="flex-1 flex flex-col gap-6 overflow-hidden p-6 lg:flex-row lg:gap-8 min-h-0">
-                <div className="flex flex-3 flex-col gap-4 overflow-y-auto  min-h-0">
+                <div className="flex flex-3 flex-col gap-4   min-h-0">
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+                            <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500">
                                 Catálogo
                             </h3>
-                            <span className="text-xs text-slate-400">
-                                {filteredProducts.length} resultados
-                            </span>
                         </div>
                         <div className="flex items-center gap-2 overflow-x-auto pb-1">
                             {categoryOptions.map((category) => {
@@ -1911,7 +2000,7 @@ const SaleEditorDrawer = ({
                                         onClick={() =>
                                             setSelectedCategoryId(category.key)
                                         }
-                                        className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] transition ${
+                                        className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] transition ${
                                             isActive
                                                 ? "border-[#fa7316] bg-[#fa7316]/10 text-white shadow-inner shadow-[#fa7316]/30"
                                                 : "border-slate-700 bg-slate-950/40 text-slate-300 hover:border-[#fa7316]/40 hover:text-white"
@@ -1932,14 +2021,14 @@ const SaleEditorDrawer = ({
                                 setSearchTerm(event.target.value)
                             }
                             placeholder="Buscar productos"
-                            className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                            className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                         />
-                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
+                        <span className="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-300">
                             {filteredProducts.length}
                         </span>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-3">
+                    <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-3 overflow-y-auto">
                         {filteredProducts.length === 0 ? (
                             <div className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm text-slate-400">
                                 <span className="text-3xl" aria-hidden>
@@ -1963,7 +2052,7 @@ const SaleEditorDrawer = ({
                                             key={product._id}
                                             type="button"
                                             onClick={() => addItem(product)}
-                                            className={`flex h-full gap-3 rounded-2xl border p-4 text-left text-sm transition ${
+                                            className={`flex h-full gap-3 rounded-lg border p-4 text-left text-sm transition ${
                                                 isOutOfStock
                                                     ? "cursor-not-allowed border-red-500/40 bg-red-500/10 text-red-200"
                                                     : "border-slate-800 bg-slate-900/60 text-slate-200 hover:border-[#fa7316] hover:text-white"
@@ -1979,19 +2068,7 @@ const SaleEditorDrawer = ({
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-slate-500">
-                                                        <svg
-                                                            className="w-10 h-10"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                                            />
-                                                        </svg>
+                                                        <BiDish className="w-10 h-10" />
                                                     </div>
                                                 )}
                                             </div>
@@ -2028,7 +2105,7 @@ const SaleEditorDrawer = ({
                 </div>
 
                 <div className="flex flex-2 flex-col gap-4 overflow-y-auto  ">
-                    <div className="flex-shrink-0 rounded-2xl border border-slate-800 bg-slate-950/50 overflow-hidden">
+                    <div className="flex-shrink-0 rounded-lg border border-slate-800 bg-slate-950/50 overflow-hidden">
                         <button
                             type="button"
                             onClick={() =>
@@ -2036,7 +2113,7 @@ const SaleEditorDrawer = ({
                             }
                             className="w-full flex items-center justify-between p-4 text-left text-white hover:bg-slate-900/50 transition"
                         >
-                            <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+                            <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500">
                                 Detalles del pedido
                             </h3>
                             <span className="text-slate-400">
@@ -2060,7 +2137,7 @@ const SaleEditorDrawer = ({
                                                     | ""
                                             )
                                         }
-                                        className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                        className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                     >
                                         <option value="">Sin mesa</option>
                                         {tables.map((table) => (
@@ -2095,7 +2172,7 @@ const SaleEditorDrawer = ({
                                                     | ""
                                             )
                                         }
-                                        className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                        className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                     >
                                         <option value="">Sin asignar</option>
                                         {staffMembers.map((member) => (
@@ -2116,7 +2193,7 @@ const SaleEditorDrawer = ({
                                             setSaleNotes(event.target.value)
                                         }
                                         rows={3}
-                                        className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                         placeholder="Comentarios especiales o instrucciones"
                                     />
                                 </label>
@@ -2124,7 +2201,7 @@ const SaleEditorDrawer = ({
                                     <button
                                         type="button"
                                         onClick={saveDetails}
-                                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
                                         disabled={isUpdatingDetails}
                                     >
                                         {isUpdatingDetails
@@ -2136,17 +2213,17 @@ const SaleEditorDrawer = ({
                         )}
                     </div>
 
-                    <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
+                    <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-950/50 p-4">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+                            <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500">
                                 Pedido
                             </h3>
-                            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300">
+                            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-300">
                                 {items.length} items
                             </span>
                         </div>
                         {items.length === 0 ? (
-                            <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/50 p-6 text-center text-sm text-slate-400">
+                            <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/50 p-6 text-center text-sm text-slate-400">
                                 Aún no hay productos en este pedido. Selecciona
                                 productos desde el catálogo.
                             </div>
@@ -2220,10 +2297,10 @@ const SaleEditorDrawer = ({
                                                         item.quantity - 1
                                                     )
                                                 }
-                                                className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                                className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                                                 aria-label="Disminuir cantidad"
                                             >
-                                                −
+                                                <IoMdRemove className="w-4 h-4" />
                                             </button>
                                             <input
                                                 type="number"
@@ -2247,10 +2324,10 @@ const SaleEditorDrawer = ({
                                                         item.quantity + 1
                                                     )
                                                 }
-                                                className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                                className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                                                 aria-label="Aumentar cantidad"
                                             >
-                                                +
+                                                <IoMdAdd className="w-4 h-4" />
                                             </button>
                                         </div>
                                     </li>
@@ -2261,7 +2338,7 @@ const SaleEditorDrawer = ({
                             <button
                                 type="button"
                                 onClick={saveItems}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
                                 disabled={isSavingItems}
                             >
                                 {isSavingItems
@@ -2315,14 +2392,14 @@ const SaleEditorDrawer = ({
                                         saleNotes
                                     )
                                 }
-                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200"
+                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200 cursor-pointer"
                             >
                                 Concluir venta
                             </button>
                             <button
                                 type="button"
                                 onClick={() => onCancelSale(sale.sale._id)}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200"
+                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200 cursor-pointer"
                             >
                                 Cancelar venta
                             </button>
@@ -2337,19 +2414,14 @@ const SaleEditorDrawer = ({
                         className="absolute inset-0 bg-slate-950/80 backdrop-blur"
                         onClick={() => setEditingItemId(null)}
                     />
-                    <div className="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 text-white shadow-2xl">
+                    <div className="relative w-full max-w-md rounded-lg border border-slate-800 bg-slate-900 p-6 text-white shadow-2xl">
                         <div className="mb-4 flex items-center justify-between">
                             <h3 className="text-lg font-semibold">
                                 Editar producto
                             </h3>
-                            <button
-                                type="button"
-                                onClick={() => setEditingItemId(null)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded border border-slate-700 text-slate-300 transition hover:text-white"
-                                aria-label="Cerrar"
-                            >
-                                ✕
-                            </button>
+                           
+                                <CloseButton onClick={() => setEditingItemId(null)} />
+                     
                         </div>
                         <div className="mb-4">
                             <p className="font-semibold text-white">
@@ -2371,10 +2443,10 @@ const SaleEditorDrawer = ({
                                                 editingItem.quantity - 1
                                             )
                                         }
-                                        className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                        className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                                         aria-label="Disminuir cantidad"
                                     >
-                                        −
+                                        <IoMdRemove className="w-4 h-4" />
                                     </button>
                                     <input
                                         type="number"
@@ -2396,10 +2468,10 @@ const SaleEditorDrawer = ({
                                                 editingItem.quantity + 1
                                             )
                                         }
-                                        className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                        className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                                         aria-label="Aumentar cantidad"
                                     >
-                                        +
+                                        <IoMdAdd className="w-4 h-4" />
                                     </button>
                                 </div>
                             </label>
@@ -2431,7 +2503,7 @@ const SaleEditorDrawer = ({
                                             )
                                         )
                                     }
-                                    className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                     placeholder="0.00"
                                 />
                             </label>
@@ -2463,14 +2535,14 @@ const SaleEditorDrawer = ({
                             <button
                                 type="button"
                                 onClick={() => setEditingItemId(null)}
-                                className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setEditingItemId(null)}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811]"
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white  transition hover:bg-[#e86811] cursor-pointer"
                             >
                                 Guardar
                             </button>
@@ -2532,7 +2604,7 @@ const StatusBadge = ({
 
     return (
         <span
-            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${entry.className}`}
+            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] ${entry.className}`}
         >
             {entry.label}
         </span>

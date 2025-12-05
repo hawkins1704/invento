@@ -18,6 +18,9 @@ import { IoLogInOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
 import { FaFileInvoice } from "react-icons/fa6";
 import { LuStore } from "react-icons/lu";
+import { FaCheck } from "react-icons/fa";
+import CloseButton from "./CloseButton";
+import { FiUser } from "react-icons/fi";
 const PRIMARY_COLOR = "#fa7316";
 
 const formatCurrency = (value: number) =>
@@ -441,12 +444,12 @@ const Layout = () => {
             type="button"
             ref={profileButtonRef}
             onClick={() => setIsProfileMenuOpen((previous) => !previous)}
-            className={`flex w-full items-center gap-3 rounded-2xl border border-transparent px-2 py-2 transition hover:border-slate-700 hover:bg-slate-800/50 ${
+            className={`flex w-full items-center gap-3 rounded-lg border border-transparent px-2 py-2 transition hover:border-slate-700 hover:bg-slate-800/50 ${
               isCollapsed ? "justify-center" : ""}
             }`}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#fa7316]/20 text-sm font-semibold text-[#fa7316]">
-              RA
+            <FiUser size={16}/>
             </div>
             {!isCollapsed && (
               <div className="flex flex-col text-left">
@@ -459,13 +462,13 @@ const Layout = () => {
           {isProfileMenuOpen && (
             <div
               ref={profileMenuRef}
-              className={`absolute bottom-20 z-50 w-48 rounded-2xl border border-slate-800 bg-slate-900/95 p-3 shadow-xl ${
+              className={`absolute bottom-20 z-50 w-48 rounded-lg border border-slate-800 bg-slate-900/95 p-3 shadow-xl ${
                 isCollapsed ? "left-1/2 -translate-x-1/2" : "left-4"
               }`}
             >
               <button
                 type="button"
-                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800/80"
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800/80 cursor-pointer"
                 onClick={() => {
                   setIsProfileMenuOpen(false);
                   navigate("/profile");
@@ -477,7 +480,7 @@ const Layout = () => {
               </button>
               <button
                 type="button"
-                className="mt-2 flex w-full items-center justify-between rounded-xl bg-[#fa7316]/10 px-3 py-2 text-sm font-semibold text-[#fa7316] transition hover:bg-[#fa7316]/20"
+                className="mt-2 flex w-full items-center justify-between rounded-lg bg-[#fa7316]/10 px-3 py-2 text-sm font-semibold text-[#fa7316] transition hover:bg-[#fa7316]/20 cursor-pointer"
                 onClick={handleSignOut}
               >
                 Cerrar sesión
@@ -490,26 +493,14 @@ const Layout = () => {
 
       {isShiftModalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-          <div className="relative w-full max-w-xl rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
-            <button
-              type="button"
-              onClick={() => {
-                if (!isProcessingShift) {
-                  setIsShiftModalOpen(false);
-                  setShiftError(null);
-                }
-              }}
-              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-300 transition hover:text-white"
-              aria-label="Cerrar"
-            >
-              ✕
-            </button>
+          <div className="relative w-full max-w-xl rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+            <CloseButton onClick={() => setIsShiftModalOpen(false)} />
 
             <div className="max-h-[90vh] overflow-y-auto pr-1">
               {shiftMode === "open" ? (
               <form className="space-y-5 pt-6" onSubmit={handleSubmitOpenShift}>
                 <header className="space-y-2">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
                     Abrir turno
                   </span>
                   <h2 className="text-2xl font-semibold text-white">Registrar inicio de turno</h2>
@@ -518,21 +509,21 @@ const Layout = () => {
                   </p>
                 </header>
 
-                <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Sucursal</p>
+                <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+                  <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Sucursal</p>
                   <p className="mt-2 text-lg font-semibold text-white">{selectedShiftBranch?.name ?? "Sin sucursal"}</p>
                   <p className="text-xs text-slate-500">{selectedShiftBranch?.address}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500" htmlFor="shift-staff">
+                  <label className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500" htmlFor="shift-staff">
                     Responsable (opcional)
                   </label>
                   <select
                     id="shift-staff"
                     value={shiftStaffId}
                     onChange={(event) => setShiftStaffId(event.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                   >
                     <option value="">Sin asignar</option>
                     {shiftStaff?.map((member) => (
@@ -544,7 +535,7 @@ const Layout = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500" htmlFor="shift-opening-cash">
+                  <label className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500" htmlFor="shift-opening-cash">
                     Caja inicial (efectivo)
                   </label>
                   <input
@@ -554,13 +545,13 @@ const Layout = () => {
                     step="0.01"
                     value={shiftOpeningCash}
                     onChange={(event) => setShiftOpeningCash(event.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                     placeholder="0.00"
                   />
                 </div>
 
                 {shiftError && (
-                  <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                  <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                     {shiftError}
                   </div>
                 )}
@@ -574,14 +565,14 @@ const Layout = () => {
                         setShiftError(null);
                       }
                     }}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                     disabled={isProcessingShift}
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
                     disabled={isProcessingShift}
                   >
                     {isProcessingShift ? "Guardando..." : "Abrir turno"}
@@ -600,8 +591,8 @@ const Layout = () => {
                   </p>
                 </header>
 
-                <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Sucursal</p>
+                <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+                  <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Sucursal</p>
                   <p className="mt-2 text-lg font-semibold text-white">{selectedShiftBranch?.name ?? "Sin sucursal"}</p>
                   <p className="text-xs text-slate-500">{selectedShiftBranch?.address}</p>
                 </div>
@@ -609,23 +600,23 @@ const Layout = () => {
                 {activeShiftSummary ? (
                   <>
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-                        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Caja inicial</p>
+                      <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
+                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Caja inicial</p>
                         <p className="mt-2 text-lg font-semibold text-white">{formatCurrency(activeShiftSummary.shift.openingCash)}</p>
                       </div>
-                      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-                        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Ventas en efectivo</p>
+                      <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
+                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Ventas en efectivo</p>
                         <p className="mt-2 text-lg font-semibold text-white">{formatCurrency(shiftCashSalesTotal)}</p>
                       </div>
                     </div>
 
-                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-100">
-                      <p className="text-xs uppercase tracking-[0.24em]">Debería haber</p>
+                    <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-100">
+                      <p className="text-xs uppercase tracking-[0.1em]">Debería haber</p>
                       <p className="mt-2 text-lg font-semibold">{formatCurrency(shiftExpectedCash)}</p>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500" htmlFor="shift-closing-cash">
+                      <label className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500" htmlFor="shift-closing-cash">
                         Efectivo contado
                       </label>
                       <input
@@ -634,14 +625,14 @@ const Layout = () => {
                         step="0.01"
                         value={shiftClosingCash}
                         onChange={(event) => setShiftClosingCash(event.target.value)}
-                        className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                         placeholder="0.00"
                       />
                     </div>
 
                     {shiftClosingCash && (
                       <div
-                        className={`rounded-2xl border px-4 py-3 text-sm ${
+                        className={`rounded-lg border px-4 py-3 text-sm ${
                           Math.abs(Number(shiftClosingCash) - shiftExpectedCash) < 0.01
                             ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
                             : "border-red-500/40 bg-red-500/10 text-red-200"
@@ -662,7 +653,7 @@ const Layout = () => {
                     )}
 
                     <div className="space-y-2">
-                      <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500" htmlFor="shift-notes">
+                      <label className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500" htmlFor="shift-notes">
                         Notas
                       </label>
                       <textarea
@@ -670,19 +661,19 @@ const Layout = () => {
                         rows={3}
                         value={shiftNotes}
                         onChange={(event) => setShiftNotes(event.target.value)}
-                        className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                         placeholder="Observaciones sobre la diferencia detectada"
                       />
                     </div>
                   </>
                 ) : (
-                  <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-sm text-slate-300">
+                  <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6 text-sm text-slate-300">
                     No hay un turno abierto en esta sucursal. Selecciona otra sucursal o abre un turno para continuar.
                   </div>
                 )}
 
                 {shiftError && (
-                  <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                  <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                     {shiftError}
                   </div>
                 )}
@@ -696,14 +687,14 @@ const Layout = () => {
                         setShiftError(null);
                       }
                     }}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                     disabled={isProcessingShift}
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
                     disabled={isProcessingShift || !activeShiftSummary}
                   >
                     {isProcessingShift ? "Guardando..." : "Cerrar turno"}
@@ -729,7 +720,7 @@ const Layout = () => {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900 text-white hover:border-[#fa7316] hover:text-[#fa7316] md:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900 text-white hover:border-[#fa7316] hover:text-[#fa7316] md:hidden cursor-pointer"
               onClick={() => setIsMobileOpen(true)}
               aria-label="Abrir menú"
             >
@@ -748,7 +739,7 @@ const Layout = () => {
                 type="button"
                 ref={branchButtonRef}
                 onClick={() => setIsBranchMenuOpen((previous) => !previous)}
-                className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm font-semibold text-white transition hover:border-[#fa7316] hover:bg-slate-800/80"
+                className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm font-semibold text-white transition hover:border-[#fa7316] hover:bg-slate-800/80 cursor-pointer"
               >
                 <LuStore color={PRIMARY_COLOR} />
                 <span>{selectedShiftBranch.name}</span>
@@ -800,16 +791,7 @@ const Layout = () => {
                             )}
                           </div>
                           {isSelected && (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={2}
-                              stroke="currentColor"
-                              className="h-5 w-5 flex-shrink-0"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                            </svg>
+                           <FaCheck />
                           )}
                         </button>
                       );

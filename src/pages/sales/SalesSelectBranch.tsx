@@ -61,7 +61,7 @@ const SalesSelectBranch = () => {
             type="button"
             key={branch._id as string}
             onClick={() => handleSelectBranch(branch._id as string)}
-            className="group flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-left transition hover:border-[#fa7316] hover:bg-[#fa7316]/10"
+            className="group flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-left transition hover:border-[#fa7316] hover:bg-[#fa7316]/10"
           >
             <div className="flex items-center justify-between">
               <span className="text-xl" aria-hidden>

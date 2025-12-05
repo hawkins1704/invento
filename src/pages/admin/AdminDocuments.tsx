@@ -142,7 +142,7 @@ const AdminDocuments = () => {
   if (!currentUser.personaId || !currentUser.personaToken) {
     return (
       <div className="space-y-8">
-        <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+        <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
           <div className="space-y-3">
             <h1 className="text-3xl font-semibold">Documentos Emitidos</h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-400">
@@ -151,7 +151,7 @@ const AdminDocuments = () => {
           </div>
         </header>
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
             <span className="text-4xl" aria-hidden>
               ⚠️

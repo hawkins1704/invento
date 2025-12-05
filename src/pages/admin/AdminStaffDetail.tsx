@@ -143,7 +143,7 @@ const AdminStaffDetail = () => {
 
   if (!staffId) {
     return (
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+      <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
         <h1 className="text-2xl font-semibold text-white">Personal no encontrado</h1>
         <p className="mt-2 text-sm text-slate-400">
           El identificador del miembro del personal no es válido. Regresa al listado e inténtalo nuevamente.
@@ -162,7 +162,7 @@ const AdminStaffDetail = () => {
   if (staffList && staffMember === null) {
     return (
       <div className="space-y-6">
-        <header className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+        <header className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
           <button
             type="button"
             onClick={() => navigate("/admin/staff")}
@@ -182,7 +182,7 @@ const AdminStaffDetail = () => {
 
   if (!staffMember) {
     return (
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+      <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
         <p className="text-sm text-slate-400">Cargando información del personal...</p>
       </div>
     );
@@ -218,7 +218,7 @@ const AdminStaffDetail = () => {
         </button>
       </header>
 
-      <form className="space-y-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20" onSubmit={handleSubmit}>
+      <form className="space-y-6 rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20" onSubmit={handleSubmit}>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
             Sucursal asignada

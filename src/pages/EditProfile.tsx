@@ -217,7 +217,7 @@ const EditProfile = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
           <button
             type="button"
@@ -236,7 +236,7 @@ const EditProfile = () => {
       </header>
 
       <form
-        className="space-y-8 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20"
+        className="space-y-8 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20"
         onSubmit={handleSubmit}
       >
         {/* DATOS DEL USUARIO */}
