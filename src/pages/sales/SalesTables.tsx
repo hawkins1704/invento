@@ -364,7 +364,7 @@ const SalesTablesContent = ({
                             >
                                 <header className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
+                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-400">
                                             {entry.table?.label ??
                                                 "Venta sin mesa"}
                                         </p>
@@ -401,7 +401,7 @@ const SalesTablesContent = ({
                                 </div>
 
                                 <div className="space-y-2 text-sm text-slate-200">
-                                    <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                                    <h4 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                                         Productos
                                     </h4>
                                     <ul className="space-y-2">
@@ -2354,7 +2354,7 @@ const SaleEditorDrawer = ({
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-3">
-                            <span className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                            <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                                 Total
                             </span>
                             <span className="text-2xl font-semibold text-white">

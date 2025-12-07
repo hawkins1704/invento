@@ -27,7 +27,7 @@ const SalesDashboardContent = ({
   return (
     <div className="space-y-10">
       <header className="flex flex-col gap-5 rounded-lg border border-slate-800 bg-slate-900/50 p-8">
-        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
           Punto de venta
         </div>
         <div className="flex flex-col gap-3">
@@ -97,7 +97,7 @@ const SalesDashboardContent = ({
             { label: "Caja estimada", value: formatCurrency(expectedCash) },
           ].map((item) => (
             <div key={item.label} className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4">
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{item.label}</p>
+              <p className="text-xs uppercase tracking-[0.1em] text-slate-500">{item.label}</p>
               <p className="mt-3 text-2xl font-semibold text-white">{item.value}</p>
               <p className="mt-2 text-xs text-slate-500">Actualizado con datos del turno.</p>
             </div>

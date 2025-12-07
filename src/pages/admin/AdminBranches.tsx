@@ -7,6 +7,7 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 import { IoMdAdd } from "react-icons/io";
 import Chip from "../../components/Chip";
 import CloseButton from "../../components/CloseButton";
+import { LuStore } from "react-icons/lu";
 
 type BranchFormState = {
     name: string;
@@ -107,9 +108,7 @@ const AdminBranches = () => {
             <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
                 {sortedBranches.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-                        <span className="text-4xl" aria-hidden>
-                            🏬
-                        </span>
+                        <LuStore className="w-10 h-10 text-slate-400" />
                         <p className="text-sm text-slate-400">
                             Todavía no hay sucursales registradas. Crea tu
                             primer local para comenzar a gestionar inventario en

@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { IoMdAdd } from "react-icons/io";
+import CloseButton from "../../components/CloseButton";
+import { FaTags } from "react-icons/fa";
 
 const DEFAULT_FORM = {
   name: "",
@@ -59,7 +61,7 @@ const AdminCategories = () => {
     <div className="space-y-8">
       <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
             Categorías
           </div>
           <div>
@@ -88,9 +90,7 @@ const AdminCategories = () => {
       <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
         {sortedCategories.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-            <span className="text-4xl" aria-hidden>
-              🏷️
-            </span>
+            <FaTags className="w-10 h-10 text-slate-400" />
             <p className="text-sm text-slate-400">
               Aún no tienes categorías creadas. Crea la primera para organizar tu inventario.
             </p>
@@ -98,7 +98,7 @@ const AdminCategories = () => {
         ) : (
           <div className="overflow-hidden rounded-lg border border-slate-800">
             <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.24em] text-slate-400">
+              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
                 <tr>
                   <th scope="col" className="px-6 py-4 font-semibold">
                     Categoría
@@ -126,16 +126,9 @@ const AdminCategories = () => {
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
           <div className="relative w-full max-w-lg rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
-            <button
-              type="button"
-              onClick={() => setIsFormOpen(false)}
-              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900 text-slate-300 transition hover:text-white"
-              aria-label="Cerrar"
-            >
-              ✕
-            </button>
+            <CloseButton onClick={() => setIsFormOpen(false)} />
             <header className="mb-6 space-y-2">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
                 Nueva categoría
               </span>
               <h2 className="text-2xl font-semibold text-white">Crear categoría</h2>
@@ -156,12 +149,12 @@ const AdminCategories = () => {
                   autoFocus
                   value={formState.name}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 />
               </div>
 
               {formError && (
-                <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                   {formError}
                 </div>
               )}
@@ -173,14 +166,14 @@ const AdminCategories = () => {
                     resetForm();
                     setIsFormOpen(false);
                   }}
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                   disabled={isSubmitting}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : "Guardar categoría"}

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { AREA_STORAGE_KEY, useSalesShift } from "../../hooks/useSalesShift";
+import { FaLocationDot } from "react-icons/fa6";
 
 const SalesSelectBranch = () => {
   const { branches, isLoadingBranches, setBranchId } = useSalesShift();
@@ -64,10 +65,8 @@ const SalesSelectBranch = () => {
             className="group flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-left transition hover:border-[#fa7316] hover:bg-[#fa7316]/10"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xl" aria-hidden>
-                📍
-              </span>
-              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+            <FaLocationDot className="w-5 h-5 text-slate-400" />
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
                 Sucursal
               </span>
             </div>

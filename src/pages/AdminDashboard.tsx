@@ -31,7 +31,7 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-10">
       <header className="space-y-4">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+        <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
           Panel administrador
         </span>
         <div className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/40 p-8">
@@ -51,7 +51,7 @@ const AdminDashboard = () => {
             key={metric.label}
             className="rounded-lg border border-slate-800 bg-slate-900/40 p-6"
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
               {metric.label}
             </p>
             <div className="mt-4 flex items-baseline gap-3">
@@ -103,9 +103,7 @@ const AdminDashboard = () => {
             <p className="text-xs text-slate-500">Configura productos para ver alertas.</p>
           </div>
           <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-700 bg-slate-950/80 p-6 text-center">
-            <span className="text-4xl" aria-hidden>
-              📦
-            </span>
+            
             <p className="max-w-xs text-sm text-slate-400">
               Aún no tienes inventario registrado. Agrega productos para monitorear existencias por sucursal.
             </p>

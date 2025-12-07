@@ -237,13 +237,26 @@ const AdminStaffDetail = () => {
             </select>
           </label>
           <label className="flex items-center gap-3 text-sm font-semibold text-slate-200">
-            <input
-              type="checkbox"
-              name="active"
-              checked={formState.active}
-              onChange={handleChange}
-              className="h-5 w-5 rounded-lg border-slate-700 bg-slate-900 text-[#fa7316] focus:ring-[#fa7316]"
-            />
+            <button
+              type="button"
+              onClick={() => setFormState((prev) => ({ ...prev, active: !prev.active }))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                formState.active
+                  ? "bg-[#fa7316]"
+                  : "bg-slate-700"
+              }`}
+              role="switch"
+              aria-checked={formState.active}
+              aria-label="Activo en la sucursal"
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  formState.active
+                    ? "translate-x-6"
+                    : "translate-x-1"
+                }`}
+              />
+            </button>
             Activo en la sucursal
           </label>
         </div>

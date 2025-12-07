@@ -8,6 +8,7 @@ import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import type { ProductListItem } from "../../types/products";
 import { IoMdAdd } from "react-icons/io";
 import { BiDish } from "react-icons/bi";
+import { FaBoxArchive } from "react-icons/fa6";
 
 type ProductFormState = {
   name: string;
@@ -239,7 +240,7 @@ const updateStockField = (branchId: string, value: string) => {
     <div className="space-y-8">
       <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
             Inventario
           </div>
           <div>
@@ -274,9 +275,7 @@ const updateStockField = (branchId: string, value: string) => {
       <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
         {sortedProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-            <span className="text-4xl" aria-hidden>
-              📦
-            </span>
+            <FaBoxArchive className="w-10 h-10 text-slate-400" />
             <p className="text-sm text-slate-400">
               Todavía no hay productos registrados. Agrega tu primer producto para comenzar a gestionar el inventario.
             </p>
@@ -330,7 +329,7 @@ const updateStockField = (branchId: string, value: string) => {
               ✕
             </button>
             <header className="mb-6 space-y-2">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
                 Nuevo producto
               </span>
               <h2 className="text-2xl font-semibold text-white">Crear producto</h2>

@@ -772,7 +772,7 @@ const CloseSaleDialog = ({
 
                         <div className="space-y-3">
                             <label className="flex flex-col gap-1 text-left text-slate-200">
-                                <span className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                                <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                                     Método de pago
                                 </span>
                                 <select
@@ -796,7 +796,7 @@ const CloseSaleDialog = ({
                             </label>
 
                             <label className="flex flex-col gap-1 text-left text-slate-200">
-                                <span className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                                <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                                     Notas
                                 </span>
                                 <textarea

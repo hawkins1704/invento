@@ -7,6 +7,7 @@ import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import Chip from "../../components/Chip";
 import { IoMdAdd } from "react-icons/io";
 import CloseButton from "../../components/CloseButton";
+import { BsFillPeopleFill } from "react-icons/bs";
 
 type StaffFormState = {
   branchId: string;
@@ -125,9 +126,7 @@ const AdminStaff = () => {
       <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
         {sortedStaff.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-            <span className="text-4xl" aria-hidden>
-              👥
-            </span>
+            <BsFillPeopleFill className="w-10 h-10 text-slate-400" />
             <p className="text-sm text-slate-400">
               Aún no has registrado personal. Agrega a tu primer colaborador para asignarle códigos y roles.
             </p>
@@ -135,7 +134,7 @@ const AdminStaff = () => {
         ) : (
           <div className="overflow-hidden rounded-lg border border-slate-800">
             <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.24em] text-slate-400">
+              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
                 <tr>
                   <th scope="col" className="px-6 py-4 font-semibold">
                     Nombre

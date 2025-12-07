@@ -5,7 +5,7 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 import { useAPISUNAT } from "../../hooks/useAPISUNAT";
 import type { APISUNATDocument, PDFFormat } from "../../types/apisunat";
 import { formatDate } from "../../utils/format";
-import { FaDownload } from "react-icons/fa";
+import { FaDownload, FaSpinner } from "react-icons/fa";
 import CloseButton from "../../components/CloseButton";
 
 const getStatusBadge = (status: string) => {
@@ -180,7 +180,7 @@ const AdminDocuments = () => {
         {isLoadingDocuments || isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
             <span className="text-4xl" aria-hidden>
-              ⏳
+              <FaSpinner className="animate-spin"/>
             </span>
             <p className="text-sm text-slate-400">Cargando documentos...</p>
           </div>

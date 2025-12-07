@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "convex/react";
 import type { ChangeEvent, FormEvent } from "react";
 import imageCompression from "browser-image-compression";
-import { api } from "../../convex/_generated/api";
-import type { Doc, Id } from "../../convex/_generated/dataModel";
+import { api } from "../../../convex/_generated/api";
+import type { Doc, Id } from "../../../convex/_generated/dataModel";
+import { FaArrowLeft } from "react-icons/fa";
+import { MdDeleteOutline } from "react-icons/md";
 
 type ProfileFormState = {
   name: string;
@@ -67,22 +69,22 @@ const EditProfile = () => {
         administratorCode: currentUser.administratorCode ?? "",
         salesCode: currentUser.salesCode ?? "",
         companyName: currentUser.companyName ?? "",
-        companyCommercialName: (currentUser as any).companyCommercialName ?? "",
-        ruc: (currentUser as any).ruc ?? "",
+        companyCommercialName: (currentUser as Doc<"users">).companyCommercialName ?? "",
+        ruc: (currentUser as Doc<"users">).ruc ?? "",
         companyLogoFile: null,
         personaId: currentUser.personaId ?? "",
         personaToken: currentUser.personaToken ?? "",
-        serieBoleta: (currentUser as any).serieBoleta ?? "",
-        serieFactura: (currentUser as any).serieFactura ?? "",
+        serieBoleta: (currentUser as Doc<"users">).serieBoleta ?? "",
+        serieFactura: (currentUser as Doc<"users">).serieFactura ?? "",
         IGVPercentage: currentUser.IGVPercentage ? (currentUser.IGVPercentage.toString() as "10" | "18") : "",
-        printFormat: (currentUser as any).printFormat ?? "",
-        companyAddress: (currentUser as any).companyAddress ?? "",
-        companyDistrict: (currentUser as any).companyDistrict ?? "",
-        companyProvince: (currentUser as any).companyProvince ?? "",
-        companyDepartment: (currentUser as any).companyDepartment ?? "",
+        printFormat: (currentUser as Doc<"users">).printFormat ?? "",
+        companyAddress: (currentUser as Doc<"users">).companyAddress ?? "",
+        companyDistrict: (currentUser as Doc<"users">).companyDistrict ?? "",
+        companyProvince: (currentUser as Doc<"users">).companyProvince ?? "",
+        companyDepartment: (currentUser as Doc<"users">).companyDepartment ?? "",
       });
       setCurrentCompanyLogoUrl(
-        (currentUser as any).companyLogoUrl ?? null
+        (currentUser as Doc<"users"> & { companyLogoUrl: string | null }).companyLogoUrl ?? null
       );
     }
   }, [currentUser]);
@@ -94,7 +96,6 @@ const EditProfile = () => {
       }
     };
   }, [previewCompanyLogoUrl]);
-
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setFormState((previous) => ({
@@ -222,9 +223,10 @@ const EditProfile = () => {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white transition hover:bg-white/10"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
           >
-            ← Volver
+            <FaArrowLeft />
+            <span>Volver</span>
           </button>
           <div>
             <h1 className="text-3xl font-semibold">Editar perfil</h1>
@@ -262,7 +264,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.name}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Tu nombre completo"
               />
             </div>
@@ -280,7 +282,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.administratorCode}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Código de administrador"
               />
             </div>
@@ -298,7 +300,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.salesCode}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Código de ventas"
               />
             </div>
@@ -328,7 +330,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.companyName}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Razón social de la empresa"
               />
             </div>
@@ -346,7 +348,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.companyCommercialName}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Nombre comercial de la empresa"
               />
             </div>
@@ -364,7 +366,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.ruc}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Número de RUC"
               />
             </div>
@@ -383,7 +385,7 @@ const EditProfile = () => {
               type="file"
               accept="image/*"
               onChange={handleCompanyLogoChange}
-              className="w-full cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
+              className="w-full cursor-pointer rounded-lg border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
             />
             <p className="text-xs text-slate-500">
               Si no seleccionas una nueva imagen, se mantendrá la actual. Tamaño recomendado máx. 1280px.
@@ -391,7 +393,7 @@ const EditProfile = () => {
 
             {(previewCompanyLogoUrl || currentCompanyLogoUrl) && (
               <div className="mt-4 flex items-center gap-4">
-                <div className="h-24 w-24 overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+                <div className="h-24 w-24 overflow-hidden rounded-lg border border-slate-800 bg-slate-950">
                   <img
                     src={previewCompanyLogoUrl ?? currentCompanyLogoUrl ?? ""}
                     alt="Logo de la empresa"
@@ -401,11 +403,11 @@ const EditProfile = () => {
                 <button
                   type="button"
                   onClick={handleRemoveCompanyLogo}
-                  className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-200 transition hover:border-red-500/60 hover:text-red-100"
+                  className="inline-flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-200 transition hover:border-red-500/60 hover:text-red-100"
                   disabled={isSubmitting}
                 >
-                  <span aria-hidden>🗑️</span>
-                  Quitar logo
+                  <MdDeleteOutline className="w-4 h-4" />
+                  <span>Quitar logo</span>
                 </button>
               </div>
             )}
@@ -435,7 +437,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.personaId}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="ID de persona en APISUNAT"
               />
             </div>
@@ -453,7 +455,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.personaToken}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Token de autenticación APISUNAT"
               />
             </div>
@@ -471,7 +473,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.serieBoleta}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Ej: B001"
                 maxLength={4}
               />
@@ -493,7 +495,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.serieFactura}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Ej: F001"
                 maxLength={4}
               />
@@ -514,7 +516,7 @@ const EditProfile = () => {
                 name="IGVPercentage"
                 value={formState.IGVPercentage}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
               >
                 <option value="">Selecciona un porcentaje</option>
                 <option value="10">10%</option>
@@ -538,7 +540,7 @@ const EditProfile = () => {
                 name="printFormat"
                 value={formState.printFormat}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
               >
                 <option value="">Selecciona un formato</option>
                 <option value="A4">A4</option>
@@ -575,7 +577,7 @@ const EditProfile = () => {
               type="text"
               value={formState.companyAddress}
               onChange={handleChange}
-              className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
               placeholder="Ej: AV. UNIVERSITARIA NRO. 1699 URB. SANTA EMMA"
             />
           </div>
@@ -594,7 +596,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.companyDistrict}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Ej: LIMA"
               />
             </div>
@@ -612,7 +614,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.companyProvince}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Ej: LIMA"
               />
             </div>
@@ -630,7 +632,7 @@ const EditProfile = () => {
                 type="text"
                 value={formState.companyDepartment}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Ej: LIMA"
               />
             </div>
@@ -638,12 +640,12 @@ const EditProfile = () => {
         </section>
 
         {formError && (
-          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
             {formError}
           </div>
         )}
         {successMessage && (
-          <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+          <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
             {successMessage}
           </div>
         )}
@@ -652,14 +654,14 @@ const EditProfile = () => {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
             disabled={isSubmitting}
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Guardando cambios..." : "Guardar cambios"}

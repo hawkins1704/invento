@@ -5,6 +5,8 @@ import type { ChangeEvent, FormEvent } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import { FaArrowLeft } from "react-icons/fa";
+import { MdDeleteOutline } from "react-icons/md";
 
 const AdminCategoryDetail = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
@@ -53,9 +55,10 @@ const AdminCategoryDetail = () => {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+          className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
         >
-          Volver
+          <FaArrowLeft />
+          <span>Volver</span>
         </button>
       </div>
     );
@@ -78,9 +81,10 @@ const AdminCategoryDetail = () => {
         <button
           type="button"
           onClick={() => navigate("/admin/categories")}
-          className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+          className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
         >
-          Volver a categorías
+          <FaArrowLeft />
+          <span>Volver a categorías</span>
         </button>
       </div>
     );
@@ -145,9 +149,10 @@ const AdminCategoryDetail = () => {
           <button
             type="button"
             onClick={() => navigate("/admin/categories")}
-            className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white transition hover:bg-white/10"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
           >
-            ← Categorías
+            <FaArrowLeft />
+            <span>Volver</span>
           </button>
           <div>
             <h1 className="text-3xl font-semibold">{category.name}</h1>
@@ -162,8 +167,8 @@ const AdminCategoryDetail = () => {
           className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-200 transition hover:border-red-500/60 hover:text-red-100"
           disabled={isDeleting || isSubmitting}
         >
-          <span aria-hidden>🗑️</span>
-          Eliminar categoría
+          <MdDeleteOutline />
+          <span>Eliminar categoría</span>
         </button>
       </header>
 

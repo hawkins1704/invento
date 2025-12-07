@@ -410,7 +410,7 @@ const HistoryView = ({
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-800 text-sm">
-                <thead className="bg-slate-900/70 text-xs uppercase tracking-[0.24em] text-slate-400">
+                <thead className="bg-slate-900/70 text-xs uppercase tracking-[0.1em] text-slate-400">
                   <tr>
                     <th className="px-6 py-3 text-left font-semibold">Fecha</th>
                     <th className="px-6 py-3 text-left font-semibold">Sucursal</th>

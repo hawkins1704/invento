@@ -21,8 +21,7 @@ import SalesTables from './pages/sales/SalesTables'
 import SalesDaily from './pages/sales/SalesDaily'
 import SalesInventory from './pages/sales/SalesInventory'
 import SalesSelectBranch from './pages/sales/SalesSelectBranch'
-import EditProfile from './pages/EditProfile'
-
+import EditProfile from './pages/admin/EditProfile'
 
 function App() {
 
@@ -67,6 +66,7 @@ function App() {
                             <Route index element={<AdminBranches />} />
                             <Route path=":branchId" element={<BranchDetails />} />
                         </Route>
+                        <Route path="profile" element={<EditProfile />} />
                     </Route>
                     <Route path="sales">
                         <Route index element={<SalesDashboard />} />
@@ -75,7 +75,6 @@ function App() {
                         <Route path="daily" element={<SalesDaily />} />
                         <Route path="inventory" element={<SalesInventory />} />
                     </Route>
-                    <Route path="profile" element={<EditProfile />} />
                 </Route>
             </Routes>
         </Router>
