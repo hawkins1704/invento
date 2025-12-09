@@ -9,6 +9,7 @@ import type { ProductListItem } from "../../types/products";
 import { IoMdAdd } from "react-icons/io";
 import { BiDish } from "react-icons/bi";
 import { FaBoxArchive } from "react-icons/fa6";
+import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 
 type ProductFormState = {
   name: string;
@@ -33,14 +34,26 @@ const DEFAULT_FORM: ProductFormState = {
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(value);
 
+const ITEMS_PER_PAGE = 10;
+
 const AdminInventory = () => {
-  const products = useQuery(api.products.list) as ProductListItem[] | undefined;
+  const [currentPage, setCurrentPage] = useState(1);
   const categories = useQuery(api.categories.list) as Doc<"categories">[] | undefined;
   const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
   const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
   const generateUploadUrl = useMutation(api.products.generateUploadUrl);
   const createProduct = useMutation(api.products.create);
   const navigate = useNavigate();
+
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  const productsData = useQuery(api.products.list, {
+    limit: ITEMS_PER_PAGE,
+    offset,
+  }) as { products: ProductListItem[]; total: number } | undefined;
+
+  const products = productsData?.products ?? [];
+  const totalProducts = productsData?.total ?? 0;
+  const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formState, setFormState] = useState<ProductFormState>(DEFAULT_FORM);
@@ -69,11 +82,13 @@ const AdminInventory = () => {
     return roundToCents((unitValue * IGVPercentage) / 100);
   }, [unitValue, IGVPercentage]);
 
- 
-
-
-
-  const sortedProducts = useMemo(() => products ?? [], [products]);
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      // Scroll to top of table when changing pages
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   const updateField = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -225,6 +240,8 @@ const updateStockField = (branchId: string, value: string) => {
 
       initializeForm();
       setIsFormOpen(false);
+      // Reset to first page to see the new product
+      setCurrentPage(1);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Ocurrió un problema creando el producto.";
@@ -273,7 +290,7 @@ const updateStockField = (branchId: string, value: string) => {
       </header>
 
       <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-        {sortedProducts.length === 0 ? (
+        {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
             <FaBoxArchive className="w-10 h-10 text-slate-400" />
             <p className="text-sm text-slate-400">
@@ -281,39 +298,106 @@ const updateStockField = (branchId: string, value: string) => {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-slate-800">
-            <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Producto
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Categoría
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Precio
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Stock total
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
-                {sortedProducts.map((product) => (
-                  <ProductRow
-                    key={product._id as unknown as string}
-                    product={product}
-                    onSelect={(selected) =>
-                      navigate(`/admin/inventory/${selected._id}`, {
-                        state: { product: selected },
-                      })
-                    }
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="overflow-hidden rounded-lg border border-slate-800">
+              <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
+                <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
+                  <tr>
+                    <th scope="col" className="px-6 py-4 font-semibold">
+                      Producto
+                    </th>
+                    <th scope="col" className="px-6 py-4 font-semibold">
+                      Categoría
+                    </th>
+                    <th scope="col" className="px-6 py-4 font-semibold">
+                      Precio
+                    </th>
+                    <th scope="col" className="px-6 py-4 font-semibold">
+                      Stock total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
+                  {products.map((product) => (
+                    <ProductRow
+                      key={product._id as unknown as string}
+                      product={product}
+                      onSelect={(selected) =>
+                        navigate(`/admin/inventory/${selected._id}`, {
+                          state: { product: selected },
+                        })
+                      }
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {totalPages > 1 && (
+              <div className=" flex items-center justify-between  pt-4">
+                <div className="text-sm text-slate-400">
+                  Mostrando {offset + 1} - {Math.min(offset + ITEMS_PER_PAGE, totalProducts)} de {totalProducts} productos
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
+                    aria-label="Página anterior"
+                  >
+                    <IoChevronBack className="h-5 w-5" />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                      // Show first page, last page, current page, and pages around current
+                      const showPage =
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1);
+                      
+                      if (!showPage) {
+                        // Show ellipsis
+                        if (page === currentPage - 2 || page === currentPage + 2) {
+                          return (
+                            <span key={page} className="px-2 text-sm text-slate-500">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() => handlePageChange(page)}
+                          className={`inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                            currentPage === page
+                              ? "border-[#fa7316] bg-[#fa7316] text-white"
+                              : "border-slate-700 bg-slate-900 text-slate-300 hover:border-[#fa7316] hover:text-white"
+                          }`}
+                          aria-label={`Ir a página ${page}`}
+                          aria-current={currentPage === page ? "page" : undefined}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
+                    aria-label="Página siguiente"
+                  >
+                    <IoChevronForward className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
 

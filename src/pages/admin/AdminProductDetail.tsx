@@ -19,6 +19,7 @@ type ProductEditFormState = {
     price: string;
     stocks: Record<string, string>;
     imageFile: File | null;
+    allowNegativeSale: boolean;
 };
 
 const DEFAULT_FORM: ProductEditFormState = {
@@ -29,6 +30,7 @@ const DEFAULT_FORM: ProductEditFormState = {
     price: "",
     stocks: {},
     imageFile: null,
+    allowNegativeSale: false,
 };
 
 const formatCurrency = (value: number) =>
@@ -42,9 +44,11 @@ const AdminProductDetail = () => {
     const navigate = useNavigate();
     const location = useLocation() as { state?: { product?: ProductListItem } };
 
-    const products = useQuery(api.products.list) as
-        | ProductListItem[]
-        | undefined;
+    // Obtener el producto específico por ID usando la query optimizada
+    const productFromQuery = useQuery(
+        api.products.getById,
+        productId ? { productId: productId as Id<"products"> } : "skip"
+    ) as ProductListItem | null | undefined;
     const categories = useQuery(api.categories.list) as
         | Doc<"categories">[]
         | undefined;
@@ -77,31 +81,8 @@ const AdminProductDetail = () => {
 
     const productFromState = location.state?.product;
 
-    const product = useMemo(() => {
-        if (!productId) {
-            return undefined;
-        }
-
-        // Siempre priorizar la query si está disponible (datos frescos de la BD)
-        // Solo usar productFromState como fallback si la query aún no está lista
-        const productFromQuery = products?.find(
-            (item) => (item._id as unknown as string) === productId
-        );
-
-        if (productFromQuery) {
-            return productFromQuery;
-        }
-
-        // Fallback: usar productFromState solo si la query no está lista
-        if (
-            productFromState &&
-            (productFromState._id as unknown as string) === productId
-        ) {
-            return productFromState;
-        }
-
-        return undefined;
-    }, [productFromState, productId, products]);
+    // Priorizar la query (datos frescos de la BD), usar productFromState como fallback
+    const product = productFromQuery ?? productFromState ?? undefined;
 
     const IGVPercentage = currentUser?.IGVPercentage ?? 18;
 
@@ -172,6 +153,8 @@ const AdminProductDetail = () => {
             const newUnitValue = productUnitValue.toFixed(2);
             const newPrice = productPrice.toFixed(2);
 
+            const productAllowNegativeSale = product.allowNegativeSale ?? false;
+            
             // Si los valores son diferentes, actualizar
             if (
                 previous.unitValue !== newUnitValue ||
@@ -179,7 +162,8 @@ const AdminProductDetail = () => {
                 previous.name !== product.name ||
                 previous.description !== product.description ||
                 previous.categoryId !==
-                    (product.categoryId as unknown as string)
+                    (product.categoryId as unknown as string) ||
+                previous.allowNegativeSale !== productAllowNegativeSale
             ) {
                 return {
                     name: product.name,
@@ -189,6 +173,7 @@ const AdminProductDetail = () => {
                     price: newPrice,
                     stocks: initialStocks,
                     imageFile: previous.imageFile, // Mantener el archivo si existe
+                    allowNegativeSale: productAllowNegativeSale,
                 };
             }
             // Si no hay cambios, mantener el estado actual (incluyendo stocks si no cambiaron)
@@ -302,7 +287,7 @@ const AdminProductDetail = () => {
     }
 
     if (
-        products === undefined ||
+        (productId && productFromQuery === undefined) ||
         categories === undefined ||
         branches === undefined
     ) {
@@ -429,6 +414,7 @@ const AdminProductDetail = () => {
                 stockByBranch,
                 image: storageId,
                 removeImage: shouldRemoveImage ? true : undefined,
+                allowNegativeSale: formState.allowNegativeSale,
             });
 
             setSuccessMessage("Producto actualizado correctamente.");
@@ -833,6 +819,37 @@ const AdminProductDetail = () => {
                                         Number(formState.price) || 0
                                     )}
                                 </p>
+                            </div>
+                            <div className="w-full flex items-center justify-center gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setFormState((previous) => ({
+                                            ...previous,
+                                            allowNegativeSale: !previous.allowNegativeSale,
+                                        }))
+                                    }
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        formState.allowNegativeSale
+                                            ? "bg-[#fa7316]"
+                                            : "bg-slate-700"
+                                    }`}
+                                    role="switch"
+                                    aria-checked={formState.allowNegativeSale}
+                                    aria-label="Permitir ventas en negativo"
+                                    disabled={isSubmitting || isDeleting}
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                            formState.allowNegativeSale
+                                                ? "translate-x-6"
+                                                : "translate-x-1"
+                                        }`}
+                                    />
+                                </button>
+                                <span className="text-sm text-slate-300">
+                                    Ventas en negativo
+                                </span>
                             </div>
                         </div>
                     </div>

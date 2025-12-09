@@ -5,6 +5,21 @@ import type { Id } from "./_generated/dataModel"
 
 const normalize = (value: string) => value.trim()
 
+export const getById = query({
+  args: {
+    staffId: v.id("staff"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+
+    const staffMember = await ctx.db.get(args.staffId)
+    return staffMember ?? null
+  },
+})
+
 export const list = query({
   args: {
     branchId: v.optional(v.id("branches")),

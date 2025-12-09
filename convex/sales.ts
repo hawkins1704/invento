@@ -178,7 +178,12 @@ const adjustInventoryForSale = async (ctx: any, sale: any) => {
         )
       }
 
-      if (inventory.stock < item.quantity) {
+      // Obtener el producto para verificar si permite venta en negativo
+      const product = await ctx.db.get(item.productId)
+      const allowNegativeSale = product?.allowNegativeSale ?? false
+
+      // Solo validar stock si no permite venta en negativo
+      if (!allowNegativeSale && inventory.stock < item.quantity) {
         throw new ConvexError(
           "No hay stock suficiente para cerrar la venta. Actualiza el inventario."
         )

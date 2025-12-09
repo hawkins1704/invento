@@ -2,19 +2,78 @@ import { mutation, query } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-export const list = query({
-  args: {},
-  handler: async (ctx) => {
+export const getById = query({
+  args: {
+    productId: v.id("products"),
+  },
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new ConvexError("No autenticado");
     }
 
-    const products = await ctx.db.query("products").collect();
-    const sorted = products.sort((a, b) => b._creationTime - a._creationTime);
+    const product = await ctx.db.get(args.productId);
+    if (!product) {
+      return null;
+    }
 
-    return await Promise.all(
-      sorted.map(async (product) => {
+    const category = await ctx.db.get(product.categoryId);
+    const inventories = await ctx.db
+      .query("branchInventories")
+      .withIndex("byProduct", (q) => q.eq("productId", product._id))
+      .collect();
+
+    const stockByBranch = await Promise.all(
+      inventories.map(async (inventory) => {
+        const branch = await ctx.db.get(inventory.branchId);
+        return {
+          branchId: inventory.branchId,
+          branchName: branch?.name ?? "Sucursal sin nombre",
+          stock: inventory.stock,
+        };
+      })
+    );
+
+    const totalStock = stockByBranch.reduce((sum, item) => sum + item.stock, 0);
+
+    const imageUrl = product.image
+      ? await ctx.storage.getUrl(product.image)
+      : null;
+
+    return {
+      ...product,
+      categoryName: category?.name ?? "Sin categoría",
+      imageUrl,
+      totalStock,
+      stockByBranch,
+    };
+  },
+});
+
+export const list = query({
+  args: {
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new ConvexError("No autenticado");
+    }
+
+    const allProducts = await ctx.db.query("products").collect();
+    const sorted = allProducts.sort((a, b) => b._creationTime - a._creationTime);
+
+    // Obtener el total antes de paginar
+    const total = sorted.length;
+
+    // Aplicar paginación
+    const limit = args.limit ?? 10;
+    const offset = args.offset ?? 0;
+    const paginatedProducts = sorted.slice(offset, offset + limit);
+
+    const products = await Promise.all(
+      paginatedProducts.map(async (product) => {
         const category = await ctx.db.get(product.categoryId);
         const inventories = await ctx.db
           .query("branchInventories")
@@ -47,6 +106,11 @@ export const list = query({
         };
       })
     );
+
+    return {
+      products,
+      total,
+    };
   },
 });
 
@@ -152,6 +216,7 @@ export const update = mutation({
     ),
     image: v.optional(v.id("_storage")),
     removeImage: v.optional(v.boolean()),
+    allowNegativeSale: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -218,6 +283,7 @@ export const update = mutation({
       igv,
       price,
       ...(imageField !== undefined ? { image: imageField } : { image: undefined }),
+      allowNegativeSale: args.allowNegativeSale,
     });
 
     const existingInventories = await ctx.db

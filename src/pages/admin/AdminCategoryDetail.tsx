@@ -13,7 +13,12 @@ const AdminCategoryDetail = () => {
   const navigate = useNavigate();
   const location = useLocation() as { state?: { category?: Doc<"categories"> } };
 
-  const categories = useQuery(api.categories.list) as Doc<"categories">[] | undefined;
+  // Obtener la categoría específica por ID usando la query optimizada
+  const categoryFromQuery = useQuery(
+    api.categories.getById,
+    categoryId ? { categoryId: categoryId as Id<"categories"> } : "skip"
+  ) as Doc<"categories"> | null | undefined;
+
   const updateCategory = useMutation(api.categories.update);
   const removeCategory = useMutation(api.categories.remove);
 
@@ -26,17 +31,8 @@ const AdminCategoryDetail = () => {
 
   const categoryFromState = location.state?.category;
 
-  const category = useMemo(() => {
-    if (!categoryId) {
-      return undefined;
-    }
-
-    if (categoryFromState && (categoryFromState._id as unknown as string) === categoryId) {
-      return categoryFromState;
-    }
-
-    return categories?.find((item) => (item._id as unknown as string) === categoryId);
-  }, [categories, categoryFromState, categoryId]);
+  // Priorizar la query (datos frescos de la BD), usar categoryFromState como fallback
+  const category = categoryFromQuery ?? categoryFromState ?? undefined;
 
   useEffect(() => {
     if (!category) {
@@ -64,7 +60,7 @@ const AdminCategoryDetail = () => {
     );
   }
 
-  if (categories === undefined) {
+  if (categoryId && categoryFromQuery === undefined) {
     return (
       <div className="flex flex-1 items-center justify-center text-slate-400">
         Cargando información de la categoría...

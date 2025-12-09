@@ -210,7 +210,7 @@ const AdminSales = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setViewMode("history")}
@@ -219,17 +219,23 @@ const AdminSales = () => {
                 ? "bg-[#fa7316] text-white"
                 : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
             }`}
+            style={{
+              borderRadius: "2rem 0.5rem 0.5rem 2rem",
+            }}
           >
             Historial
           </button>
           <button
             type="button"
             onClick={() => setViewMode("live")}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            className={`inline-flex items-center gap-2  px-4 py-2 text-sm font-semibold transition ${
               viewMode === "live"
                 ? "bg-[#fa7316] text-white "
                 : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
             }`}
+            style={{
+              borderRadius: "0.5rem 2rem 2rem 0.5rem",
+            }}
           >
             Ventas en vivo
           </button>

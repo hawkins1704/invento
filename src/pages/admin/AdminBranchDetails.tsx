@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import type { ChangeEvent, FormEvent } from "react";
@@ -9,6 +9,8 @@ import { FaArrowLeft } from "react-icons/fa";
 import { FiEdit3 } from "react-icons/fi";
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { BiDish } from "react-icons/bi";
+import { FaBoxArchive } from "react-icons/fa6";
+import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 
 type CategorySummary = {
     category: Doc<"categories">;
@@ -54,7 +56,9 @@ const TABLE_STATUSES: Array<{
     { value: "out_of_service", label: "Fuera de servicio" },
 ];
 
-const BranchDetails = () => {
+const ITEMS_PER_PAGE = 10;
+
+const AdminBranchDetails = () => {
     const params = useParams();
     const branchIdParam = params.branchId;
     const branchId = branchIdParam
@@ -63,9 +67,11 @@ const BranchDetails = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const branches = useQuery(api.branches.list) as
-        | Doc<"branches">[]
-        | undefined;
+    // Obtener la sucursal específica por ID usando la query optimizada
+    const branchFromQuery = useQuery(
+        api.branches.getById,
+        branchId ? { branchId } : "skip"
+    ) as Doc<"branches"> | null | undefined;
     const categories = useQuery(
         api.branchInventory.categories,
         branchId ? { branchId } : "skip"
@@ -78,6 +84,7 @@ const BranchDetails = () => {
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
         null
     );
+    const [currentPage, setCurrentPage] = useState(1);
     const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
     const [savingProductId, setSavingProductId] = useState<string | null>(null);
     const updateStock = useMutation(api.branchInventory.updateStock);
@@ -131,16 +138,35 @@ const BranchDetails = () => {
         }
     }, [categories, selectedCategoryId, branchId]);
 
-    const products =
-        useQuery(
-            api.branchInventory.productsByCategory,
-            branchId && selectedCategoryId
-                ? {
-                      branchId,
-                      categoryId: selectedCategoryId as Id<"categories">,
-                  }
-                : "skip"
-        ) ?? [];
+    // Resetear página cuando cambia la categoría seleccionada
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [selectedCategoryId]);
+
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+            // Scroll to top of table when changing pages
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    };
+
+    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+    const productsData = useQuery(
+        api.branchInventory.productsByCategory,
+        branchId && selectedCategoryId
+            ? {
+                  branchId,
+                  categoryId: selectedCategoryId as Id<"categories">,
+                  limit: ITEMS_PER_PAGE,
+                  offset,
+              }
+            : "skip"
+    ) as { products: InventoryProduct[]; total: number } | undefined;
+
+    const products = productsData?.products ?? [];
+    const totalProducts = productsData?.total ?? 0;
+    const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
 
     useEffect(() => {
         const initialDrafts = products.reduce<Record<string, string>>(
@@ -151,16 +177,29 @@ const BranchDetails = () => {
             },
             {}
         );
-        setStockDrafts(initialDrafts);
+        setStockDrafts((previous) => {
+            // Comparar si realmente cambió antes de actualizar
+            const previousKeys = Object.keys(previous);
+            const newKeys = Object.keys(initialDrafts);
+            
+            if (previousKeys.length !== newKeys.length) {
+                return initialDrafts;
+            }
+            
+            for (const key of newKeys) {
+                if (previous[key] !== initialDrafts[key]) {
+                    return initialDrafts;
+                }
+            }
+            
+            return previous;
+        });
     }, [products]);
 
-    const branch = useMemo(
-        () =>
-            branchId
-                ? (branches?.find((item) => item._id === branchId) ?? null)
-                : null,
-        [branches, branchId]
-    );
+    const branchFromState = (location.state as { branch?: Doc<"branches"> } | null)?.branch;
+    
+    // Priorizar la query (datos frescos de la BD), usar branchFromState como fallback
+    const branch = branchFromQuery ?? (branchFromState && branchFromState._id === branchId ? branchFromState : null);
     const branchTables = tables ?? [];
     const totalTables = branchTables.length;
     const availableTables = branchTables.filter(
@@ -195,13 +234,18 @@ const BranchDetails = () => {
 
                 return next;
             });
-        } else if (
-            branchForm.name !== DEFAULT_BRANCH_FORM.name ||
-            branchForm.address !== DEFAULT_BRANCH_FORM.address
-        ) {
-            setBranchForm({ ...DEFAULT_BRANCH_FORM });
+        } else {
+            setBranchForm((previous) => {
+                if (
+                    previous.name !== DEFAULT_BRANCH_FORM.name ||
+                    previous.address !== DEFAULT_BRANCH_FORM.address
+                ) {
+                    return { ...DEFAULT_BRANCH_FORM };
+                }
+                return previous;
+            });
         }
-    }, [branch, isEditingBranch, branchForm.name, branchForm.address]);
+    }, [branch, isEditingBranch]);
 
     if (!branchId) {
         return (
@@ -224,7 +268,7 @@ const BranchDetails = () => {
         );
     }
 
-    if (branches && branch === null) {
+    if (branchId && branchFromQuery === null) {
         return (
             <div className="space-y-6">
                 <header className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
@@ -891,9 +935,7 @@ const BranchDetails = () => {
                     </div>
                 ) : products.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-                        <span className="text-4xl" aria-hidden>
-                            📦
-                        </span>
+                        <FaBoxArchive className="w-10 h-10 text-slate-400" />
                         <p className="text-sm text-slate-400">
                             No hay productos en esta categoría. Agrega productos
                             desde el catálogo general.
@@ -1020,6 +1062,71 @@ const BranchDetails = () => {
                         </table>
                     </div>
                 )}
+                {selectedCategoryId !== null && products.length > 0 && totalPages > 1 && (
+                    <div className="flex items-center justify-between  pt-4    ">
+                        <div className="text-sm text-slate-400">
+                            Mostrando {offset + 1} - {Math.min(offset + ITEMS_PER_PAGE, totalProducts)} de {totalProducts} productos
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
+                                aria-label="Página anterior"
+                            >
+                                <IoChevronBack className="h-5 w-5" />
+                            </button>
+                            <div className="flex items-center gap-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                    // Show first page, last page, current page, and pages around current
+                                    const showPage =
+                                        page === 1 ||
+                                        page === totalPages ||
+                                        (page >= currentPage - 1 && page <= currentPage + 1);
+                                    
+                                    if (!showPage) {
+                                        // Show ellipsis
+                                        if (page === currentPage - 2 || page === currentPage + 2) {
+                                            return (
+                                                <span key={page} className="px-2 text-sm text-slate-500">
+                                                    ...
+                                                </span>
+                                            );
+                                        }
+                                        return null;
+                                    }
+
+                                    return (
+                                        <button
+                                            key={page}
+                                            type="button"
+                                            onClick={() => handlePageChange(page)}
+                                            className={`inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                                                currentPage === page
+                                                    ? "border-[#fa7316] bg-[#fa7316] text-white"
+                                                    : "border-slate-700 bg-slate-900 text-slate-300 hover:border-[#fa7316] hover:text-white"
+                                            }`}
+                                            aria-label={`Ir a página ${page}`}
+                                            aria-current={currentPage === page ? "page" : undefined}
+                                        >
+                                            {page}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
+                                aria-label="Página siguiente"
+                            >
+                                <IoChevronForward className="h-5 w-5" />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </section>
         </div>
     );
@@ -1084,4 +1191,4 @@ function formatCurrency(value: number) {
     }).format(value);
 }
 
-export default BranchDetails;
+export default AdminBranchDetails;

@@ -61,9 +61,13 @@ const SalesTablesContent = ({
         selectedBranchId ? { branchId: selectedBranchId } : "skip"
     ) as LiveSale[] | undefined;
 
-    const products = useQuery(api.products.list) as
-        | ProductListItem[]
-        | undefined;
+    // Necesitamos todos los productos para el mapa, usamos un límite alto
+    const productsData = useQuery(api.products.list, {
+        limit: 1000, // Límite alto para obtener todos los productos
+        offset: 0,
+    }) as { products: ProductListItem[]; total: number } | undefined;
+
+    const products = productsData?.products;
     const categories = useQuery(api.categories.list) as
         | Doc<"categories">[]
         | undefined;
@@ -1341,7 +1345,8 @@ const NewSaleModal = ({
                                         product.stockByBranch.find(
                                             (item) => item.branchId === branchId
                                         )?.stock ?? 0;
-                                    const isOutOfStock = availableStock <= 0;
+                                    const allowNegativeSale = product.allowNegativeSale ?? false;
+                                    const isOutOfStock = availableStock <= 0 && !allowNegativeSale;
                                     return (
                                         <button
                                             key={product._id}
@@ -2046,7 +2051,8 @@ const SaleEditorDrawer = ({
                                         product.stockByBranch.find(
                                             (item) => item.branchId === branchId
                                         )?.stock ?? 0;
-                                    const isOutOfStock = availableStock <= 0;
+                                    const allowNegativeSale = product.allowNegativeSale ?? false;
+                                    const isOutOfStock = availableStock <= 0 && !allowNegativeSale;
                                     return (
                                         <button
                                             key={product._id}

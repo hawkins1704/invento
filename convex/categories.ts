@@ -2,6 +2,21 @@ import { mutation, query } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
+export const getById = query({
+  args: {
+    categoryId: v.id("categories"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new ConvexError("No autenticado");
+    }
+
+    const category = await ctx.db.get(args.categoryId);
+    return category ?? null;
+  },
+});
+
 export const list = query({
   args: {},
   handler: async (ctx) => {

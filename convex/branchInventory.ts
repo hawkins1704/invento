@@ -41,6 +41,8 @@ export const productsByCategory = query({
   args: {
     branchId: v.id("branches"),
     categoryId: v.id("categories"),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -60,13 +62,21 @@ export const productsByCategory = query({
       throw new ConvexError("Categoría no encontrada.");
     }
 
-    const products = await ctx.db
+    const allProducts = await ctx.db
       .query("products")
       .withIndex("categoryId", (q) => q.eq("categoryId", args.categoryId))
       .collect();
 
-    return Promise.all(
-      products.map(async (product) => {
+    // Obtener el total antes de paginar
+    const total = allProducts.length;
+
+    // Aplicar paginación
+    const limit = args.limit ?? 10;
+    const offset = args.offset ?? 0;
+    const paginatedProducts = allProducts.slice(offset, offset + limit);
+
+    const products = await Promise.all(
+      paginatedProducts.map(async (product) => {
         const inventory = await ctx.db
           .query("branchInventories")
           .withIndex("byBranch", (q) =>
@@ -85,6 +95,11 @@ export const productsByCategory = query({
         };
       })
     );
+
+    return {
+      products,
+      total,
+    };
   },
 });
 

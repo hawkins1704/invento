@@ -61,7 +61,7 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
                     onClick={() =>
                         navigate("/sales/select-branch", { replace: true })
                     }
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811]"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811]"
                 >
                     Elegir sucursal
                 </button>

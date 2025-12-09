@@ -33,7 +33,12 @@ const AdminStaffDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const staffList = useQuery(api.staff.list, { includeInactive: true }) as Doc<"staff">[] | undefined;
+  // Obtener el personal específico por ID usando la query optimizada
+  const staffFromQuery = useQuery(
+    api.staff.getById,
+    staffId ? { staffId } : "skip"
+  ) as Doc<"staff"> | null | undefined;
+
   const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
   const updateStaff = useMutation(api.staff.update);
   const removeStaff = useMutation(api.staff.remove);
@@ -44,16 +49,10 @@ const AdminStaffDetail = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const staffMember = useMemo(() => {
-    if (!staffId) {
-      return null;
-    }
-    const fromState = (location.state as { staff?: Doc<"staff"> } | null)?.staff;
-    if (fromState && fromState._id === staffId) {
-      return fromState;
-    }
-    return staffList?.find((item) => item._id === staffId) ?? null;
-  }, [staffId, staffList, location.state]);
+  const staffFromState = (location.state as { staff?: Doc<"staff"> } | null)?.staff;
+
+  // Priorizar la query (datos frescos de la BD), usar staffFromState como fallback
+  const staffMember = staffFromQuery ?? (staffFromState && staffFromState._id === staffId ? staffFromState : null);
 
   const branchOptions = useMemo(() => branches ?? [], [branches]);
 
@@ -159,7 +158,15 @@ const AdminStaffDetail = () => {
     );
   }
 
-  if (staffList && staffMember === null) {
+  if (staffId && staffFromQuery === undefined) {
+    return (
+      <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+        <p className="text-sm text-slate-400">Cargando información del personal...</p>
+      </div>
+    );
+  }
+
+  if (staffFromQuery === null) {
     return (
       <div className="space-y-6">
         <header className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">

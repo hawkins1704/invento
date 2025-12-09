@@ -37,6 +37,7 @@ export default defineSchema({
     price: v.number(),
     image: v.optional(v.id("_storage")),
     categoryId: v.id("categories"),
+    allowNegativeSale: v.optional(v.boolean()),
   }).index("categoryId", ["categoryId"]),
   categories: defineTable({
     name: v.string(),

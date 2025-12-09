@@ -12,7 +12,7 @@ import AdminSales from './pages/admin/AdminSales'
 import AdminStaff from './pages/admin/AdminStaff'
 import AdminStaffDetail from './pages/admin/AdminStaffDetail'
 import AdminBranches from './pages/admin/AdminBranches'
-import BranchDetails from './pages/admin/BranchDetails'
+import AdminBranchDetails from './pages/admin/AdminBranchDetails'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminCategoryDetail from './pages/admin/AdminCategoryDetail'
 import AdminDocuments from './pages/admin/AdminDocuments'
@@ -64,7 +64,7 @@ function App() {
                         </Route>
                         <Route path="branches">
                             <Route index element={<AdminBranches />} />
-                            <Route path=":branchId" element={<BranchDetails />} />
+                            <Route path=":branchId" element={<AdminBranchDetails />} />
                         </Route>
                         <Route path="profile" element={<EditProfile />} />
                     </Route>
