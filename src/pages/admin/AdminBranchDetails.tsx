@@ -922,7 +922,7 @@ const AdminBranchDetails = () => {
                 </div>
             </section>
 
-            <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+            <section className="">
                 {selectedCategoryId === null ? (
                     <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
                         <span className="text-4xl" aria-hidden>

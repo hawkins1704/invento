@@ -39,7 +39,15 @@ const AdminStaffDetail = () => {
     staffId ? { staffId } : "skip"
   ) as Doc<"staff"> | null | undefined;
 
-  const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
+  const allBranchesData = useQuery(
+    api.branches.list,
+    {
+      limit: 1000, // Un número grande para obtener todas
+      offset: 0,
+    }
+  ) as { branches: Doc<"branches">[]; total: number } | undefined;
+
+  const branches = useMemo(() => allBranchesData?.branches ?? [], [allBranchesData]);
   const updateStaff = useMutation(api.staff.update);
   const removeStaff = useMutation(api.staff.remove);
 

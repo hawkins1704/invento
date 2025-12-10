@@ -1,13 +1,17 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useNavigate } from "react-router-dom";
 import type { ChangeEvent, FormEvent } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { IoMdAdd } from "react-icons/io";
-import Chip from "../../components/Chip";
 import CloseButton from "../../components/CloseButton";
 import { LuStore } from "react-icons/lu";
+import DataTable from "../../components/table/DataTable";
+import TableRow from "../../components/table/TableRow";
+import Pagination from "../../components/pagination/Pagination";
+import EmptyState from "../../components/empty-state/EmptyState";
+import PageHeader from "../../components/page-header/PageHeader";
 
 type BranchFormState = {
     name: string;
@@ -19,10 +23,20 @@ const DEFAULT_FORM: BranchFormState = {
     address: "",
 };
 
+const ITEMS_PER_PAGE = 10;
+
 const AdminBranches = () => {
-    const branches = useQuery(api.branches.list) as
-        | Doc<"branches">[]
-        | undefined;
+    const [currentPage, setCurrentPage] = useState(1);
+    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+    const branchesData = useQuery(api.branches.list, {
+        limit: ITEMS_PER_PAGE,
+        offset,
+    }) as { branches: Doc<"branches">[]; total: number } | undefined;
+
+    const branches = branchesData?.branches ?? [];
+    const totalBranches = branchesData?.total ?? 0;
+    const totalPages = Math.ceil(totalBranches / ITEMS_PER_PAGE);
+
     const createBranch = useMutation(api.branches.create);
     const navigate = useNavigate();
 
@@ -31,7 +45,9 @@ const AdminBranches = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
 
-    const sortedBranches = useMemo(() => branches ?? [], [branches]);
+    const handlePageChange = (newPage: number) => {
+        setCurrentPage(newPage);
+    };
 
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -67,6 +83,8 @@ const AdminBranches = () => {
             });
             resetForm();
             setIsFormOpen(false);
+            // Reset to first page to see the new branch
+            setCurrentPage(1);
         } catch (error) {
             const message =
                 error instanceof Error
@@ -79,80 +97,69 @@ const AdminBranches = () => {
 
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
-                <div className="space-y-3">
-                    <Chip label="Sucursales" />
-                    <div>
-                        <h1 className="text-3xl font-semibold">
-                            Locales del restaurante
-                        </h1>
-                        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-                            Crea sucursales para asignar inventario, mesas y
-                            personal. Desde aquí podrás ingresar al inventario
-                            específico de cada local.
-                        </p>
-                    </div>
-                </div>
-                <div className="flex flex-col items-stretch gap-3 md:items-end">
+            <PageHeader
+                chipLabel="Sucursales"
+                title="Locales del restaurante"
+                description="Crea sucursales para asignar inventario, mesas y personal. Desde aquí podrás ingresar al inventario específico de cada local."
+                actionButton={
                     <button
                         type="button"
                         onClick={openForm}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg  bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
                     >
                         <IoMdAdd />
                         <span>Agregar sucursal</span>
                     </button>
-                </div>
-            </header>
+                }
+            />
 
-            <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-                {sortedBranches.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-                        <LuStore className="w-10 h-10 text-slate-400" />
-                        <p className="text-sm text-slate-400">
-                            Todavía no hay sucursales registradas. Crea tu
-                            primer local para comenzar a gestionar inventario en
-                            piso.
-                        </p>
-                    </div>
+            <section className="">
+                {branches.length === 0 ? (
+                    <EmptyState
+                        icon={<LuStore className="w-10 h-10" />}
+                        message="Todavía no hay sucursales registradas. Crea tu primer local para comenzar a gestionar inventario en piso."
+                    />
                 ) : (
-                    <div className="overflow-hidden rounded-lg border border-slate-800">
-                        <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-                            <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
-                                <tr>
-                                    <th
-                                        scope="col"
-                                        className="px-6 py-4 font-semibold"
-                                    >
-                                        Sucursal
-                                    </th>
-                                    <th
-                                        scope="col"
-                                        className="px-6 py-4 font-semibold"
-                                    >
-                                        Dirección
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
-                                {sortedBranches.map((branch) => {
-                                    const branchId =
-                                        branch._id as unknown as string;
+                    <>
+                        {/* Vista de tarjetas para mobile */}
+                        <div className="space-y-3 md:hidden">
+                            {branches.map((branch) => {
+                                const branchId = branch._id as unknown as string;
+                                return (
+                                    <BranchCard
+                                        key={branchId}
+                                        branch={branch}
+                                        onSelect={() =>
+                                            navigate(`/admin/branches/${branchId}`, {
+                                                state: {
+                                                    branchName: branch.name,
+                                                },
+                                            })
+                                        }
+                                    />
+                                );
+                            })}
+                        </div>
+                        {/* Vista de tabla para tablet y desktop */}
+                        <div className="hidden md:block">
+                            <DataTable
+                                columns={[
+                                    { label: "Sucursal", key: "name" },
+                                    { label: "Dirección", key: "address" },
+                                ]}
+                            >
+                                {branches.map((branch) => {
+                                    const branchId = branch._id as unknown as string;
                                     return (
-                                        <tr
+                                        <TableRow
                                             key={branchId}
                                             onClick={() =>
-                                                navigate(
-                                                    `/admin/branches/${branchId}`,
-                                                    {
-                                                        state: {
-                                                            branchName:
-                                                                branch.name,
-                                                        },
-                                                    }
-                                                )
+                                                navigate(`/admin/branches/${branchId}`, {
+                                                    state: {
+                                                        branchName: branch.name,
+                                                    },
+                                                })
                                             }
-                                            className="cursor-pointer transition hover:bg-slate-900/60"
                                         >
                                             <td className="px-6 py-4 text-sm font-semibold text-white">
                                                 {branch.name}
@@ -160,12 +167,20 @@ const AdminBranches = () => {
                                             <td className="px-6 py-4 text-sm text-slate-300">
                                                 {branch.address}
                                             </td>
-                                        </tr>
+                                        </TableRow>
                                     );
                                 })}
-                            </tbody>
-                        </table>
-                    </div>
+                            </DataTable>
+                        </div>
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={totalBranches}
+                            itemsPerPage={ITEMS_PER_PAGE}
+                            onPageChange={handlePageChange}
+                            itemLabel="sucursales"
+                        />
+                    </>
                 )}
             </section>
 
@@ -245,6 +260,34 @@ const AdminBranches = () => {
                     </div>
                 </div>
             )}
+        </div>
+    );
+};
+
+const BranchCard = ({
+    branch,
+    onSelect,
+}: {
+    branch: Doc<"branches">;
+    onSelect: () => void;
+}) => {
+    return (
+        <div
+            className="cursor-pointer rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60"
+            role="button"
+            tabIndex={0}
+            onClick={onSelect}
+            onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelect();
+                }
+            }}
+        >
+            <div className="space-y-2">
+                <p className="text-sm font-semibold text-white">{branch.name}</p>
+                <p className="text-xs text-slate-400">{branch.address}</p>
+            </div>
         </div>
     );
 };

@@ -18,15 +18,31 @@ export const getById = query({
 });
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new ConvexError("No autenticado");
     }
 
-    const categories = await ctx.db.query("categories").collect();
-    return categories.sort((a, b) => a.name.localeCompare(b.name));
+    const allCategories = await ctx.db.query("categories").collect();
+    const sorted = allCategories.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Obtener el total antes de paginar
+    const total = sorted.length;
+
+    // Aplicar paginación
+    const limit = args.limit ?? 10;
+    const offset = args.offset ?? 0;
+    const paginatedCategories = sorted.slice(offset, offset + limit);
+
+    return {
+      categories: paginatedCategories,
+      total,
+    };
   },
 });
 

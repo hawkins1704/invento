@@ -92,8 +92,26 @@ const summarizeLive = (data: LiveSale[]) => {
 };
 
 const AdminSales = () => {
-  const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
-  const staffMembers = useQuery(api.staff.list, { includeInactive: false }) as Doc<"staff">[] | undefined;
+  // Para los filtros, necesitamos todas las sucursales y miembros del personal (sin paginación)
+  const allBranchesData = useQuery(
+    api.branches.list,
+    {
+      limit: 1000, // Un número grande para obtener todas
+      offset: 0,
+    }
+  ) as { branches: Doc<"branches">[]; total: number } | undefined;
+
+  const allStaffData = useQuery(
+    api.staff.list,
+    {
+      includeInactive: false,
+      limit: 1000, // Un número grande para obtener todas
+      offset: 0,
+    }
+  ) as { staff: Doc<"staff">[]; total: number } | undefined;
+
+  const branches = useMemo(() => allBranchesData?.branches ?? [], [allBranchesData]);
+  const staffMembers = useMemo(() => allStaffData?.staff ?? [], [allStaffData]);
 
   const [viewMode, setViewMode] = useState<"history" | "live">("history");
   const [period, setPeriod] = useState<PeriodKey>("day");

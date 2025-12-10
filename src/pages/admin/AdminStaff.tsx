@@ -1,13 +1,17 @@
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useNavigate } from "react-router-dom";
 import type { ChangeEvent, FormEvent } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
-import Chip from "../../components/Chip";
 import { IoMdAdd } from "react-icons/io";
 import CloseButton from "../../components/CloseButton";
 import { BsFillPeopleFill } from "react-icons/bs";
+import DataTable from "../../components/table/DataTable";
+import TableRow from "../../components/table/TableRow";
+import Pagination from "../../components/pagination/Pagination";
+import EmptyState from "../../components/empty-state/EmptyState";
+import PageHeader from "../../components/page-header/PageHeader";
 
 type StaffFormState = {
   branchId: string;
@@ -25,9 +29,77 @@ const DEFAULT_FORM: StaffFormState = {
   email: "",
 };
 
+const ITEMS_PER_PAGE = 10;
+
+const StaffCard = ({
+  member,
+  branchName,
+  onSelect,
+}: {
+  member: Doc<"staff">;
+  branchName?: string;
+  onSelect: () => void;
+}) => {
+  return (
+    <div
+      className="cursor-pointer rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60"
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
+    >
+      <div className="space-y-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white">{member.name}</p>
+            {member.role && <p className="mt-1 text-xs text-slate-400">{member.role}</p>}
+          </div>
+          {member.active ? (
+            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-emerald-300">
+              Activo
+            </span>
+          ) : (
+            <span className="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
+              Inactivo
+            </span>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div>
+            <span className="text-xs text-slate-500">Sucursal:</span>
+            <p className="text-sm font-medium text-slate-300">{branchName ?? "Sucursal"}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AdminStaff = () => {
-  const staff = useQuery(api.staff.list, { includeInactive: true }) as Doc<"staff">[] | undefined;
-  const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
+  const [currentPage, setCurrentPage] = useState(1);
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  const staffData = useQuery(api.staff.list, {
+    includeInactive: true,
+    limit: ITEMS_PER_PAGE,
+    offset,
+  }) as { staff: Doc<"staff">[]; total: number } | undefined;
+
+  const staff = staffData?.staff ?? [];
+  const totalStaff = staffData?.total ?? 0;
+  const totalPages = Math.ceil(totalStaff / ITEMS_PER_PAGE);
+
+  // Para el select de sucursales, necesitamos todas las sucursales (sin paginación)
+  const allBranchesData = useQuery(api.branches.list, {
+    limit: 1000, // Un número grande para obtener todas
+    offset: 0,
+  }) as { branches: Doc<"branches">[]; total: number } | undefined;
+
+  const branches = useMemo(() => allBranchesData?.branches ?? [], [allBranchesData]);
   const createStaff = useMutation(api.staff.create);
 
   const navigate = useNavigate();
@@ -37,12 +109,15 @@ const AdminStaff = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const sortedStaff = useMemo(() => staff ?? [], [staff]);
   const branchesMap = useMemo(() => {
     const map = new Map<string, Doc<"branches">>();
-    branches?.forEach((branch) => map.set(branch._id as string, branch));
+    branches.forEach((branch) => map.set(branch._id as string, branch));
     return map;
   }, [branches]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -83,6 +158,8 @@ const AdminStaff = () => {
       });
       setIsFormOpen(false);
       setFormState(DEFAULT_FORM);
+      // Reset to first page to see the new staff member
+      setCurrentPage(1);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "No se pudo crear el miembro del personal. Inténtalo de nuevo.";
@@ -96,68 +173,67 @@ const AdminStaff = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-3">
-          <Chip label="Personal" />
-          <div>
-            <h1 className="text-3xl font-semibold">Equipo operativo</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400">
-              Administra a los trabajadores de cada sucursal, asigna roles y mantén sus datos de contacto actualizados.
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col items-stretch gap-3 md:items-end">
-         
-          <button
-            type="button"
-            onClick={openForm}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
-            disabled={!branches || branches.length === 0}
-          >
-            <IoMdAdd />
-            <span>Agregar personal</span>
-          </button>
-          {!branches || branches.length === 0 ? (
-            <span className="text-xs text-red-300">Crea una sucursal antes de registrar personal.</span>
-          ) : null}
-        </div>
-      </header>
+      <PageHeader
+        chipLabel="Personal"
+        title="Equipo operativo"
+        description="Administra a los trabajadores de cada sucursal, asigna roles y mantén sus datos de contacto actualizados."
+        actionButton={
+          <>
+            <button
+              type="button"
+              onClick={openForm}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
+              disabled={!branches || branches.length === 0}
+            >
+              <IoMdAdd />
+              <span>Agregar personal</span>
+            </button>
+            {!branches || branches.length === 0 ? (
+              <span className="text-xs text-red-300">Crea una sucursal antes de registrar personal.</span>
+            ) : null}
+          </>
+        }
+      />
 
-      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-        {sortedStaff.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-            <BsFillPeopleFill className="w-10 h-10 text-slate-400" />
-            <p className="text-sm text-slate-400">
-              Aún no has registrado personal. Agrega a tu primer colaborador para asignarle códigos y roles.
-            </p>
-          </div>
+      <section className="">
+        {staff.length === 0 ? (
+          <EmptyState
+            icon={<BsFillPeopleFill className="w-10 h-10" />}
+            message="Aún no has registrado personal. Agrega a tu primer colaborador para asignarle códigos y roles."
+          />
         ) : (
-          <div className="overflow-hidden rounded-lg border border-slate-800">
-            <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Nombre
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Rol
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Sucursal
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Estado
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
-                {sortedStaff.map((member) => {
+          <>
+            {/* Vista de tarjetas para mobile */}
+            <div className="space-y-3 md:hidden">
+              {staff.map((member) => {
+                const staffId = member._id as string;
+                const branch = branchesMap.get(member.branchId as string);
+                return (
+                  <StaffCard
+                    key={staffId}
+                    member={member}
+                    branchName={branch?.name}
+                    onSelect={() => navigate(`/admin/staff/${staffId}`, { state: { staff: member } })}
+                  />
+                );
+              })}
+            </div>
+            {/* Vista de tabla para tablet y desktop */}
+            <div className="hidden md:block">
+              <DataTable
+                columns={[
+                  { label: "Nombre", key: "name" },
+                  { label: "Rol", key: "role" },
+                  { label: "Sucursal", key: "branch" },
+                  { label: "Estado", key: "status" },
+                ]}
+              >
+                {staff.map((member) => {
                   const staffId = member._id as string;
                   const branch = branchesMap.get(member.branchId as string);
                   return (
-                    <tr
+                    <TableRow
                       key={staffId}
-                      className="cursor-pointer transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60"
                       onClick={() => navigate(`/admin/staff/${staffId}`, { state: { staff: member } })}
                     >
                       <td className="px-6 py-4 text-sm font-semibold text-white">{member.name}</td>
@@ -174,12 +250,20 @@ const AdminStaff = () => {
                           </span>
                         )}
                       </td>
-                    </tr>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
+              </DataTable>
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalStaff}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={handlePageChange}
+              itemLabel="miembros del personal"
+            />
+          </>
         )}
       </section>
       {isFormOpen && (

@@ -24,6 +24,8 @@ export const list = query({
   args: {
     branchId: v.optional(v.id("branches")),
     includeInactive: v.optional(v.boolean()),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx)
@@ -36,11 +38,22 @@ export const list = query({
       ? ctx.db.query("staff").withIndex("byBranch", (q) => q.eq("branchId", args.branchId as Id<"branches">))
       : ctx.db.query("staff")
 
-    const result = await staffQuery.collect()
+    const allStaff = await staffQuery.collect()
+    const filtered = allStaff.filter((member) => includeInactive || member.active)
+    const sorted = filtered.sort((a, b) => a.name.localeCompare(b.name))
 
-    return result
-      .filter((member) => includeInactive || member.active)
-      .sort((a, b) => a.name.localeCompare(b.name))
+    // Obtener el total antes de paginar
+    const total = sorted.length
+
+    // Aplicar paginación
+    const limit = args.limit ?? 10
+    const offset = args.offset ?? 0
+    const paginatedStaff = sorted.slice(offset, offset + limit)
+
+    return {
+      staff: paginatedStaff,
+      total,
+    }
   },
 })
 

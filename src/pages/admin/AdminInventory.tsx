@@ -9,7 +9,11 @@ import type { ProductListItem } from "../../types/products";
 import { IoMdAdd } from "react-icons/io";
 import { BiDish } from "react-icons/bi";
 import { FaBoxArchive } from "react-icons/fa6";
-import { IoChevronBack, IoChevronForward } from "react-icons/io5";
+import DataTable from "../../components/table/DataTable";
+import TableRow from "../../components/table/TableRow";
+import Pagination from "../../components/pagination/Pagination";
+import EmptyState from "../../components/empty-state/EmptyState";
+import PageHeader from "../../components/page-header/PageHeader";
 
 type ProductFormState = {
   name: string;
@@ -38,8 +42,25 @@ const ITEMS_PER_PAGE = 10;
 
 const AdminInventory = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const categories = useQuery(api.categories.list) as Doc<"categories">[] | undefined;
-  const branches = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
+  // Para el formulario, necesitamos todas las categorías y sucursales (sin paginación)
+  const allCategoriesData = useQuery(
+    api.categories.list,
+    {
+      limit: 1000, // Un número grande para obtener todas
+      offset: 0,
+    }
+  ) as { categories: Doc<"categories">[]; total: number } | undefined;
+
+  const allBranchesData = useQuery(
+    api.branches.list,
+    {
+      limit: 1000, // Un número grande para obtener todas
+      offset: 0,
+    }
+  ) as { branches: Doc<"branches">[]; total: number } | undefined;
+
+  const categories = allCategoriesData?.categories ?? [];
+  const branches = allBranchesData?.branches ?? [];
   const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
   const generateUploadUrl = useMutation(api.products.generateUploadUrl);
   const createProduct = useMutation(api.products.create);
@@ -83,11 +104,7 @@ const AdminInventory = () => {
   }, [unitValue, IGVPercentage]);
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-      // Scroll to top of table when changing pages
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    setCurrentPage(newPage);
   };
 
   const updateField = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -255,48 +272,39 @@ const updateStockField = (branchId: string, value: string) => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
-            Inventario
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold">Productos registrados</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400">
-              Gestiona los productos disponibles en cada sucursal. Mantén actualizado el stock por tienda y asegúrate
-              de que cada artículo tenga su imagen y categoría correspondiente.
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col items-stretch gap-3 md:items-end">
-          <button
-            type="button"
-            onClick={() => {
-              setIsFormOpen(true);
-              initializeForm();
-            }}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
-            disabled={!canCreateProducts}
-          >
-            <IoMdAdd />
-            <span>Agregar producto</span>
-          </button>
-          {!canCreateProducts && (
-            <span className="text-xs text-[#fa7316]">
-              Crea al menos una categoría y una sucursal para habilitar este flujo.
-            </span>
-          )}
-        </div>
-      </header>
+      <PageHeader
+        chipLabel="Inventario"
+        title="Productos registrados"
+        description="Gestiona los productos disponibles en cada sucursal. Mantén actualizado el stock por tienda y asegúrate de que cada artículo tenga su imagen y categoría correspondiente."
+        actionButton={
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setIsFormOpen(true);
+                initializeForm();
+              }}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
+              disabled={!canCreateProducts}
+            >
+              <IoMdAdd />
+              <span>Agregar producto</span>
+            </button>
+            {!canCreateProducts && (
+              <span className="text-xs text-[#fa7316]">
+                Crea al menos una categoría y una sucursal para habilitar este flujo.
+              </span>
+            )}
+          </>
+        }
+      />
 
-      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+      <section className="">
         {products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-            <FaBoxArchive className="w-10 h-10 text-slate-400" />
-            <p className="text-sm text-slate-400">
-              Todavía no hay productos registrados. Agrega tu primer producto para comenzar a gestionar el inventario.
-            </p>
-          </div>
+          <EmptyState
+            icon={<FaBoxArchive className="w-10 h-10" />}
+            message="Todavía no hay productos registrados. Agrega tu primer producto para comenzar a gestionar el inventario."
+          />
         ) : (
           <>
             {/* Vista de tarjetas para mobile */}
@@ -314,104 +322,36 @@ const updateStockField = (branchId: string, value: string) => {
               ))}
             </div>
             {/* Vista de tabla para tablet y desktop */}
-            <div className="hidden overflow-hidden rounded-lg border border-slate-800 md:block">
-              <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-                <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
-                  <tr>
-                    <th scope="col" className="px-6 py-4 font-semibold">
-                      Producto
-                    </th>
-                    <th scope="col" className="px-6 py-4 font-semibold">
-                      Categoría
-                    </th>
-                    <th scope="col" className="px-6 py-4 font-semibold">
-                      Precio
-                    </th>
-                    <th scope="col" className="px-6 py-4 font-semibold">
-                      Stock total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
-                  {products.map((product) => (
-                    <ProductRow
-                      key={product._id as unknown as string}
-                      product={product}
-                      onSelect={(selected) =>
-                        navigate(`/admin/inventory/${selected._id}`, {
-                          state: { product: selected },
-                        })
-                      }
-                    />
-                  ))}
-                </tbody>
-              </table>
+            <div className="hidden md:block">
+              <DataTable
+                columns={[
+                  { label: "Producto", key: "product" },
+                  { label: "Categoría", key: "category" },
+                  { label: "Precio", key: "price" },
+                  { label: "Stock total", key: "stock" },
+                ]}
+              >
+                {products.map((product) => (
+                  <ProductRow
+                    key={product._id as unknown as string}
+                    product={product}
+                    onSelect={(selected) =>
+                      navigate(`/admin/inventory/${selected._id}`, {
+                        state: { product: selected },
+                      })
+                    }
+                  />
+                ))}
+              </DataTable>
             </div>
-            {totalPages > 1 && (
-              <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-sm text-slate-400">
-                  Mostrando {offset + 1} - {Math.min(offset + ITEMS_PER_PAGE, totalProducts)} de {totalProducts} productos
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
-                    aria-label="Página anterior"
-                  >
-                    <IoChevronBack className="h-5 w-5" />
-                  </button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                      // Show first page, last page, current page, and pages around current
-                      const showPage =
-                        page === 1 ||
-                        page === totalPages ||
-                        (page >= currentPage - 1 && page <= currentPage + 1);
-                      
-                      if (!showPage) {
-                        // Show ellipsis
-                        if (page === currentPage - 2 || page === currentPage + 2) {
-                          return (
-                            <span key={page} className="px-2 text-sm text-slate-500">
-                              ...
-                            </span>
-                          );
-                        }
-                        return null;
-                      }
-
-                      return (
-                        <button
-                          key={page}
-                          type="button"
-                          onClick={() => handlePageChange(page)}
-                          className={`inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                            currentPage === page
-                              ? "border-[#fa7316] bg-[#fa7316] text-white"
-                              : "border-slate-700 bg-slate-900 text-slate-300 hover:border-[#fa7316] hover:text-white"
-                          }`}
-                          aria-label={`Ir a página ${page}`}
-                          aria-current={currentPage === page ? "page" : undefined}
-                        >
-                          {page}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
-                    aria-label="Página siguiente"
-                  >
-                    <IoChevronForward className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalProducts}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={handlePageChange}
+              itemLabel="productos"
+            />
           </>
         )}
       </section>
@@ -687,18 +627,7 @@ const ProductRow = ({
   onSelect: (product: ProductListItem) => void;
 }) => {
   return (
-    <tr
-      className="cursor-pointer transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60"
-      role="button"
-      tabIndex={0}
-      onClick={() => onSelect(product)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSelect(product);
-        }
-      }}
-    >
+    <TableRow onClick={() => onSelect(product)}>
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 overflow-hidden rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center">
@@ -706,7 +635,6 @@ const ProductRow = ({
               <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
             ) : (
               <BiDish className="h-6 w-6 text-slate-600" />
-
             )}
           </div>
           <div>
@@ -718,7 +646,7 @@ const ProductRow = ({
       <td className="px-6 py-4 text-sm text-slate-300">{product.categoryName}</td>
       <td className="px-6 py-4 text-sm text-white">{formatCurrency(product.price)}</td>
       <td className="px-6 py-4 text-sm text-slate-300">{product.totalStock}</td>
-    </tr>
+    </TableRow>
   );
 };
 

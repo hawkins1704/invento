@@ -49,12 +49,25 @@ const AdminProductDetail = () => {
         api.products.getById,
         productId ? { productId: productId as Id<"products"> } : "skip"
     ) as ProductListItem | null | undefined;
-    const categories = useQuery(api.categories.list) as
-        | Doc<"categories">[]
-        | undefined;
-    const branches = useQuery(api.branches.list) as
-        | Doc<"branches">[]
-        | undefined;
+    // Para el formulario, necesitamos todas las categorías y sucursales (sin paginación)
+    const allCategoriesData = useQuery(
+        api.categories.list,
+        {
+            limit: 1000, // Un número grande para obtener todas
+            offset: 0,
+        }
+    ) as { categories: Doc<"categories">[]; total: number } | undefined;
+
+    const allBranchesData = useQuery(
+        api.branches.list,
+        {
+            limit: 1000, // Un número grande para obtener todas
+            offset: 0,
+        }
+    ) as { branches: Doc<"branches">[]; total: number } | undefined;
+
+    const categories = useMemo(() => allCategoriesData?.categories ?? [], [allCategoriesData]);
+    const branches = useMemo(() => allBranchesData?.branches ?? [], [allBranchesData]);
     const currentUser = useQuery(api.users.getCurrent) as
         | Doc<"users">
         | undefined;
