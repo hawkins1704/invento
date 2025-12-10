@@ -1084,7 +1084,6 @@ const AdminBranchDetails = () => {
                                         page === 1 ||
                                         page === totalPages ||
                                         (page >= currentPage - 1 && page <= currentPage + 1);
-                                    
                                     if (!showPage) {
                                         // Show ellipsis
                                         if (page === currentPage - 2 || page === currentPage + 2) {

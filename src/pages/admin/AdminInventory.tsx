@@ -299,7 +299,22 @@ const updateStockField = (branchId: string, value: string) => {
           </div>
         ) : (
           <>
-            <div className="overflow-hidden rounded-lg border border-slate-800">
+            {/* Vista de tarjetas para mobile */}
+            <div className="space-y-3 md:hidden">
+              {products.map((product) => (
+                <ProductCard
+                  key={product._id as unknown as string}
+                  product={product}
+                  onSelect={(selected) =>
+                    navigate(`/admin/inventory/${selected._id}`, {
+                      state: { product: selected },
+                    })
+                  }
+                />
+              ))}
+            </div>
+            {/* Vista de tabla para tablet y desktop */}
+            <div className="hidden overflow-hidden rounded-lg border border-slate-800 md:block">
               <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
                 <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
                   <tr>
@@ -333,7 +348,7 @@ const updateStockField = (branchId: string, value: string) => {
               </table>
             </div>
             {totalPages > 1 && (
-              <div className=" flex items-center justify-between  pt-4">
+              <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-sm text-slate-400">
                   Mostrando {offset + 1} - {Math.min(offset + ITEMS_PER_PAGE, totalProducts)} de {totalProducts} productos
                 </div>
@@ -607,6 +622,59 @@ const updateStockField = (branchId: string, value: string) => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+const ProductCard = ({
+  product,
+  onSelect,
+}: {
+  product: ProductListItem;
+  onSelect: (product: ProductListItem) => void;
+}) => {
+  return (
+    <div
+      className="cursor-pointer rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60"
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelect(product)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(product);
+        }
+      }}
+    >
+      <div className="flex items-start gap-4">
+        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center">
+          {product.imageUrl ? (
+            <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+          ) : (
+            <BiDish className="h-8 w-8 text-slate-600" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white">{product.name}</p>
+          {product.description && (
+            <p className="mt-1 text-xs text-slate-400 line-clamp-2">{product.description}</p>
+          )}
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div>
+              <span className="text-xs text-slate-500">Categoría:</span>
+              <p className="text-sm font-medium text-slate-300">{product.categoryName}</p>
+            </div>
+            <div>
+              <span className="text-xs text-slate-500">Precio:</span>
+              <p className="text-sm font-semibold text-white">{formatCurrency(product.price)}</p>
+            </div>
+            <div>
+              <span className="text-xs text-slate-500">Stock:</span>
+              <p className="text-sm font-medium text-slate-300">{product.totalStock}</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
