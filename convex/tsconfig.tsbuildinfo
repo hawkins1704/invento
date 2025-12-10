@@ -1,0 +1,1 @@
+{"root":["./access.ts","./auth.config.ts","./auth.ts","./branchinventory.ts","./branchtables.ts","./branches.ts","./categories.ts","./customprofile.ts","./customers.ts","./decolecta.ts","./http.ts","./products.ts","./sales.ts","./schema.ts","./shifts.ts","./staff.ts","./users.ts","./_generated/api.d.ts","./_generated/datamodel.d.ts","./_generated/server.d.ts"],"version":"5.9.3"}
