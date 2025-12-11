@@ -48,7 +48,10 @@ const updateBranchStore = (value: string) => {
 export const clearBranchSelection = () => updateBranchStore("");
 
 export const useSalesShift = () => {
-  const branchesQuery = useQuery(api.branches.list) as Doc<"branches">[] | undefined;
+  const branchesData = useQuery(api.branches.list, {
+    limit: 1000, // Obtener todas las branches
+    offset: 0,
+  }) as { branches: Doc<"branches">[]; total: number } | undefined;
   const [branchIdState, setBranchIdState] = useState<string>(branchIdStore);
 
   useEffect(() => {
@@ -69,16 +72,18 @@ export const useSalesShift = () => {
     }
   }, [branchIdState, setBranchId]);
 
+  const branches = useMemo(() => branchesData?.branches ?? [], [branchesData]);
+
   useEffect(() => {
-    if (!branchesQuery || branchesQuery.length === 0 || !branchIdState) {
+    if (!branches || branches.length === 0 || !branchIdState) {
       return;
     }
 
-    const exists = branchesQuery.some((branch) => (branch._id as string) === branchIdState);
+    const exists = branches.some((branch) => (branch._id as string) === branchIdState);
     if (!exists) {
       setBranchId("");
     }
-  }, [branchesQuery, branchIdState, setBranchId]);
+  }, [branches, branchIdState, setBranchId]);
 
   const activeShift = useQuery(
     api.shifts.active,
@@ -94,7 +99,6 @@ export const useSalesShift = () => {
     return activeShift;
   }, [activeShift]);
 
-  const branches = useMemo(() => branchesQuery ?? [], [branchesQuery]);
   const branch = useMemo(() => {
     if (!branchIdState) {
       return null;
@@ -102,7 +106,7 @@ export const useSalesShift = () => {
     return branches.find((item) => (item._id as string) === branchIdState) ?? null;
   }, [branches, branchIdState]);
 
-  const isLoadingBranches = branchesQuery === undefined;
+  const isLoadingBranches = branchesData === undefined;
 
   return {
     branches,

@@ -32,7 +32,7 @@ const Pagination = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="text-sm text-slate-400">
         Mostrando {startItem} - {endItem} de {totalItems} {itemLabel}
       </div>

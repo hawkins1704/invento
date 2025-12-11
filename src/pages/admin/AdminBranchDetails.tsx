@@ -10,9 +10,9 @@ import { FiEdit3 } from "react-icons/fi";
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { BiDish } from "react-icons/bi";
 import { FaBoxArchive } from "react-icons/fa6";
-import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import DataTable from "../../components/table/DataTable";
 import TableRow from "../../components/table/TableRow";
+import Pagination from "../../components/pagination/Pagination";
 import { formatCurrency } from "../../utils/format";
 
 type CategorySummary = {
@@ -1155,97 +1155,16 @@ const AdminBranchDetails = () => {
                         </div>
                     </>
                 )}
-                {selectedCategoryId !== null &&
-                    products.length > 0 &&
-                    totalPages > 1 && (
-                        <div className="flex items-center justify-between  pt-4    ">
-                            <div className="text-sm text-slate-400">
-                                Mostrando {offset + 1} -{" "}
-                                {Math.min(
-                                    offset + ITEMS_PER_PAGE,
-                                    totalProducts
-                                )}{" "}
-                                de {totalProducts} productos
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        handlePageChange(currentPage - 1)
-                                    }
-                                    disabled={currentPage === 1}
-                                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
-                                    aria-label="Página anterior"
-                                >
-                                    <IoChevronBack className="h-5 w-5" />
-                                </button>
-                                <div className="flex items-center gap-1">
-                                    {Array.from(
-                                        { length: totalPages },
-                                        (_, i) => i + 1
-                                    ).map((page) => {
-                                        // Show first page, last page, current page, and pages around current
-                                        const showPage =
-                                            page === 1 ||
-                                            page === totalPages ||
-                                            (page >= currentPage - 1 &&
-                                                page <= currentPage + 1);
-                                        if (!showPage) {
-                                            // Show ellipsis
-                                            if (
-                                                page === currentPage - 2 ||
-                                                page === currentPage + 2
-                                            ) {
-                                                return (
-                                                    <span
-                                                        key={page}
-                                                        className="px-2 text-sm text-slate-500"
-                                                    >
-                                                        ...
-                                                    </span>
-                                                );
-                                            }
-                                            return null;
-                                        }
-
-                                        return (
-                                            <button
-                                                key={page}
-                                                type="button"
-                                                onClick={() =>
-                                                    handlePageChange(page)
-                                                }
-                                                className={`inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                                                    currentPage === page
-                                                        ? "border-[#fa7316] bg-[#fa7316] text-white"
-                                                        : "border-slate-700 bg-slate-900 text-slate-300 hover:border-[#fa7316] hover:text-white"
-                                                }`}
-                                                aria-label={`Ir a página ${page}`}
-                                                aria-current={
-                                                    currentPage === page
-                                                        ? "page"
-                                                        : undefined
-                                                }
-                                            >
-                                                {page}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        handlePageChange(currentPage + 1)
-                                    }
-                                    disabled={currentPage === totalPages}
-                                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
-                                    aria-label="Página siguiente"
-                                >
-                                    <IoChevronForward className="h-5 w-5" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                {selectedCategoryId !== null && (
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={totalProducts}
+                        itemsPerPage={ITEMS_PER_PAGE}
+                        onPageChange={handlePageChange}
+                        itemLabel="productos"
+                    />
+                )}
             </section>
         </div>
     );

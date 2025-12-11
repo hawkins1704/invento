@@ -68,9 +68,11 @@ const SalesTablesContent = ({
     }) as { products: ProductListItem[]; total: number } | undefined;
 
     const products = productsData?.products;
-    const categories = useQuery(api.categories.list) as
-        | Doc<"categories">[]
-        | undefined;
+    const categoriesData = useQuery(api.categories.list, {
+        limit: 1000, // Obtener todas las categorías
+        offset: 0,
+    }) as { categories: Doc<"categories">[]; total: number } | undefined;
+    const categories = categoriesData?.categories ?? [];
     const productMap = useMemo(() => {
         const map = new Map<string, ProductListItem>();
         (products ?? []).forEach((product) => {
