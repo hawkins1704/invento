@@ -6,6 +6,9 @@ import { formatCurrency, formatDate, formatDateTime, formatDuration } from "../.
 import Chip from "../../components/Chip";
 import { FaRegSadTear } from "react-icons/fa";
 import { LuStore } from "react-icons/lu";
+import DataTable from "../../components/table/DataTable";
+import TableRow from "../../components/table/TableRow";
+import Pagination from "../../components/pagination/Pagination";
 
 type PeriodKey = "day" | "week" | "month";
 
@@ -17,6 +20,8 @@ type LiveSale = {
 };
 
 type HistorySale = LiveSale;
+
+const ITEMS_PER_PAGE = 10;
 
 const PERIOD_OPTIONS: Array<{ key: PeriodKey; label: string }> = [
   { key: "day", label: "Hoy" },
@@ -118,6 +123,7 @@ const AdminSales = () => {
   const [historyBranchFilter, setHistoryBranchFilter] = useState<"all" | Id<"branches">>("all");
   const [historyStaffFilter, setHistoryStaffFilter] = useState<"all" | Id<"staff">>("all");
   const [liveBranchId, setLiveBranchId] = useState<Id<"branches"> | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (!branches || branches.length === 0) {
@@ -140,21 +146,30 @@ const AdminSales = () => {
 
   const periodRange = useMemo(() => computePeriodRange(period), [period]);
 
+  // Resetear a página 1 cuando cambien los filtros
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [periodRange, historyBranchFilter, historyStaffFilter]);
+
   const historyArgs = useMemo(() => {
     if (!periodRange) {
       return "skip" as const;
     }
 
+    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
     const args: {
       from: number;
       to: number;
       limit: number;
+      offset: number;
       branchId?: Id<"branches">;
       staffId?: Id<"staff">;
     } = {
       from: periodRange.from,
       to: periodRange.to,
-      limit: 200,
+      limit: ITEMS_PER_PAGE,
+      offset,
     };
 
     if (historyBranchFilter !== "all") {
@@ -166,12 +181,20 @@ const AdminSales = () => {
     }
 
     return args;
-  }, [periodRange, historyBranchFilter, historyStaffFilter]);
+  }, [periodRange, historyBranchFilter, historyStaffFilter, currentPage]);
 
-  const historyData = useQuery(
+  const historyDataResult = useQuery(
     api.sales.listHistory,
     historyArgs === "skip" ? "skip" : historyArgs
-  ) as HistorySale[] | undefined;
+  ) as { sales: HistorySale[]; total: number } | undefined;
+
+  const historyData = useMemo(() => historyDataResult?.sales ?? [], [historyDataResult]);
+  const totalHistorySales = historyDataResult?.total ?? 0;
+  const totalPages = Math.ceil(totalHistorySales / ITEMS_PER_PAGE);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   const liveArgs = useMemo(() => {
     if (!liveBranchId) {
@@ -274,6 +297,10 @@ const AdminSales = () => {
           onBranchChange={setHistoryBranchFilter}
           selectedStaff={historyStaffFilter}
           onStaffChange={setHistoryStaffFilter}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalHistorySales}
+          onPageChange={handlePageChange}
         />
       ) : (
         <LiveView
@@ -289,6 +316,25 @@ const AdminSales = () => {
   );
 };
 
+type HistoryViewProps = {
+  branches: Doc<"branches">[];
+  staffMembers: Doc<"staff">[];
+  branchNameById: Map<string, string>;
+  staffNameById: Map<string, string>;
+  data: HistorySale[];
+  summary: ReturnType<typeof summarizeHistory>;
+  period: PeriodKey;
+  onPeriodChange: (period: PeriodKey) => void;
+  selectedBranch: "all" | Id<"branches">;
+  onBranchChange: (branch: "all" | Id<"branches">) => void;
+  selectedStaff: "all" | Id<"staff">;
+  onStaffChange: (staff: "all" | Id<"staff">) => void;
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+};
+
 const HistoryView = ({
   branches,
   staffMembers,
@@ -302,20 +348,11 @@ const HistoryView = ({
   onBranchChange,
   selectedStaff,
   onStaffChange,
-}: {
-  branches: Doc<"branches">[];
-  staffMembers: Doc<"staff">[];
-  branchNameById: Map<string, string>;
-  staffNameById: Map<string, string>;
-  data: HistorySale[];
-  summary: ReturnType<typeof summarizeHistory>;
-  period: PeriodKey;
-  onPeriodChange: (period: PeriodKey) => void;
-  selectedBranch: "all" | Id<"branches">;
-  onBranchChange: (branch: "all" | Id<"branches">) => void;
-  selectedStaff: "all" | Id<"staff">;
-  onStaffChange: (staff: "all" | Id<"staff">) => void;
-}) => {
+  currentPage,
+  totalPages,
+  totalItems,
+  onPageChange,
+}: HistoryViewProps) => {
   const paymentBreakdown = Array.from(summary.paymentBreakdown.entries());
   const topStaff = Array.from(summary.salesByStaff.entries())
     .sort((a, b) => b[1] - a[1])
@@ -432,54 +469,64 @@ const HistoryView = ({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-800 text-sm">
-                <thead className="bg-slate-900/70 text-xs uppercase tracking-[0.1em] text-slate-400">
-                  <tr>
-                    <th className="px-6 py-3 text-left font-semibold">Fecha</th>
-                    <th className="px-6 py-3 text-left font-semibold">Sucursal</th>
-                    <th className="px-6 py-3 text-left font-semibold">Mesa</th>
-                    <th className="px-6 py-3 text-left font-semibold">Atiende</th>
-                    <th className="px-6 py-3 text-left font-semibold">Método</th>
-                    <th className="px-6 py-3 text-right font-semibold">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-100">
-                  {data.map((entry) => (
-                    <tr key={entry.sale._id}>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-white">{formatDate(entry.sale.closedAt ?? entry.sale.openedAt)}</span>
-                          <span className="text-xs text-slate-400">{formatTime(entry.sale.closedAt ?? entry.sale.openedAt)}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-200">
-                        {branchNameById.get(entry.sale.branchId as string) ?? "Sucursal"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-300">
-                        {entry.table?.label ?? "Sin mesa"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-300">
-                        {entry.sale.staffId
-                          ? staffNameById.get(entry.sale.staffId as string) ?? "Personal"
-                          : "Sin asignar"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-300">
-                        {entry.sale.paymentMethod ? methodLabel(entry.sale.paymentMethod) : "No registrado"}
-                      </td>
-                      <td className="px-6 py-4 text-right text-sm font-semibold text-white">
-                        {formatCurrency(entry.sale.total)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="overflow-x-auto p-5">
+              <DataTable
+                columns={[
+                  { label: "Fecha", key: "date" },
+                  { label: "Sucursal", key: "branch" },
+                  { label: "Mesa", key: "table" },
+                  { label: "Atiende", key: "staff" },
+                  { label: "Método", key: "method" },
+                  { label: "Total", key: "total", align: "right" },
+                ]}
+                className="min-w-full"
+              >
+                {data.map((entry) => (
+                  <TableRow key={entry.sale._id}>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-white">{formatDate(entry.sale.closedAt ?? entry.sale.openedAt)}</span>
+                        <span className="text-xs text-slate-400">{formatTime(entry.sale.closedAt ?? entry.sale.openedAt)}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-200">
+                      {branchNameById.get(entry.sale.branchId as string) ?? "Sucursal"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-300">
+                      {entry.table?.label ?? "Sin mesa"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-300">
+                      {entry.sale.staffId
+                        ? staffNameById.get(entry.sale.staffId as string) ?? "Personal"
+                        : "Sin asignar"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-300">
+                      {entry.sale.paymentMethod ? methodLabel(entry.sale.paymentMethod) : "No registrado"}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-semibold text-white">
+                      {formatCurrency(entry.sale.total)}
+                    </td>
+                  </TableRow>
+                ))}
+              </DataTable>
+            </div>
+          )}
+          {data.length > 0 && (
+            <div className=" border-slate-800 px-5 pb-5">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={onPageChange}
+                itemLabel="ventas"
+              />
             </div>
           )}
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-5 text-white shadow-inner shadow-black/20">
+          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-white shadow-inner shadow-black/20">
             <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">Métodos de pago</h3>
             <ul className="mt-4 space-y-3 text-sm">
               {paymentBreakdown.length === 0 ? (
@@ -500,7 +547,7 @@ const HistoryView = ({
             </ul>
           </div>
 
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-5 text-white shadow-inner shadow-black/20">
+          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-white shadow-inner shadow-black/20">
             <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">Top personal</h3>
             <ul className="mt-4 space-y-3 text-sm">
               {topStaff.length === 0 ? (

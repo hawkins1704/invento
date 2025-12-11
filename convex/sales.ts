@@ -239,6 +239,7 @@ export const listHistory = query({
     from: v.optional(v.number()),
     to: v.optional(v.number()),
     limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx)
@@ -248,7 +249,8 @@ export const listHistory = query({
 
     const from = args.from ?? 0
     const to = args.to ?? now()
-    const limit = args.limit ?? 100
+    const limit = args.limit ?? 10
+    const offset = args.offset ?? 0
 
     const sales = await ctx.db
       .query("sales")
@@ -260,10 +262,15 @@ export const listHistory = query({
       .filter((sale) => (args.branchId ? sale.branchId === args.branchId : true))
       .filter((sale) => (args.staffId ? sale.staffId === args.staffId : true))
       .sort((a, b) => (b.closedAt ?? 0) - (a.closedAt ?? 0))
-      .slice(0, limit)
 
-    return Promise.all(
-      filtered.map(async (sale) => {
+    // Obtener el total antes de paginar
+    const total = filtered.length
+
+    // Aplicar paginación
+    const paginatedSales = filtered.slice(offset, offset + limit)
+
+    const salesWithDetails = await Promise.all(
+      paginatedSales.map(async (sale) => {
         const [items, table, staffMember] = await Promise.all([
           loadSaleItems(ctx, sale._id),
           sale.tableId ? ctx.db.get(sale.tableId) : undefined,
@@ -278,6 +285,11 @@ export const listHistory = query({
         }
       })
     )
+
+    return {
+      sales: salesWithDetails,
+      total,
+    }
   },
 })
 

@@ -11,6 +11,9 @@ import { MdOutlineTableRestaurant } from "react-icons/md";
 import { BiDish } from "react-icons/bi";
 import { FaBoxArchive } from "react-icons/fa6";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
+import DataTable from "../../components/table/DataTable";
+import TableRow from "../../components/table/TableRow";
+import { formatCurrency } from "../../utils/format";
 
 type CategorySummary = {
     category: Doc<"categories">;
@@ -22,6 +25,91 @@ type InventoryProduct = {
     stock: number;
     inventoryId: Id<"branchInventories"> | null;
     imageUrl: string | null;
+};
+
+const InventoryProductCard = ({
+    item,
+    productId,
+    stockDraft,
+    isSaving,
+    onStockChange,
+    onSave,
+}: {
+    item: InventoryProduct;
+    productId: string;
+    stockDraft: string;
+    isSaving: boolean;
+    onStockChange: (event: ChangeEvent<HTMLInputElement>) => void;
+    onSave: () => void;
+}) => {
+    return (
+        <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4">
+            <div className="flex items-start gap-4">
+                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 flex items-center justify-center">
+                    {item.imageUrl ? (
+                        <img
+                            src={item.imageUrl}
+                            alt={item.product.name}
+                            className="h-full w-full object-cover"
+                        />
+                    ) : (
+                        <BiDish className="h-8 w-8 text-slate-600" />
+                    )}
+                </div>
+                <div className="flex-1 min-w-0 flex flex-col gap-2">
+                    <div className="flex flex-col gap-1">
+                        <p className="text-sm font-semibold text-white">
+                            {item.product.name}
+                        </p>
+                        {item.product.description && (
+                            <p className=" text-xs text-slate-400 line-clamp-2">
+                                {item.product.description}
+                            </p>
+                        )}
+                    </div>
+                    <div className=" flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <div>
+                            <span className="text-xs text-slate-500">
+                                Precio:
+                            </span>
+                            <p className="text-sm font-semibold text-white">
+                                {formatCurrency(item.product.price)}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex-1">
+                            <label
+                                htmlFor={`stock-${productId}`}
+                                className="text-xs text-slate-500 mb-1 block"
+                            >
+                                Stock
+                            </label>
+                            <input
+                                id={`stock-${productId}`}
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={stockDraft}
+                                onChange={onStockChange}
+                                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                            />
+                        </div>
+                        <div className="flex items-end">
+                            <button
+                                type="button"
+                                onClick={onSave}
+                                className="inline-flex items-center justify-center rounded-lg bg-[#fa7316] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                disabled={isSaving}
+                            >
+                                {isSaving ? "Guardando..." : "Guardar"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 type BranchFormState = {
@@ -181,25 +269,31 @@ const AdminBranchDetails = () => {
             // Comparar si realmente cambió antes de actualizar
             const previousKeys = Object.keys(previous);
             const newKeys = Object.keys(initialDrafts);
-            
+
             if (previousKeys.length !== newKeys.length) {
                 return initialDrafts;
             }
-            
+
             for (const key of newKeys) {
                 if (previous[key] !== initialDrafts[key]) {
                     return initialDrafts;
                 }
             }
-            
+
             return previous;
         });
     }, [products]);
 
-    const branchFromState = (location.state as { branch?: Doc<"branches"> } | null)?.branch;
-    
+    const branchFromState = (
+        location.state as { branch?: Doc<"branches"> } | null
+    )?.branch;
+
     // Priorizar la query (datos frescos de la BD), usar branchFromState como fallback
-    const branch = branchFromQuery ?? (branchFromState && branchFromState._id === branchId ? branchFromState : null);
+    const branch =
+        branchFromQuery ??
+        (branchFromState && branchFromState._id === branchId
+            ? branchFromState
+            : null);
     const branchTables = tables ?? [];
     const totalTables = branchTables.length;
     const availableTables = branchTables.filter(
@@ -277,8 +371,8 @@ const AdminBranchDetails = () => {
                         onClick={() => navigate("/admin/branches")}
                         className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-xs font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                     >
-                         <FaArrowLeft />
-                         <span>Volver</span>
+                        <FaArrowLeft />
+                        <span>Volver</span>
                     </button>
                     <h1 className="mt-4 text-3xl font-semibold text-white">
                         Sucursal no disponible
@@ -478,7 +572,7 @@ const AdminBranchDetails = () => {
                         onClick={() => navigate("/admin/branches")}
                         className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                     >
-                      <FaArrowLeft />
+                        <FaArrowLeft />
                         <span>Volver</span>
                     </button>
                     <div>
@@ -514,8 +608,8 @@ const AdminBranchDetails = () => {
                             }}
                             className="inline-flex items-center gap-2 justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                         >
-                          <FiEdit3 />
-                          <span>Editar información</span>
+                            <FiEdit3 />
+                            <span>Editar información</span>
                         </button>
                     )}
                 </div>
@@ -639,7 +733,6 @@ const AdminBranchDetails = () => {
                         <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
                             Mesas de la sucursal
                         </h2>
-                      
                     </div>
                     <button
                         type="button"
@@ -942,45 +1035,45 @@ const AdminBranchDetails = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-hidden rounded-lg border border-slate-800">
-                        <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-                            <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
-                                <tr>
-                                    <th
-                                        scope="col"
-                                        className="px-6 py-4 font-semibold"
-                                    >
-                                        Producto
-                                    </th>
-                                    <th
-                                        scope="col"
-                                        className="px-6 py-4 font-semibold"
-                                    >
-                                        Precio
-                                    </th>
-                                    <th
-                                        scope="col"
-                                        className="px-6 py-4 font-semibold"
-                                    >
-                                        Stock
-                                    </th>
-                                    <th
-                                        scope="col"
-                                        className="px-6 py-4 font-semibold"
-                                    >
-                                        Acciones
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
+                    <>
+                        {/* Vista de tarjetas para mobile */}
+                        <div className="space-y-3 md:hidden">
+                            {products.map((item) => {
+                                const productId = item.product
+                                    ._id as unknown as string;
+                                return (
+                                    <InventoryProductCard
+                                        key={productId}
+                                        item={item}
+                                        productId={productId}
+                                        stockDraft={
+                                            stockDrafts[productId] ??
+                                            item.stock.toString()
+                                        }
+                                        isSaving={savingProductId === productId}
+                                        onStockChange={(event) =>
+                                            handleStockChange(productId, event)
+                                        }
+                                        onSave={() => handleSaveStock(item)}
+                                    />
+                                );
+                            })}
+                        </div>
+                        {/* Vista de tabla para tablet y desktop */}
+                        <div className="hidden md:block">
+                            <DataTable
+                                columns={[
+                                    { label: "Producto", key: "product" },
+                                    { label: "Precio", key: "price" },
+                                    { label: "Stock", key: "stock" },
+                                    { label: "Acciones", key: "actions" },
+                                ]}
+                            >
                                 {products.map((item) => {
                                     const productId = item.product
                                         ._id as unknown as string;
                                     return (
-                                        <tr
-                                            key={productId}
-                                            className="transition hover:bg-slate-900/60"
-                                        >
+                                        <TableRow key={productId}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
                                                     <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 flex items-center justify-center">
@@ -1055,77 +1148,104 @@ const AdminBranchDetails = () => {
                                                         : "Guardar"}
                                                 </button>
                                             </td>
-                                        </tr>
+                                        </TableRow>
                                     );
                                 })}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-                {selectedCategoryId !== null && products.length > 0 && totalPages > 1 && (
-                    <div className="flex items-center justify-between  pt-4    ">
-                        <div className="text-sm text-slate-400">
-                            Mostrando {offset + 1} - {Math.min(offset + ITEMS_PER_PAGE, totalProducts)} de {totalProducts} productos
+                            </DataTable>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
-                                aria-label="Página anterior"
-                            >
-                                <IoChevronBack className="h-5 w-5" />
-                            </button>
-                            <div className="flex items-center gap-1">
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                                    // Show first page, last page, current page, and pages around current
-                                    const showPage =
-                                        page === 1 ||
-                                        page === totalPages ||
-                                        (page >= currentPage - 1 && page <= currentPage + 1);
-                                    if (!showPage) {
-                                        // Show ellipsis
-                                        if (page === currentPage - 2 || page === currentPage + 2) {
-                                            return (
-                                                <span key={page} className="px-2 text-sm text-slate-500">
-                                                    ...
-                                                </span>
-                                            );
-                                        }
-                                        return null;
-                                    }
-
-                                    return (
-                                        <button
-                                            key={page}
-                                            type="button"
-                                            onClick={() => handlePageChange(page)}
-                                            className={`inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                                                currentPage === page
-                                                    ? "border-[#fa7316] bg-[#fa7316] text-white"
-                                                    : "border-slate-700 bg-slate-900 text-slate-300 hover:border-[#fa7316] hover:text-white"
-                                            }`}
-                                            aria-label={`Ir a página ${page}`}
-                                            aria-current={currentPage === page ? "page" : undefined}
-                                        >
-                                            {page}
-                                        </button>
-                                    );
-                                })}
+                    </>
+                )}
+                {selectedCategoryId !== null &&
+                    products.length > 0 &&
+                    totalPages > 1 && (
+                        <div className="flex items-center justify-between  pt-4    ">
+                            <div className="text-sm text-slate-400">
+                                Mostrando {offset + 1} -{" "}
+                                {Math.min(
+                                    offset + ITEMS_PER_PAGE,
+                                    totalProducts
+                                )}{" "}
+                                de {totalProducts} productos
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages}
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
-                                aria-label="Página siguiente"
-                            >
-                                <IoChevronForward className="h-5 w-5" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handlePageChange(currentPage - 1)
+                                    }
+                                    disabled={currentPage === 1}
+                                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
+                                    aria-label="Página anterior"
+                                >
+                                    <IoChevronBack className="h-5 w-5" />
+                                </button>
+                                <div className="flex items-center gap-1">
+                                    {Array.from(
+                                        { length: totalPages },
+                                        (_, i) => i + 1
+                                    ).map((page) => {
+                                        // Show first page, last page, current page, and pages around current
+                                        const showPage =
+                                            page === 1 ||
+                                            page === totalPages ||
+                                            (page >= currentPage - 1 &&
+                                                page <= currentPage + 1);
+                                        if (!showPage) {
+                                            // Show ellipsis
+                                            if (
+                                                page === currentPage - 2 ||
+                                                page === currentPage + 2
+                                            ) {
+                                                return (
+                                                    <span
+                                                        key={page}
+                                                        className="px-2 text-sm text-slate-500"
+                                                    >
+                                                        ...
+                                                    </span>
+                                                );
+                                            }
+                                            return null;
+                                        }
+
+                                        return (
+                                            <button
+                                                key={page}
+                                                type="button"
+                                                onClick={() =>
+                                                    handlePageChange(page)
+                                                }
+                                                className={`inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                                                    currentPage === page
+                                                        ? "border-[#fa7316] bg-[#fa7316] text-white"
+                                                        : "border-slate-700 bg-slate-900 text-slate-300 hover:border-[#fa7316] hover:text-white"
+                                                }`}
+                                                aria-label={`Ir a página ${page}`}
+                                                aria-current={
+                                                    currentPage === page
+                                                        ? "page"
+                                                        : undefined
+                                                }
+                                            >
+                                                {page}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handlePageChange(currentPage + 1)
+                                    }
+                                    disabled={currentPage === totalPages}
+                                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-700 disabled:hover:text-slate-300"
+                                    aria-label="Página siguiente"
+                                >
+                                    <IoChevronForward className="h-5 w-5" />
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
             </section>
         </div>
     );
@@ -1182,12 +1302,5 @@ const TableStatusBadge = ({ status }: { status: TableFormState["status"] }) => {
         </span>
     );
 };
-
-function formatCurrency(value: number) {
-    return new Intl.NumberFormat("es-PE", {
-        style: "currency",
-        currency: "PEN",
-    }).format(value);
-}
 
 export default AdminBranchDetails;
