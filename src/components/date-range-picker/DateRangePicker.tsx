@@ -110,12 +110,27 @@ const DateRangePicker = ({
                 >
                     <div className="text-left">
                         <div className=" font-semibold">
-                            {formatDate("FECHA INICIO", startDate)} -{" "}
-                            {formatDate("FECHA FIN", endDate)}
+                            {formatDate("Desde", startDate)}
+                        </div>
+                    </div>
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`flex-1 rounded-lg border px-4 py-2 text-sm text-white outline-none transition focus:ring-2 focus:ring-[#fa7316]/30 ${
+                        endDate
+                            ? "border-slate-700 bg-slate-900/60"
+                            : "border-slate-700 bg-slate-900/60"
+                    } ${isOpen ? "border-[#fa7316] ring-2 ring-[#fa7316]/30" : ""}`}
+                >
+                    <div className="text-left">
+                        <div className=" font-semibold">
+                            {formatDate("Hasta", endDate)}
                         </div>
                     </div>
                 </button>
             </div>
+           
 
             {/* Calendario popup */}
             {isOpen && (

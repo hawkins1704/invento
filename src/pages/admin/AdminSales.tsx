@@ -50,7 +50,11 @@ const computePeriodRange = (
         return null;
     }
 
-    if (period === "month" && selectedMonth !== undefined && selectedYear !== undefined) {
+    if (
+        period === "month" &&
+        selectedMonth !== undefined &&
+        selectedYear !== undefined
+    ) {
         // Primer día del mes seleccionado
         const start = new Date(selectedYear, selectedMonth, 1);
         start.setHours(0, 0, 0, 0);
@@ -202,7 +206,12 @@ const AdminSales = () => {
         }
         // Modo "month" con mes y año seleccionados
         if (period === "month") {
-            return computePeriodRange(period, undefined, selectedMonth, selectedYear);
+            return computePeriodRange(
+                period,
+                undefined,
+                selectedMonth,
+                selectedYear
+            );
         }
         // Modo "day" (Hoy)
         return computePeriodRange(period);
@@ -347,7 +356,6 @@ const AdminSales = () => {
                                 ? "bg-[#fa7316] text-white"
                                 : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
                         }`}
-                    
                     >
                         Historial
                     </button>
@@ -359,7 +367,6 @@ const AdminSales = () => {
                                 ? "bg-[#fa7316] text-white "
                                 : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
                         }`}
-                      
                     >
                         Ventas en vivo
                     </button>
@@ -415,7 +422,10 @@ type HistoryViewProps = {
     period: PeriodKey;
     onPeriodChange: (period: PeriodKey) => void;
     customDateRange: { from: Date | null; to: Date | null };
-    onCustomRangeChange: (range: { from: Date | null; to: Date | null }) => void;
+    onCustomRangeChange: (range: {
+        from: Date | null;
+        to: Date | null;
+    }) => void;
     selectedMonth: number | undefined;
     onMonthChange: (month: number | undefined) => void;
     selectedYear: number | undefined;
@@ -510,7 +520,7 @@ const HistoryView = ({
                 />
             </section>
 
-            <section className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-800 bg-slate-900/50 p-5 text-white shadow-inner shadow-black/20">
+            <section className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-800 bg-slate-900/50 p-5 text-white shadow-inner shadow-black/20">
                 <div className="flex flex-col gap-2">
                     <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                         Periodo
@@ -527,7 +537,44 @@ const HistoryView = ({
                         >
                             Hoy
                         </button>
-                        {period === "month" ? (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onPeriodChange("month");
+                            }}
+                            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                                period === "month"
+                                    ? "bg-[#fa7316] text-white "
+                                    : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
+                            }`}
+                        >
+                            Por Mes
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onPeriodChange("custom");
+                            }}
+                            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                                period === "custom"
+                                    ? "bg-[#fa7316] text-white "
+                                    : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
+                            }`}
+                        >
+                            Por rango
+                        </button>
+                    </div>
+                    <div>
+                        {period === "custom" && (
+                            <DateRangePicker
+                                startDate={customDateRange.from}
+                                endDate={customDateRange.to}
+                                onRangeChange={(range) => {
+                                    onCustomRangeChange(range);
+                                }}
+                            />
+                        )}
+                        {period === "month" && (
                             <div className="flex gap-2">
                                 <select
                                     value={selectedMonth ?? ""}
@@ -536,7 +583,10 @@ const HistoryView = ({
                                             ? parseInt(e.target.value, 10)
                                             : undefined;
                                         onMonthChange(month);
-                                        if (month !== undefined && selectedYear !== undefined) {
+                                        if (
+                                            month !== undefined &&
+                                            selectedYear !== undefined
+                                        ) {
                                             onPeriodChange("month");
                                         } else if (month === undefined) {
                                             // Si se deselecciona el mes, cambiar a otro periodo si no hay año
@@ -545,15 +595,19 @@ const HistoryView = ({
                                             }
                                         }
                                     }}
-                                    className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
-                                        period === "month" && selectedMonth !== undefined
-                                            ? "bg-[#fa7316] text-white border-transparent"
+                                    className={`rounded-lg flex-2 border px-4 py-2 text-sm font-semibold transition ${
+                                        period === "month" &&
+                                        selectedMonth !== undefined
+                                            ? "border-[#fa7316] text-white"
                                             : "border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
                                     } outline-none `}
                                 >
                                     <option value="">Mes</option>
                                     {months.map((month) => (
-                                        <option key={month.value} value={month.value}>
+                                        <option
+                                            key={month.value}
+                                            value={month.value}
+                                        >
                                             {month.label}
                                         </option>
                                     ))}
@@ -565,13 +619,17 @@ const HistoryView = ({
                                             ? parseInt(e.target.value, 10)
                                             : undefined;
                                         onYearChange(year);
-                                        if (selectedMonth !== undefined && year !== undefined) {
+                                        if (
+                                            selectedMonth !== undefined &&
+                                            year !== undefined
+                                        ) {
                                             onPeriodChange("month");
                                         }
                                     }}
-                                    className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
-                                        period === "month" && selectedYear !== undefined
-                                            ? "bg-[#fa7316] text-white border-transparent"
+                                    className={`rounded-lg flex-1 border px-4 py-2 text-sm font-semibold transition ${
+                                        period === "month" &&
+                                        selectedYear !== undefined
+                                            ? "border-[#fa7316] text-white"
                                             : "border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
                                     } outline-none`}
                                 >
@@ -583,35 +641,6 @@ const HistoryView = ({
                                     ))}
                                 </select>
                             </div>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    onPeriodChange("month");
-                                }}
-                                className="rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-white/30 hover:text-white"
-                            >
-                                Seleccionar mes
-                            </button>
-                        )}
-                        {period === "custom" ? (
-                            <DateRangePicker
-                                startDate={customDateRange.from}
-                                endDate={customDateRange.to}
-                                onRangeChange={(range) => {
-                                    onCustomRangeChange(range);
-                                }}
-                            />
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    onPeriodChange("custom");
-                                }}
-                                className="rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-white/30 hover:text-white"
-                            >
-                                Seleccionar rango
-                            </button>
                         )}
                     </div>
                 </div>
