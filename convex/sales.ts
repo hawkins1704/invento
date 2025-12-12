@@ -662,4 +662,484 @@ export const updateDocumentId = mutation({
   },
 })
 
+// Dashboard queries
+export const getTodaySummary = query({
+  args: {
+    from: v.optional(v.number()),
+    to: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+
+    const now = Date.now()
+    const from = args.from ?? (() => {
+      const startOfDay = new Date(now)
+      startOfDay.setHours(0, 0, 0, 0)
+      return startOfDay.getTime()
+    })()
+    const to = args.to ?? (() => {
+      const endOfDay = new Date(now)
+      endOfDay.setHours(23, 59, 59, 999)
+      return endOfDay.getTime()
+    })()
+
+    // Obtener ventas cerradas de hoy usando índice
+    const todaySales = await ctx.db
+      .query("sales")
+      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .collect()
+
+    const closedSales = todaySales.filter((sale) => sale.status === "closed")
+    
+    // Obtener ventas abiertas usando índice porBranchStatus para cada sucursal
+    // Esto es más eficiente que traer todas las ventas
+    const branches = await ctx.db.query("branches").collect()
+    const openSalesByBranch = await Promise.all(
+      branches.map((branch) =>
+        ctx.db
+          .query("sales")
+          .withIndex("byBranchStatus", (q) =>
+            q.eq("branchId", branch._id).eq("status", "open")
+          )
+          .collect()
+      )
+    )
+    const openSales = openSalesByBranch.flat()
+
+    const totalAmount = closedSales.reduce((sum, sale) => sum + sale.total, 0)
+    const totalTickets = closedSales.length
+    const averageTicket = totalTickets > 0 ? totalAmount / totalTickets : 0
+    const openTickets = openSales.length
+
+    return {
+      totalAmount,
+      totalTickets,
+      averageTicket,
+      openTickets,
+    }
+  },
+})
+
+export const getSummaryByBranch = query({
+  args: {
+    from: v.optional(v.number()),
+    to: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+
+    const now = Date.now()
+    const from = args.from ?? (() => {
+      const startOfDay = new Date(now)
+      startOfDay.setHours(0, 0, 0, 0)
+      return startOfDay.getTime()
+    })()
+    const to = args.to ?? (() => {
+      const endOfDay = new Date(now)
+      endOfDay.setHours(23, 59, 59, 999)
+      return endOfDay.getTime()
+    })()
+
+    const branches = await ctx.db.query("branches").collect()
+    const todaySales = await ctx.db
+      .query("sales")
+      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .collect()
+
+    // Obtener ventas abiertas y shifts usando índices por branch (más eficiente)
+    return Promise.all(
+      branches.map(async (branch) => {
+        const [branchClosedSales, branchOpenSales, branchShifts] = await Promise.all([
+          // Ventas cerradas de hoy para esta sucursal
+          Promise.resolve(
+            todaySales.filter(
+              (sale) => sale.branchId === branch._id && sale.status === "closed"
+            )
+          ),
+          // Ventas abiertas usando índice
+          ctx.db
+            .query("sales")
+            .withIndex("byBranchStatus", (q) =>
+              q.eq("branchId", branch._id).eq("status", "open")
+            )
+            .collect(),
+          // Shifts abiertos usando índice
+          ctx.db
+            .query("shifts")
+            .withIndex("byBranchStatus", (q) =>
+              q.eq("branchId", branch._id).eq("status", "open")
+            )
+            .collect(),
+        ])
+
+        const totalAmount = branchClosedSales.reduce((sum, sale) => sum + sale.total, 0)
+        const totalTickets = branchClosedSales.length
+        const openTickets = branchOpenSales.length
+        const hasActiveShift = branchShifts.length > 0
+
+        return {
+          branchId: branch._id,
+          branchName: branch.name,
+          totalAmount,
+          totalTickets,
+          openTickets,
+          hasActiveShift,
+        }
+      })
+    )
+  },
+})
+
+export const getPaymentMethodBreakdown = query({
+  args: {
+    from: v.optional(v.number()),
+    to: v.optional(v.number()),
+    branchId: v.optional(v.id("branches")),
+    staffId: v.optional(v.id("staff")),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+
+    const now = Date.now()
+    const from = args.from ?? (() => {
+      const startOfDay = new Date(now)
+      startOfDay.setHours(0, 0, 0, 0)
+      return startOfDay.getTime()
+    })()
+    const to = args.to ?? (() => {
+      const endOfDay = new Date(now)
+      endOfDay.setHours(23, 59, 59, 999)
+      return endOfDay.getTime()
+    })()
+
+    const todaySales = await ctx.db
+      .query("sales")
+      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .collect()
+
+    let closedSales = todaySales.filter((sale) => sale.status === "closed")
+
+    // Aplicar filtros opcionales
+    if (args.branchId) {
+      closedSales = closedSales.filter((sale) => sale.branchId === args.branchId)
+    }
+
+    if (args.staffId) {
+      closedSales = closedSales.filter((sale) => sale.staffId === args.staffId)
+    }
+
+    const breakdown = new Map<string, number>()
+    let total = 0
+
+    closedSales.forEach((sale) => {
+      const method = sale.paymentMethod ?? "Sin registrar"
+      const current = breakdown.get(method) ?? 0
+      breakdown.set(method, current + sale.total)
+      total += sale.total
+    })
+
+    return Array.from(breakdown.entries()).map(([method, amount]) => ({
+      method,
+      amount,
+      percentage: total > 0 ? (amount / total) * 100 : 0,
+    }))
+  },
+})
+
+export const getTopBranches = query({
+  args: {
+    limit: v.optional(v.number()),
+    from: v.optional(v.number()),
+    to: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+
+    const now = Date.now()
+    const from = args.from ?? (() => {
+      const startOfDay = new Date(now)
+      startOfDay.setHours(0, 0, 0, 0)
+      return startOfDay.getTime()
+    })()
+    const to = args.to ?? (() => {
+      const endOfDay = new Date(now)
+      endOfDay.setHours(23, 59, 59, 999)
+      return endOfDay.getTime()
+    })()
+
+    const branches = await ctx.db.query("branches").collect()
+    const todaySales = await ctx.db
+      .query("sales")
+      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .collect()
+
+    const closedSales = todaySales.filter((sale) => sale.status === "closed")
+
+    const branchTotals = new Map<string, number>()
+
+    closedSales.forEach((sale) => {
+      const branchId = sale.branchId as string
+      const current = branchTotals.get(branchId) ?? 0
+      branchTotals.set(branchId, current + sale.total)
+    })
+
+    const branchData = branches
+      .map((branch) => ({
+        branchId: branch._id,
+        branchName: branch.name,
+        totalAmount: branchTotals.get(branch._id as string) ?? 0,
+      }))
+      .sort((a, b) => b.totalAmount - a.totalAmount)
+
+    const limit = args.limit ?? 5
+    return branchData.slice(0, limit)
+  },
+})
+
+export const getTopProducts = query({
+  args: {
+    limit: v.optional(v.number()),
+    from: v.optional(v.number()),
+    to: v.optional(v.number()),
+    branchId: v.optional(v.id("branches")),
+    staffId: v.optional(v.id("staff")),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+
+    const now = Date.now()
+    const from = args.from ?? (() => {
+      const startOfDay = new Date(now)
+      startOfDay.setHours(0, 0, 0, 0)
+      return startOfDay.getTime()
+    })()
+    const to = args.to ?? (() => {
+      const endOfDay = new Date(now)
+      endOfDay.setHours(23, 59, 59, 999)
+      return endOfDay.getTime()
+    })()
+
+    const todaySales = await ctx.db
+      .query("sales")
+      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .collect()
+
+    let closedSales = todaySales.filter((sale) => sale.status === "closed")
+
+    // Aplicar filtros opcionales
+    if (args.branchId) {
+      closedSales = closedSales.filter((sale) => sale.branchId === args.branchId)
+    }
+
+    if (args.staffId) {
+      closedSales = closedSales.filter((sale) => sale.staffId === args.staffId)
+    }
+
+    const saleIds = closedSales.map((sale) => sale._id)
+
+    const productStats = new Map<string, { quantity: number; revenue: number; productName: string }>()
+
+    await Promise.all(
+      saleIds.map(async (saleId) => {
+        const items = await ctx.db
+          .query("saleItems")
+          .withIndex("bySale", (q) => q.eq("saleId", saleId))
+          .collect()
+
+        items.forEach((item) => {
+          const productId = item.productId as string
+          const product = productStats.get(productId) ?? { quantity: 0, revenue: 0, productName: "" }
+          product.quantity += item.quantity
+          product.revenue += item.totalPrice
+          productStats.set(productId, product)
+        })
+      })
+    )
+
+    // Obtener nombres de productos
+    const productIds = Array.from(productStats.keys())
+    await Promise.all(
+      productIds.map(async (productId) => {
+        const product = await ctx.db.get(productId as Id<"products">)
+        if (product) {
+          const stats = productStats.get(productId)!
+          stats.productName = product.name
+          productStats.set(productId, stats)
+        }
+      })
+    )
+
+    const topProducts = Array.from(productStats.entries())
+      .map(([productId, stats]) => ({
+        productId,
+        productName: stats.productName,
+        quantity: stats.quantity,
+        revenue: stats.revenue,
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+
+    const limit = args.limit ?? 10
+    return topProducts.slice(0, limit)
+  },
+})
+
+export const getTopStaff = query({
+  args: {
+    limit: v.optional(v.number()),
+    from: v.optional(v.number()),
+    to: v.optional(v.number()),
+    branchId: v.optional(v.id("branches")),
+    staffId: v.optional(v.id("staff")),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+
+    const now = Date.now()
+    const from = args.from ?? (() => {
+      const startOfDay = new Date(now)
+      startOfDay.setHours(0, 0, 0, 0)
+      return startOfDay.getTime()
+    })()
+    const to = args.to ?? (() => {
+      const endOfDay = new Date(now)
+      endOfDay.setHours(23, 59, 59, 999)
+      return endOfDay.getTime()
+    })()
+
+    const todaySales = await ctx.db
+      .query("sales")
+      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .collect()
+
+    let closedSales = todaySales.filter((sale) => sale.status === "closed")
+
+    // Aplicar filtros opcionales
+    if (args.branchId) {
+      closedSales = closedSales.filter((sale) => sale.branchId === args.branchId)
+    }
+
+    if (args.staffId) {
+      closedSales = closedSales.filter((sale) => sale.staffId === args.staffId)
+    }
+
+    // Agrupar por staff
+    const staffTotals = new Map<string, number>()
+
+    closedSales.forEach((sale) => {
+      const staffId = sale.staffId ? (sale.staffId as string) : "sinStaff"
+      const current = staffTotals.get(staffId) ?? 0
+      staffTotals.set(staffId, current + sale.total)
+    })
+
+    // Obtener nombres de staff
+    const staffIds = Array.from(staffTotals.keys()).filter((id) => id !== "sinStaff")
+    const staffMembers = await Promise.all(
+      staffIds.map(async (staffId) => {
+        const staff = await ctx.db.get(staffId as Id<"staff">)
+        return staff ? { id: staffId, name: staff.name } : null
+      })
+    )
+
+    const topStaff = Array.from(staffTotals.entries())
+      .map(([staffId, total]) => {
+        if (staffId === "sinStaff") {
+          return {
+            staffId: "sinStaff" as const,
+            staffName: "Sin asignar",
+            totalAmount: total,
+          }
+        }
+        const staffMember = staffMembers.find((s) => s?.id === staffId)
+        return {
+          staffId: staffId as Id<"staff">,
+          staffName: staffMember?.name ?? "Personal",
+          totalAmount: total,
+        }
+      })
+      .sort((a, b) => b.totalAmount - a.totalAmount)
+
+    const limit = args.limit ?? 5
+    return topStaff.slice(0, limit)
+  },
+})
+
+export const getSalesByHour = query({
+  args: {
+    from: v.optional(v.number()),
+    to: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+
+    const now = Date.now()
+    const from = args.from ?? (() => {
+      const startOfDay = new Date(now)
+      startOfDay.setHours(0, 0, 0, 0)
+      return startOfDay.getTime()
+    })()
+    const to = args.to ?? (() => {
+      const endOfDay = new Date(now)
+      endOfDay.setHours(23, 59, 59, 999)
+      return endOfDay.getTime()
+    })()
+
+    const todaySales = await ctx.db
+      .query("sales")
+      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .collect()
+
+    const closedSales = todaySales.filter((sale) => sale.status === "closed" && sale.closedAt)
+
+    // Inicializar horas del día (0-23)
+    const hourlyData = new Map<number, number>()
+    for (let hour = 0; hour < 24; hour++) {
+      hourlyData.set(hour, 0)
+    }
+
+    closedSales.forEach((sale) => {
+      if (sale.closedAt) {
+        // Convertir a hora local de Perú (America/Lima, UTC-5)
+        const date = new Date(sale.closedAt)
+        // Usar toLocaleString para obtener la hora en la zona horaria de Lima
+        const hourString = date.toLocaleString("en-US", {
+          timeZone: "America/Lima",
+          hour: "numeric",
+          hour12: false,
+        })
+        const hour = parseInt(hourString, 10)
+        const current = hourlyData.get(hour) ?? 0
+        hourlyData.set(hour, current + sale.total)
+      }
+    })
+
+    return Array.from(hourlyData.entries())
+      .map(([hour, amount]) => ({
+        hour,
+        amount,
+      }))
+      .sort((a, b) => a.hour - b.hour)
+  },
+})
+
 

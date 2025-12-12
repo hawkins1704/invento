@@ -281,6 +281,111 @@ const AdminSales = () => {
     const totalHistorySales = historyDataResult?.total ?? 0;
     const totalPages = Math.ceil(totalHistorySales / ITEMS_PER_PAGE);
 
+    // Queries para Métodos de pago y Productos más vendidos con filtros
+    const paymentBreakdownArgs = useMemo(() => {
+        if (!periodRange) {
+            return "skip" as const;
+        }
+        const args: {
+            from: number;
+            to: number;
+            branchId?: Id<"branches">;
+            staffId?: Id<"staff">;
+        } = {
+            from: periodRange.from,
+            to: periodRange.to,
+        };
+        if (historyBranchFilter !== "all") {
+            args.branchId = historyBranchFilter;
+        }
+        if (historyStaffFilter !== "all") {
+            args.staffId = historyStaffFilter;
+        }
+        return args;
+    }, [periodRange, historyBranchFilter, historyStaffFilter]);
+
+    const paymentBreakdown = useQuery(
+        api.sales.getPaymentMethodBreakdown,
+        paymentBreakdownArgs === "skip" ? "skip" : paymentBreakdownArgs
+    ) as
+        | Array<{
+              method: string;
+              amount: number;
+              percentage: number;
+          }>
+        | undefined;
+
+    const topProductsArgs = useMemo(() => {
+        if (!periodRange) {
+            return "skip" as const;
+        }
+        const args: {
+            limit: number;
+            from: number;
+            to: number;
+            branchId?: Id<"branches">;
+            staffId?: Id<"staff">;
+        } = {
+            limit: 10,
+            from: periodRange.from,
+            to: periodRange.to,
+        };
+        if (historyBranchFilter !== "all") {
+            args.branchId = historyBranchFilter;
+        }
+        if (historyStaffFilter !== "all") {
+            args.staffId = historyStaffFilter;
+        }
+        return args;
+    }, [periodRange, historyBranchFilter, historyStaffFilter]);
+
+    const topProducts = useQuery(
+        api.sales.getTopProducts,
+        topProductsArgs === "skip" ? "skip" : topProductsArgs
+    ) as
+        | Array<{
+              productId: Id<"products">;
+              productName: string;
+              quantity: number;
+              revenue: number;
+          }>
+        | undefined;
+
+    const topStaffArgs = useMemo(() => {
+        if (!periodRange) {
+            return "skip" as const;
+        }
+        const args: {
+            limit: number;
+            from: number;
+            to: number;
+            branchId?: Id<"branches">;
+            staffId?: Id<"staff">;
+        } = {
+            limit: 5,
+            from: periodRange.from,
+            to: periodRange.to,
+        };
+        if (historyBranchFilter !== "all") {
+            args.branchId = historyBranchFilter;
+        }
+        if (historyStaffFilter !== "all") {
+            args.staffId = historyStaffFilter;
+        }
+        return args;
+    }, [periodRange, historyBranchFilter, historyStaffFilter]);
+
+    const topStaff = useQuery(
+        api.sales.getTopStaff,
+        topStaffArgs === "skip" ? "skip" : topStaffArgs
+    ) as
+        | Array<{
+              staffId: Id<"staff"> | "sinStaff";
+              staffName: string;
+              totalAmount: number;
+          }>
+        | undefined;
+
     const handlePageChange = (newPage: number) => {
         setCurrentPage(newPage);
     };
@@ -381,6 +486,9 @@ const AdminSales = () => {
                     staffNameById={staffNameById}
                     data={historyData ?? []}
                     summary={historySummary}
+                    paymentBreakdown={paymentBreakdown}
+                    topProducts={topProducts}
+                    topStaff={topStaff}
                     period={period}
                     onPeriodChange={setPeriod}
                     customDateRange={customDateRange}
@@ -419,6 +527,28 @@ type HistoryViewProps = {
     staffNameById: Map<string, string>;
     data: HistorySale[];
     summary: ReturnType<typeof summarizeHistory>;
+    paymentBreakdown:
+        | Array<{
+              method: string;
+              amount: number;
+              percentage: number;
+          }>
+        | undefined;
+    topProducts:
+        | Array<{
+              productId: Id<"products">;
+              productName: string;
+              quantity: number;
+              revenue: number;
+          }>
+        | undefined;
+    topStaff:
+        | Array<{
+              staffId: Id<"staff"> | "sinStaff";
+              staffName: string;
+              totalAmount: number;
+          }>
+        | undefined;
     period: PeriodKey;
     onPeriodChange: (period: PeriodKey) => void;
     customDateRange: { from: Date | null; to: Date | null };
@@ -447,6 +577,9 @@ const HistoryView = ({
     staffNameById,
     data,
     summary,
+    paymentBreakdown: paymentBreakdownData,
+    topProducts,
+    topStaff: topStaffData,
     period,
     onPeriodChange,
     customDateRange,
@@ -464,10 +597,16 @@ const HistoryView = ({
     totalItems,
     onPageChange,
 }: HistoryViewProps) => {
-    const paymentBreakdown = Array.from(summary.paymentBreakdown.entries());
-    const topStaff = Array.from(summary.salesByStaff.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
+    const getPaymentMethodLabel = (method: string) => {
+        const labels: Record<string, string> = {
+            Contado: "Efectivo",
+            Tarjeta: "Tarjeta",
+            Transferencia: "Transferencia",
+            Otros: "Otros",
+            "Sin registrar": "Sin registrar",
+        };
+        return labels[method] || method;
+    };
 
     // Generar opciones de meses
     const months = [
@@ -515,7 +654,11 @@ const HistoryView = ({
                 />
                 <SummaryCard
                     title="Métodos registrados"
-                    value={paymentBreakdown.length.toString()}
+                    value={
+                        paymentBreakdownData
+                            ? paymentBreakdownData.length.toString()
+                            : "0"
+                    }
                     subtitle="Variantes de pago utilizadas en el periodo."
                 />
             </section>
@@ -814,22 +957,63 @@ const HistoryView = ({
                             Métodos de pago
                         </h3>
                         <ul className="mt-4 space-y-3 text-sm">
-                            {paymentBreakdown.length === 0 ? (
+                            {!paymentBreakdownData ||
+                            paymentBreakdownData.length === 0 ? (
                                 <li className="rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3 text-slate-400">
                                     Aún no se registran métodos de pago en este
                                     periodo.
                                 </li>
                             ) : (
-                                paymentBreakdown.map(([method, total]) => (
+                                paymentBreakdownData.map((item) => (
                                     <li
-                                        key={method}
+                                        key={item.method}
                                         className="flex items-center justify-between rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3"
                                     >
-                                        <span className="text-slate-200">
-                                            {method}
-                                        </span>
+                                        <div className="flex-1">
+                                            <span className="text-slate-200">
+                                                {getPaymentMethodLabel(
+                                                    item.method
+                                                )}
+                                            </span>
+                                            <span className="ml-2 text-xs text-slate-500">
+                                                {item.percentage.toFixed(1)}%
+                                            </span>
+                                        </div>
                                         <span className="font-semibold text-white">
-                                            {formatCurrency(total)}
+                                            {formatCurrency(item.amount)}
+                                        </span>
+                                    </li>
+                                ))
+                            )}
+                        </ul>
+                    </div>
+
+                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-white shadow-inner shadow-black/20">
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                            Productos más vendidos
+                        </h3>
+                        <ul className="mt-4 space-y-3 text-sm">
+                            {!topProducts || topProducts.length === 0 ? (
+                                <li className="rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3 text-slate-400">
+                                    Aún no se registran productos vendidos en
+                                    este periodo.
+                                </li>
+                            ) : (
+                                topProducts.map((product) => (
+                                    <li
+                                        key={product.productId as string}
+                                        className="flex flex-col gap-1 rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-200">
+                                                {product.productName}
+                                            </span>
+                                            <span className="font-semibold text-white">
+                                                {formatCurrency(product.revenue)}
+                                            </span>
+                                        </div>
+                                        <span className="text-xs text-slate-500">
+                                            {product.quantity} unidades
                                         </span>
                                     </li>
                                 ))
@@ -842,23 +1026,22 @@ const HistoryView = ({
                             Top personal
                         </h3>
                         <ul className="mt-4 space-y-3 text-sm">
-                            {topStaff.length === 0 ? (
+                            {!topStaffData || topStaffData.length === 0 ? (
                                 <li className="rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3 text-slate-400">
                                     Aún no se registran ventas por personal en
                                     este periodo.
                                 </li>
                             ) : (
-                                topStaff.map(([staffId, total]) => (
+                                topStaffData.map((staff) => (
                                     <li
-                                        key={staffId}
+                                        key={staff.staffId}
                                         className="flex items-center justify-between rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3"
                                     >
                                         <span className="text-slate-200">
-                                            {staffNameById.get(staffId) ??
-                                                "Personal"}
+                                            {staff.staffName}
                                         </span>
                                         <span className="font-semibold text-white">
-                                            {formatCurrency(total)}
+                                            {formatCurrency(staff.totalAmount)}
                                         </span>
                                     </li>
                                 ))

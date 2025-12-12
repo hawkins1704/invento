@@ -148,3 +148,49 @@ export const updateStock = mutation({
   },
 });
 
+export const getLowStockAlerts = query({
+  args: {
+    threshold: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new ConvexError("No autenticado");
+    }
+
+    const threshold = args.threshold ?? 10; // Default: stock menor a 10
+    const inventories = await ctx.db.query("branchInventories").collect();
+    const products = await ctx.db.query("products").collect();
+    const branches = await ctx.db.query("branches").collect();
+
+    const productMap = new Map(products.map((p) => [p._id, p]));
+    const branchMap = new Map(branches.map((b) => [b._id, b]));
+
+    const alerts = inventories
+      .filter((inv) => {
+        const product = productMap.get(inv.productId);
+        return product?.inventoryActivated && inv.stock <= threshold;
+      })
+      .map((inv) => {
+        const product = productMap.get(inv.productId);
+        const branch = branchMap.get(inv.branchId);
+        return {
+          productId: inv.productId,
+          productName: product?.name ?? "Producto desconocido",
+          branchId: inv.branchId,
+          branchName: branch?.name ?? "Sucursal desconocida",
+          stock: inv.stock,
+          isOutOfStock: inv.stock === 0,
+        };
+      })
+      .sort((a, b) => {
+        // Primero los sin stock, luego por stock ascendente
+        if (a.isOutOfStock && !b.isOutOfStock) return -1;
+        if (!a.isOutOfStock && b.isOutOfStock) return 1;
+        return a.stock - b.stock;
+      });
+
+    return alerts;
+  },
+});
+
