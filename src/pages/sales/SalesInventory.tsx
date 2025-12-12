@@ -549,7 +549,7 @@ const SalesInventoryContent = ({
                                                     )
                                                 ) : (
                                                     <span className="text-sm text-slate-500">
-                                                        N/A
+                                                        ---
                                                     </span>
                                                 )}
                                             </td>
