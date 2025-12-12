@@ -102,7 +102,7 @@ const DateRangePicker = ({
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`flex-1 rounded-lg border px-4 py-2 text-sm text-white outline-none transition focus:ring-2 focus:ring-[#fa7316]/30 ${
+                    className={`flex-1 rounded-lg border px-4 py-2 text-xs text-white outline-none transition focus:ring-2 focus:ring-[#fa7316]/30 ${
                         startDate
                             ? "border-slate-700 bg-slate-900/60"
                             : "border-slate-700 bg-slate-900/60"
@@ -117,7 +117,7 @@ const DateRangePicker = ({
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`flex-1 rounded-lg border px-4 py-2 text-sm text-white outline-none transition focus:ring-2 focus:ring-[#fa7316]/30 ${
+                    className={`flex-1 rounded-lg border px-4 py-2 text-xs text-white outline-none transition focus:ring-2 focus:ring-[#fa7316]/30 ${
                         endDate
                             ? "border-slate-700 bg-slate-900/60"
                             : "border-slate-700 bg-slate-900/60"

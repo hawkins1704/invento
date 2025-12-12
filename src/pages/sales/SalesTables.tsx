@@ -16,7 +16,7 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import CloseSaleDialog from "../../components/CloseSaleDialog";
 import SalesShiftGuard from "../../components/SalesShiftGuard";
 import type { ShiftSummary } from "../../hooks/useSalesShift";
-import { MdDeleteOutline } from "react-icons/md";
+import { MdDeleteOutline, MdOutlineDinnerDining } from "react-icons/md";
 import { FaRegEdit } from "react-icons/fa";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { BiDish } from "react-icons/bi";
@@ -81,12 +81,13 @@ const SalesTablesContent = ({
         return map;
     }, [products]);
 
-    const staffMembers = useQuery(
+    const staffData = useQuery(
         api.staff.list,
         selectedBranchId
-            ? { branchId: selectedBranchId, includeInactive: false }
-            : { includeInactive: false }
-    ) as Doc<"staff">[] | undefined;
+            ? { branchId: selectedBranchId, includeInactive: false, limit: 1000, offset: 0 }
+            : { includeInactive: false, limit: 1000, offset: 0 }
+    ) as { staff: Doc<"staff">[]; total: number } | undefined;
+    const staffMembers = staffData?.staff ?? [];
 
     const currentUser = useQuery(api.users.getCurrent) as
         | Doc<"users">
@@ -353,14 +354,11 @@ const SalesTablesContent = ({
 
                 {branchLiveSales.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-slate-800 bg-slate-900/60 p-12 text-center text-slate-400">
-                        <span className="text-3xl" aria-hidden>
-                            ✅
-                        </span>
-                        <p className="max-w-sm text-sm">
+                        <MdOutlineDinnerDining size={40} />
+                        <p className="text-sm">
                             No hay pedidos abiertos. Abre una mesa o crea una
                             venta rápida para comenzar a registrar pedidos.
-                        </p>
-                    </div>
+                        </p></div>
                 ) : (
                     <div className="grid gap-4 lg:grid-cols-2">
                         {branchLiveSales.map((entry) => (
@@ -1195,17 +1193,74 @@ const NewSaleModal = ({
         setSelectedCategoryId("all");
     }, [categories]);
 
+    // Función helper para obtener el stock disponible de un producto
+    const getAvailableStock = (product: ProductListItem): number => {
+        const stockItem = product.stockByBranch.find(
+            (item) => item.branchId === branchId
+        );
+        return stockItem?.stock ?? 0;
+    };
+
     const addProduct = (product: ProductListItem) => {
+        const inventoryActivated = product.inventoryActivated ?? false;
+        
+        // Si el inventario no está activado, permitir agregar sin validaciones
+        if (!inventoryActivated) {
+            setItems((previous) => {
+                const existing = previous.find(
+                    (item) => item.productId === product._id
+                );
+                if (existing) {
+                    return previous.map((item) =>
+                        item.productId === product._id
+                            ? { ...item, quantity: item.quantity + 1 }
+                            : item
+                    );
+                }
+                return [
+                    ...previous,
+                    {
+                        productId: product._id,
+                        productName: product.name,
+                        imageUrl: product.imageUrl,
+                        unitPrice: product.price,
+                        quantity: 1,
+                        discountAmount: 0,
+                    },
+                ];
+            });
+            return;
+        }
+
+        const allowNegativeSale = product.allowNegativeSale ?? false;
+        const availableStock = getAvailableStock(product);
+
+        // Si no permite venta en negativo y no hay stock disponible, no hacer nada
+        if (!allowNegativeSale && availableStock <= 0) {
+            return;
+        }
+
         setItems((previous) => {
             const existing = previous.find(
                 (item) => item.productId === product._id
             );
             if (existing) {
+                // Si permite venta en negativo, incrementar sin límite
+                // Si no permite, verificar que no exceda el stock disponible
+                const newQuantity = existing.quantity + 1;
+                if (!allowNegativeSale && newQuantity > availableStock) {
+                    // No incrementar si excedería el stock disponible
+                    return previous;
+                }
                 return previous.map((item) =>
                     item.productId === product._id
-                        ? { ...item, quantity: item.quantity + 1 }
+                        ? { ...item, quantity: newQuantity }
                         : item
                 );
+            }
+            // Si no existe y no hay stock disponible (y no permite negativo), no agregar
+            if (!allowNegativeSale && availableStock <= 0) {
+                return previous;
             }
             return [
                 ...previous,
@@ -1225,13 +1280,32 @@ const NewSaleModal = ({
         productId: Id<"products">,
         quantity: number
     ) => {
+        // Encontrar el producto para obtener su configuración de stock
+        const product = products.find((p) => p._id === productId);
+        if (!product) {
+            return;
+        }
+
+        const allowNegativeSale = product.allowNegativeSale ?? false;
+        const availableStock = getAvailableStock(product);
+
         setItems((previous) =>
             previous
-                .map((item) =>
-                    item.productId === productId
-                        ? { ...item, quantity: Math.max(1, quantity) }
-                        : item
-                )
+                .map((item) => {
+                    if (item.productId !== productId) {
+                        return item;
+                    }
+                    // Validar cantidad mínima
+                    const minQuantity = 1;
+                    let newQuantity = Math.max(minQuantity, quantity);
+
+                    // Si no permite venta en negativo, limitar al stock disponible
+                    if (!allowNegativeSale && newQuantity > availableStock) {
+                        newQuantity = availableStock;
+                    }
+
+                    return { ...item, quantity: newQuantity };
+                })
                 .filter((item) => item.quantity > 0)
         );
     };
@@ -1255,6 +1329,39 @@ const NewSaleModal = ({
             } finally {
                 setIsSubmitting(false);
             }
+            return;
+        }
+
+        // Validar stock antes de crear la venta (solo si el inventario está activado)
+        const stockErrors: string[] = [];
+        for (const item of items) {
+            const product = products.find((p) => p._id === item.productId);
+            if (!product) {
+                continue;
+            }
+
+            const inventoryActivated = product.inventoryActivated ?? false;
+            
+            // Si el inventario no está activado, saltar validación
+            if (!inventoryActivated) {
+                continue;
+            }
+
+            const allowNegativeSale = product.allowNegativeSale ?? false;
+            const availableStock = getAvailableStock(product);
+
+            if (!allowNegativeSale && item.quantity > availableStock) {
+                stockErrors.push(
+                    `${product.name}: cantidad solicitada (${item.quantity}) excede el stock disponible (${availableStock})`
+                );
+            }
+        }
+
+        if (stockErrors.length > 0) {
+            alert(
+                "No se puede crear la venta. El pedido excede el inventario disponible:\n\n" +
+                    stockErrors.join("\n")
+            );
             return;
         }
 
@@ -1343,12 +1450,14 @@ const NewSaleModal = ({
                         <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-3 overflow-y-auto">
                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-2">
                                 {availableProducts.map((product) => {
+                                    const inventoryActivated = product.inventoryActivated ?? false;
                                     const availableStock =
                                         product.stockByBranch.find(
                                             (item) => item.branchId === branchId
                                         )?.stock ?? 0;
                                     const allowNegativeSale = product.allowNegativeSale ?? false;
-                                    const isOutOfStock = availableStock <= 0 && !allowNegativeSale;
+                                    // Solo validar stock si el inventario está activado
+                                    const isOutOfStock = inventoryActivated && availableStock <= 0 && !allowNegativeSale;
                                     return (
                                         <button
                                             key={product._id}
@@ -1393,9 +1502,13 @@ const NewSaleModal = ({
                                                             product.price
                                                         )}
                                                     </p>
-                                                    <p className="text-xs text-slate-400">
-                                                        Stock: {availableStock}
-                                                    </p>
+                                                    {
+                                                        inventoryActivated && (
+                                                        <p className="text-xs text-slate-400">
+                                                            Stock: {availableStock}
+                                                        </p>
+                                                        )
+                                                    }
                                                 </div>
                                             </div>
                                         </button>
@@ -1562,19 +1675,51 @@ const NewSaleModal = ({
                                                     }
                                                     className="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-center text-sm font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-1 focus:ring-[#fa7316]/30"
                                                 />
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        updateItemQuantity(
-                                                            item.productId,
-                                                            item.quantity + 1
-                                                        )
+                                                {(() => {
+                                                    const product = products.find((p) => p._id === item.productId);
+                                                    const inventoryActivated = product?.inventoryActivated ?? false;
+                                                    // Si el inventario no está activado, siempre permitir incrementar
+                                                    if (!inventoryActivated) {
+                                                        return (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    updateItemQuantity(
+                                                                        item.productId,
+                                                                        item.quantity + 1
+                                                                    )
+                                                                }
+                                                                className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                                                aria-label="Aumentar cantidad"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        );
                                                     }
-                                                    className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white"
-                                                    aria-label="Aumentar cantidad"
-                                                >
-                                                    +
-                                                </button>
+                                                    const allowNegativeSale = product?.allowNegativeSale ?? false;
+                                                    const availableStock = product ? getAvailableStock(product) : 0;
+                                                    const canIncrement = allowNegativeSale || item.quantity < availableStock;
+                                                    return (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                updateItemQuantity(
+                                                                    item.productId,
+                                                                    item.quantity + 1
+                                                                )
+                                                            }
+                                                            disabled={!canIncrement}
+                                                            className={`inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition ${
+                                                                canIncrement
+                                                                    ? "hover:border-[#fa7316] hover:text-white"
+                                                                    : "cursor-not-allowed opacity-50"
+                                                            }`}
+                                                            aria-label="Aumentar cantidad"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    );
+                                                })()}
                                             </div>
                                         </li>
                                     ))}
@@ -1889,17 +2034,74 @@ const SaleEditorDrawer = ({
         return items.find((i) => i.productId === editingItemId) ?? null;
     }, [editingItemId, items]);
 
+    // Función helper para obtener el stock disponible de un producto
+    const getAvailableStock = (product: ProductListItem): number => {
+        const stockItem = product.stockByBranch.find(
+            (item) => item.branchId === branchId
+        );
+        return stockItem?.stock ?? 0;
+    };
+
     const addItem = (product: ProductListItem) => {
+        const inventoryActivated = product.inventoryActivated ?? false;
+        
+        // Si el inventario no está activado, permitir agregar sin validaciones
+        if (!inventoryActivated) {
+            setItems((previous) => {
+                const existing = previous.find(
+                    (item) => item.productId === product._id
+                );
+                if (existing) {
+                    return previous.map((item) =>
+                        item.productId === product._id
+                            ? { ...item, quantity: item.quantity + 1 }
+                            : item
+                    );
+                }
+                return [
+                    ...previous,
+                    {
+                        productId: product._id,
+                        productName: product.name,
+                        imageUrl: product.imageUrl,
+                        unitPrice: product.price,
+                        quantity: 1,
+                        discountAmount: 0,
+                    },
+                ];
+            });
+            return;
+        }
+
+        const allowNegativeSale = product.allowNegativeSale ?? false;
+        const availableStock = getAvailableStock(product);
+
+        // Si no permite venta en negativo y no hay stock disponible, no hacer nada
+        if (!allowNegativeSale && availableStock <= 0) {
+            return;
+        }
+
         setItems((previous) => {
             const existing = previous.find(
                 (item) => item.productId === product._id
             );
             if (existing) {
+                // Si permite venta en negativo, incrementar sin límite
+                // Si no permite, verificar que no exceda el stock disponible
+                const newQuantity = existing.quantity + 1;
+                if (!allowNegativeSale && newQuantity > availableStock) {
+                    // No incrementar si excedería el stock disponible
+                    return previous;
+                }
                 return previous.map((item) =>
                     item.productId === product._id
-                        ? { ...item, quantity: item.quantity + 1 }
+                        ? { ...item, quantity: newQuantity }
                         : item
                 );
+            }
+            // Si no existe y no hay stock disponible (y no permite negativo), no agregar
+            if (!allowNegativeSale && availableStock <= 0) {
+                return previous;
             }
             return [
                 ...previous,
@@ -1919,12 +2121,46 @@ const SaleEditorDrawer = ({
         productId: Id<"products">,
         quantity: number
     ) => {
+        // Encontrar el producto para obtener su configuración de stock
+        const product = products.find((p) => p._id === productId);
+        if (!product) {
+            return;
+        }
+
+        const inventoryActivated = product.inventoryActivated ?? false;
+        
+        // Si el inventario no está activado, permitir cualquier cantidad
+        if (!inventoryActivated) {
+            setItems((previous) =>
+                previous.map((item) => {
+                    if (item.productId !== productId) {
+                        return item;
+                    }
+                    return { ...item, quantity: Math.max(1, quantity) };
+                })
+            );
+            return;
+        }
+
+        const allowNegativeSale = product.allowNegativeSale ?? false;
+        const availableStock = getAvailableStock(product);
+
         setItems((previous) =>
-            previous.map((item) =>
-                item.productId === productId
-                    ? { ...item, quantity: Math.max(1, quantity) }
-                    : item
-            )
+            previous.map((item) => {
+                if (item.productId !== productId) {
+                    return item;
+                }
+                // Validar cantidad mínima
+                const minQuantity = 1;
+                let newQuantity = Math.max(minQuantity, quantity);
+
+                // Si no permite venta en negativo, limitar al stock disponible
+                if (!allowNegativeSale && newQuantity > availableStock) {
+                    newQuantity = availableStock;
+                }
+
+                return { ...item, quantity: newQuantity };
+            })
         );
     };
 
@@ -1935,6 +2171,39 @@ const SaleEditorDrawer = ({
     };
 
     const saveItems = async () => {
+        // Validar stock antes de guardar los items (solo si el inventario está activado)
+        const stockErrors: string[] = [];
+        for (const item of items) {
+            const product = products.find((p) => p._id === item.productId);
+            if (!product) {
+                continue;
+            }
+
+            const inventoryActivated = product.inventoryActivated ?? false;
+            
+            // Si el inventario no está activado, saltar validación
+            if (!inventoryActivated) {
+                continue;
+            }
+
+            const allowNegativeSale = product.allowNegativeSale ?? false;
+            const availableStock = getAvailableStock(product);
+
+            if (!allowNegativeSale && item.quantity > availableStock) {
+                stockErrors.push(
+                    `${product.name}: cantidad solicitada (${item.quantity}) excede el stock disponible (${availableStock})`
+                );
+            }
+        }
+
+        if (stockErrors.length > 0) {
+            alert(
+                "No se pueden guardar los cambios. El pedido excede el inventario disponible:\n\n" +
+                    stockErrors.join("\n")
+            );
+            return;
+        }
+
         setIsSavingItems(true);
         try {
             await onSaveItems(
@@ -2324,19 +2593,32 @@ const SaleEditorDrawer = ({
                                                 }
                                                 className="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-center text-sm font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-1 focus:ring-[#fa7316]/30"
                                             />
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    updateItemQuantity(
-                                                        item.productId,
-                                                        item.quantity + 1
-                                                    )
-                                                }
-                                                className="inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
-                                                aria-label="Aumentar cantidad"
-                                            >
-                                                <IoMdAdd className="w-4 h-4" />
-                                            </button>
+                                            {(() => {
+                                                const product = products.find((p) => p._id === item.productId);
+                                                const allowNegativeSale = product?.allowNegativeSale ?? false;
+                                                const availableStock = product ? getAvailableStock(product) : 0;
+                                                const canIncrement = allowNegativeSale || item.quantity < availableStock;
+                                                return (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            updateItemQuantity(
+                                                                item.productId,
+                                                                item.quantity + 1
+                                                            )
+                                                        }
+                                                        disabled={!canIncrement}
+                                                        className={`inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition cursor-pointer ${
+                                                            canIncrement
+                                                                ? "hover:border-[#fa7316] hover:text-white"
+                                                                : "cursor-not-allowed opacity-50"
+                                                        }`}
+                                                        aria-label="Aumentar cantidad"
+                                                    >
+                                                        <IoMdAdd className="w-4 h-4" />
+                                                    </button>
+                                                );
+                                            })()}
                                         </div>
                                     </li>
                                 ))}

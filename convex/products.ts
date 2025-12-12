@@ -139,6 +139,8 @@ export const create = mutation({
       })
     ),
     image: v.optional(v.id("_storage")),
+    inventoryActivated: v.optional(v.boolean()),
+    allowNegativeSale: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -182,22 +184,29 @@ export const create = mutation({
 
     const { stockByBranch, image, ...productData } = args;
 
+    const inventoryActivated = args.inventoryActivated ?? false;
+
     const productId = await ctx.db.insert("products", {
       ...productData,
       igv,
       price,
       ...(image ? { image } : {}),
+      inventoryActivated,
+      allowNegativeSale: args.allowNegativeSale,
     });
 
-    await Promise.all(
-      stockByBranch.map((entry) =>
-        ctx.db.insert("branchInventories", {
-          branchId: entry.branchId,
-          productId,
-          stock: entry.stock,
-        })
-      )
-    );
+    // Solo crear inventario si está activado
+    if (inventoryActivated) {
+      await Promise.all(
+        stockByBranch.map((entry) =>
+          ctx.db.insert("branchInventories", {
+            branchId: entry.branchId,
+            productId,
+            stock: entry.stock,
+          })
+        )
+      );
+    }
   },
 });
 
@@ -216,6 +225,7 @@ export const update = mutation({
     ),
     image: v.optional(v.id("_storage")),
     removeImage: v.optional(v.boolean()),
+    inventoryActivated: v.optional(v.boolean()),
     allowNegativeSale: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -275,6 +285,8 @@ export const update = mutation({
       imageField = undefined;
     }
 
+    const inventoryActivated = args.inventoryActivated ?? false;
+
     await ctx.db.patch(args.productId, {
       name: args.name,
       description: args.description,
@@ -283,6 +295,7 @@ export const update = mutation({
       igv,
       price,
       ...(imageField !== undefined ? { image: imageField } : { image: undefined }),
+      inventoryActivated,
       allowNegativeSale: args.allowNegativeSale,
     });
 
@@ -291,6 +304,15 @@ export const update = mutation({
       .withIndex("byProduct", (q) => q.eq("productId", args.productId))
       .collect();
 
+    // Si el inventario está desactivado, eliminar todos los inventarios existentes
+    if (!inventoryActivated) {
+      await Promise.all(
+        existingInventories.map((inventory) => ctx.db.delete(inventory._id))
+      );
+      return;
+    }
+
+    // Si el inventario está activado, crear/actualizar inventarios
     const existingByBranch = new Map(
       existingInventories.map((inventory) => [inventory.branchId, inventory])
     );
@@ -314,6 +336,7 @@ export const update = mutation({
       }
     }
 
+    // Eliminar inventarios de sucursales que ya no están en la lista
     for (const inventory of existingInventories) {
       if (!updatedBranchIds.has(inventory.branchId as string)) {
         await ctx.db.delete(inventory._id);

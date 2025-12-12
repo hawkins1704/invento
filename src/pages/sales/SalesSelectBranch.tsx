@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { AREA_STORAGE_KEY, useSalesShift } from "../../hooks/useSalesShift";
 import { FaLocationDot } from "react-icons/fa6";
+import { LuStore } from "react-icons/lu";
 
 const SalesSelectBranch = () => {
   const { branches, isLoadingBranches, setBranchId } = useSalesShift();
@@ -34,9 +35,7 @@ const SalesSelectBranch = () => {
   if (sortedBranches.length === 0) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center text-slate-300">
-        <span className="text-3xl" aria-hidden>
-          🏬
-        </span>
+        <LuStore size={40} />
         <p className="max-w-xs text-sm text-slate-400">
           Necesitas crear al menos una sucursal desde el panel de administración antes de registrar ventas.
         </p>

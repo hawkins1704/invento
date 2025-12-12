@@ -160,15 +160,27 @@ const recalcTotals = async (ctx: any, saleId: string) => {
   return totals
 }
 
-const adjustInventoryForSale = async (ctx: any, sale: any) => {
-  const items = await loadSaleItems(ctx, sale._id)
-
+// Reserva stock (resta) cuando se crean/actualizan items de una venta
+const reserveInventoryForItems = async (
+  ctx: any,
+  branchId: Id<"branches">,
+  items: ItemInput[]
+) => {
   await Promise.all(
-    items.map(async (item: any) => {
+    items.map(async (item) => {
+      // Obtener el producto para verificar si tiene inventario activado
+      const product = await ctx.db.get(item.productId)
+      const inventoryActivated = product?.inventoryActivated ?? false
+
+      // Si el inventario no está activado, no hacer nada
+      if (!inventoryActivated) {
+        return
+      }
+
       const inventory = await ctx.db
         .query("branchInventories")
         .withIndex("byBranch", (q: any) =>
-          q.eq("branchId", sale.branchId).eq("productId", item.productId)
+          q.eq("branchId", branchId).eq("productId", item.productId)
         )
         .first()
 
@@ -179,19 +191,51 @@ const adjustInventoryForSale = async (ctx: any, sale: any) => {
       }
 
       // Obtener el producto para verificar si permite venta en negativo
-      const product = await ctx.db.get(item.productId)
       const allowNegativeSale = product?.allowNegativeSale ?? false
 
       // Solo validar stock si no permite venta en negativo
       if (!allowNegativeSale && inventory.stock < item.quantity) {
         throw new ConvexError(
-          "No hay stock suficiente para cerrar la venta. Actualiza el inventario."
+          `No hay stock suficiente para el producto. Stock disponible: ${inventory.stock}, solicitado: ${item.quantity}`
         )
       }
 
       await ctx.db.patch(inventory._id, {
         stock: inventory.stock - item.quantity,
       })
+    })
+  )
+}
+
+// Restaura stock (suma) cuando se cancelan/modifican items de una venta
+const restoreInventoryForItems = async (
+  ctx: any,
+  branchId: Id<"branches">,
+  items: any[]
+) => {
+  await Promise.all(
+    items.map(async (item: any) => {
+      // Obtener el producto para verificar si tiene inventario activado
+      const product = await ctx.db.get(item.productId)
+      const inventoryActivated = product?.inventoryActivated ?? false
+
+      // Si el inventario no está activado, no hacer nada
+      if (!inventoryActivated) {
+        return
+      }
+
+      const inventory = await ctx.db
+        .query("branchInventories")
+        .withIndex("byBranch", (q: any) =>
+          q.eq("branchId", branchId).eq("productId", item.productId)
+        )
+        .first()
+
+      if (inventory) {
+        await ctx.db.patch(inventory._id, {
+          stock: inventory.stock + item.quantity,
+        })
+      }
     })
   )
 }
@@ -379,6 +423,11 @@ export const create = mutation({
       updatedAt: timestamp,
     })
 
+    // Reservar inventario antes de crear los items
+    if (validatedItems.length > 0) {
+      await reserveInventoryForItems(ctx, args.branchId, validatedItems)
+    }
+
     await Promise.all(
       validatedItems.map((item) =>
         ctx.db.insert("saleItems", {
@@ -418,7 +467,19 @@ export const setItems = mutation({
     const timestamp = now()
 
     const existingItems = await loadSaleItems(ctx, sale._id)
+    
+    // Restaurar inventario de items anteriores antes de actualizar
+    if (existingItems.length > 0) {
+      await restoreInventoryForItems(ctx, sale.branchId, existingItems)
+    }
+    
+    // Eliminar items anteriores
     await Promise.all(existingItems.map((item: any) => ctx.db.delete(item._id)))
+
+    // Reservar inventario para los nuevos items
+    if (validatedItems.length > 0) {
+      await reserveInventoryForItems(ctx, sale.branchId, validatedItems)
+    }
 
     await Promise.all(
       validatedItems.map((item) =>
@@ -525,7 +586,7 @@ export const close = mutation({
     }
 
     const totals = await recalcTotals(ctx, sale._id)
-    await adjustInventoryForSale(ctx, sale)
+    // El inventario ya fue reservado al crear la venta, no necesitamos ajustarlo aquí
 
     await ctx.db.patch(sale._id, {
       status: "closed",
@@ -558,6 +619,12 @@ export const cancel = mutation({
     }
 
     const sale = await ensureSaleOpen(ctx, args.saleId)
+
+    // Restaurar inventario de los items de la venta cancelada
+    const items = await loadSaleItems(ctx, sale._id)
+    if (items.length > 0) {
+      await restoreInventoryForItems(ctx, sale.branchId, items)
+    }
 
     await ctx.db.patch(sale._id, {
       status: "cancelled",

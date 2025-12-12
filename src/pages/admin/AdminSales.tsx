@@ -529,9 +529,9 @@ const HistoryView = ({
                         <button
                             type="button"
                             onClick={() => onPeriodChange("day")}
-                            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                            className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
                                 period === "day"
-                                    ? "bg-[#fa7316] text-white "
+                                    ? "bg-[#fa7316] text-white border border-[#fa7316]"
                                     : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
                             }`}
                         >
@@ -542,9 +542,9 @@ const HistoryView = ({
                             onClick={() => {
                                 onPeriodChange("month");
                             }}
-                            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                            className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
                                 period === "month"
-                                    ? "bg-[#fa7316] text-white "
+                                    ? "bg-[#fa7316] text-white border border-[#fa7316]"
                                     : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
                             }`}
                         >
@@ -555,9 +555,9 @@ const HistoryView = ({
                             onClick={() => {
                                 onPeriodChange("custom");
                             }}
-                            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                            className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
                                 period === "custom"
-                                    ? "bg-[#fa7316] text-white "
+                                    ? "bg-[#fa7316] text-white border border-[#fa7316]"
                                     : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
                             }`}
                         >
@@ -595,7 +595,7 @@ const HistoryView = ({
                                             }
                                         }
                                     }}
-                                    className={`rounded-lg flex-2 border px-4 py-2 text-sm font-semibold transition ${
+                                    className={`rounded-lg flex-2 border px-4 py-2 text-xs font-semibold transition ${
                                         period === "month" &&
                                         selectedMonth !== undefined
                                             ? "border-[#fa7316] text-white"
@@ -626,7 +626,7 @@ const HistoryView = ({
                                             onPeriodChange("month");
                                         }
                                     }}
-                                    className={`rounded-lg flex-1 border px-4 py-2 text-sm font-semibold transition ${
+                                    className={`rounded-lg flex-1 border px-4 py-2 text-xs font-semibold transition ${
                                         period === "month" &&
                                         selectedYear !== undefined
                                             ? "border-[#fa7316] text-white"
@@ -663,7 +663,7 @@ const HistoryView = ({
                                 onBranchChange(value as Id<"branches">);
                             }
                         }}
-                        className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                        className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                     >
                         <option value="all">Todas las sucursales</option>
                         {branches.map((branch) => (
@@ -695,7 +695,7 @@ const HistoryView = ({
                                 onStaffChange(value as Id<"staff">);
                             }
                         }}
-                        className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                        className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                     >
                         <option value="all">Todo el personal</option>
                         {staffMembers.map((member) => (

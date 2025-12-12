@@ -19,6 +19,7 @@ type ProductEditFormState = {
     price: string;
     stocks: Record<string, string>;
     imageFile: File | null;
+    inventoryActivated: boolean;
     allowNegativeSale: boolean;
 };
 
@@ -30,6 +31,7 @@ const DEFAULT_FORM: ProductEditFormState = {
     price: "",
     stocks: {},
     imageFile: null,
+    inventoryActivated: false,
     allowNegativeSale: false,
 };
 
@@ -166,6 +168,7 @@ const AdminProductDetail = () => {
             const newUnitValue = productUnitValue.toFixed(2);
             const newPrice = productPrice.toFixed(2);
 
+            const productInventoryActivated = product.inventoryActivated ?? false;
             const productAllowNegativeSale = product.allowNegativeSale ?? false;
             
             // Si los valores son diferentes, actualizar
@@ -176,6 +179,7 @@ const AdminProductDetail = () => {
                 previous.description !== product.description ||
                 previous.categoryId !==
                     (product.categoryId as unknown as string) ||
+                previous.inventoryActivated !== productInventoryActivated ||
                 previous.allowNegativeSale !== productAllowNegativeSale
             ) {
                 return {
@@ -186,6 +190,7 @@ const AdminProductDetail = () => {
                     price: newPrice,
                     stocks: initialStocks,
                     imageFile: previous.imageFile, // Mantener el archivo si existe
+                    inventoryActivated: productInventoryActivated,
                     allowNegativeSale: productAllowNegativeSale,
                 };
             }
@@ -427,6 +432,7 @@ const AdminProductDetail = () => {
                 stockByBranch,
                 image: storageId,
                 removeImage: shouldRemoveImage ? true : undefined,
+                inventoryActivated: formState.inventoryActivated,
                 allowNegativeSale: formState.allowNegativeSale,
             });
 
@@ -701,53 +707,55 @@ const AdminProductDetail = () => {
                         </p>
                     </div>
 
-                    <div className="space-y-3">
-                        <p className="text-sm font-semibold text-white">
-                            Stock por sucursal
-                        </p>
-                        {branches.length > 0 ? (
-                            <div className="grid gap-4 md:grid-cols-2">
-                                {branches.map((branch) => {
-                                    const branchKey =
-                                        branch._id as unknown as string;
-                                    return (
-                                        <div
-                                            key={branchKey}
-                                            className="space-y-1 rounded-lg border border-slate-800 bg-slate-900/70 p-4"
-                                        >
-                                            <p className="text-sm font-semibold text-white">
-                                                {branch.name}
-                                            </p>
-                                            <p className="text-xs text-slate-500">
-                                                {branch.address}
-                                            </p>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="1"
-                                                value={
-                                                    formState.stocks[
-                                                        branchKey
-                                                    ] ?? "0"
-                                                }
-                                                onChange={(event) =>
-                                                    updateStockField(
-                                                        branchKey,
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="rounded-lg border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
-                                Crea una sucursal para asignar stock.
-                            </div>
-                        )}
-                    </div>
+                    {formState.inventoryActivated && (
+                        <div className="space-y-3">
+                            <p className="text-sm font-semibold text-white">
+                                Stock por sucursal
+                            </p>
+                            {branches.length > 0 ? (
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    {branches.map((branch) => {
+                                        const branchKey =
+                                            branch._id as unknown as string;
+                                        return (
+                                            <div
+                                                key={branchKey}
+                                                className="space-y-1 rounded-lg border border-slate-800 bg-slate-900/70 p-4"
+                                            >
+                                                <p className="text-sm font-semibold text-white">
+                                                    {branch.name}
+                                                </p>
+                                                <p className="text-xs text-slate-500">
+                                                    {branch.address}
+                                                </p>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="1"
+                                                    value={
+                                                        formState.stocks[
+                                                            branchKey
+                                                        ] ?? "0"
+                                                    }
+                                                    onChange={(event) =>
+                                                        updateStockField(
+                                                            branchKey,
+                                                            event.target.value
+                                                        )
+                                                    }
+                                                    className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="rounded-lg border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
+                                    Crea una sucursal para asignar stock.
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {formError && (
                         <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -833,68 +841,107 @@ const AdminProductDetail = () => {
                                     )}
                                 </p>
                             </div>
-                            <div className="w-full flex items-center justify-center gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setFormState((previous) => ({
-                                            ...previous,
-                                            allowNegativeSale: !previous.allowNegativeSale,
-                                        }))
-                                    }
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
-                                        formState.allowNegativeSale
-                                            ? "bg-[#fa7316]"
-                                            : "bg-slate-700"
-                                    }`}
-                                    role="switch"
-                                    aria-checked={formState.allowNegativeSale}
-                                    aria-label="Permitir ventas en negativo"
-                                    disabled={isSubmitting || isDeleting}
-                                >
-                                    <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                            formState.allowNegativeSale
-                                                ? "translate-x-6"
-                                                : "translate-x-1"
+                            <div className="w-full space-y-3 pt-2">
+                                <div className="flex items-center justify-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setFormState((previous) => ({
+                                                ...previous,
+                                                inventoryActivated: !previous.inventoryActivated,
+                                                // Si se desactiva el inventario, también desactivar ventas en negativo
+                                                allowNegativeSale: previous.inventoryActivated ? false : previous.allowNegativeSale,
+                                            }))
+                                        }
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                                            formState.inventoryActivated
+                                                ? "bg-[#fa7316]"
+                                                : "bg-slate-700"
                                         }`}
-                                    />
-                                </button>
-                                <span className="text-sm text-slate-300">
-                                    Ventas en negativo
-                                </span>
+                                        role="switch"
+                                        aria-checked={formState.inventoryActivated}
+                                        aria-label="Activar control de inventario"
+                                        disabled={isSubmitting || isDeleting}
+                                    >
+                                        <span
+                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                formState.inventoryActivated
+                                                    ? "translate-x-6"
+                                                    : "translate-x-1"
+                                            }`}
+                                        />
+                                    </button>
+                                    <span className="text-sm text-slate-300">
+                                        Control de inventario
+                                    </span>
+                                </div>
+                                {formState.inventoryActivated && (
+                                    <div className="flex items-center justify-center gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setFormState((previous) => ({
+                                                    ...previous,
+                                                    allowNegativeSale: !previous.allowNegativeSale,
+                                                }))
+                                            }
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                                                formState.allowNegativeSale
+                                                    ? "bg-[#fa7316]"
+                                                    : "bg-slate-700"
+                                            }`}
+                                            role="switch"
+                                            aria-checked={formState.allowNegativeSale}
+                                            aria-label="Permitir ventas en negativo"
+                                            disabled={isSubmitting || isDeleting}
+                                        >
+                                            <span
+                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                    formState.allowNegativeSale
+                                                        ? "translate-x-6"
+                                                        : "translate-x-1"
+                                                }`}
+                                            />
+                                        </button>
+                                        <span className="text-sm text-slate-300">
+                                            Ventas en negativo
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-                        <h2 className="text-lg font-semibold">
-                            Stock por sucursal
-                        </h2>
-                        <div className="mt-4 space-y-3 text-sm text-slate-300">
-                            {branches.map((branch) => {
-                                const key = branch._id as unknown as string;
-                                return (
-                                    <div
-                                        key={key}
-                                        className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/40 px-4 py-3"
-                                    >
-                                        <div>
-                                            <p className="font-semibold text-white">
-                                                {branch.name}
-                                            </p>
-                                            <p className="text-xs text-slate-500">
-                                                {branch.address}
-                                            </p>
+                    {formState.inventoryActivated && (
+                        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+                            <h2 className="text-lg font-semibold">
+                                Stock por sucursal
+                            </h2>
+                            <div className="mt-4 space-y-3 text-sm text-slate-300">
+                                {branches.map((branch) => {
+                                    const key = branch._id as unknown as string;
+                                    return (
+                                        <div
+                                            key={key}
+                                            className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/40 px-4 py-3"
+                                        >
+                                            <div>
+                                                <p className="font-semibold text-white">
+                                                    {branch.name}
+                                                </p>
+                                                <p className="text-xs text-slate-500">
+                                                    {branch.address}
+                                                </p>
+                                            </div>
+                                            <span className="rounded-lg border border-white/10 px-3 py-1 font-semibold text-white">
+                                                {formState.stocks[key] ?? "0"}
+                                            </span>
                                         </div>
-                                        <span className="rounded-lg border border-white/10 px-3 py-1 font-semibold text-white">
-                                            {formState.stocks[key] ?? "0"}
-                                        </span>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </aside>
             </div>
             <ConfirmDialog

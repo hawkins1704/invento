@@ -253,6 +253,8 @@ const updateStockField = (branchId: string, value: string) => {
         unitValue: finalUnitValue,
         stockByBranch,
         ...(storageId ? { image: storageId } : {}),
+        inventoryActivated: true, // Por defecto activado al crear con stock
+        allowNegativeSale: false,
       });
 
       initializeForm();

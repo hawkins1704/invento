@@ -77,35 +77,37 @@ const InventoryProductCard = ({
                             </p>
                         </div>
                     </div>
-                    <div className="flex flex-col gap-4">
-                        <div className="flex-1">
-                            <label
-                                htmlFor={`stock-${productId}`}
-                                className="text-xs text-slate-500 mb-1 block"
-                            >
-                                Stock
-                            </label>
-                            <input
-                                id={`stock-${productId}`}
-                                type="number"
-                                min="0"
-                                step="1"
-                                value={stockDraft}
-                                onChange={onStockChange}
-                                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                            />
+                    {item.product.inventoryActivated && (
+                        <div className="flex flex-col gap-4">
+                            <div className="flex-1">
+                                <label
+                                    htmlFor={`stock-${productId}`}
+                                    className="text-xs text-slate-500 mb-1 block"
+                                >
+                                    Stock
+                                </label>
+                                <input
+                                    id={`stock-${productId}`}
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={stockDraft}
+                                    onChange={onStockChange}
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                />
+                            </div>
+                            <div className="flex items-end">
+                                <button
+                                    type="button"
+                                    onClick={onSave}
+                                    className="inline-flex items-center justify-center rounded-lg bg-[#fa7316] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                    disabled={isSaving}
+                                >
+                                    {isSaving ? "Guardando..." : "Guardar"}
+                                </button>
+                            </div>
                         </div>
-                        <div className="flex items-end">
-                            <button
-                                type="button"
-                                onClick={onSave}
-                                className="inline-flex items-center justify-center rounded-lg bg-[#fa7316] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
-                                disabled={isSaving}
-                            >
-                                {isSaving ? "Guardando..." : "Guardar"}
-                            </button>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -1111,24 +1113,30 @@ const AdminBranchDetails = () => {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-white">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    step="1"
-                                                    value={
-                                                        stockDrafts[
-                                                            productId
-                                                        ] ??
-                                                        item.stock.toString()
-                                                    }
-                                                    onChange={(event) =>
-                                                        handleStockChange(
-                                                            productId,
-                                                            event
-                                                        )
-                                                    }
-                                                    className="w-24 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                                                />
+                                                {item.product.inventoryActivated ? (
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="1"
+                                                        value={
+                                                            stockDrafts[
+                                                                productId
+                                                            ] ??
+                                                            item.stock.toString()
+                                                        }
+                                                        onChange={(event) =>
+                                                            handleStockChange(
+                                                                productId,
+                                                                event
+                                                            )
+                                                        }
+                                                        className="w-24 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                    />
+                                                ) : (
+                                                    <span className="text-sm text-slate-500">
+                                                        N/A
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <button
