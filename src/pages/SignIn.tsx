@@ -20,6 +20,9 @@ export function SignIn() {
     const [salesCode, setSalesCode] = useState<string[]>(() =>
         Array(4).fill("")
     );
+    const [inventoryCode, setInventoryCode] = useState<string[]>(() =>
+        Array(4).fill("")
+    );
 
     useEffect(() => {
         setError(null);
@@ -28,6 +31,7 @@ export function SignIn() {
     const resetCodes = useCallback(() => {
         setAdministratorCode(Array(4).fill(""));
         setSalesCode(Array(4).fill(""));
+        setInventoryCode(Array(4).fill(""));
     }, []);
 
     useEffect(() => {
@@ -62,8 +66,9 @@ export function SignIn() {
                 (digit) => digit !== ""
             );
             const salesComplete = salesCode.every((digit) => digit !== "");
+            const inventoryComplete = inventoryCode.every((digit) => digit !== "");
 
-            if (!adminComplete || !salesComplete) {
+            if (!adminComplete || !salesComplete || !inventoryComplete) {
                 setError(
                     "Ingresa los códigos completos de 4 dígitos para cada área."
                 );
@@ -215,6 +220,12 @@ export function SignIn() {
                                     name="salesCode"
                                     value={salesCode}
                                     onChange={setSalesCode}
+                                />
+                                <CodePinInput
+                                    label="Código de inventario"
+                                    name="inventoryCode"
+                                    value={inventoryCode}
+                                    onChange={setInventoryCode}
                                 />
                             </div>
                         )}

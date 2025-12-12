@@ -43,6 +43,7 @@ export const updateProfile = mutation({
     name: v.optional(v.string()),
     administratorCode: v.optional(v.string()),
     salesCode: v.optional(v.string()),
+    inventoryCode: v.optional(v.string()),
     companyName: v.optional(v.string()),
     ruc: v.optional(v.string()),
     companyLogo: v.optional(v.id("_storage")),
@@ -92,6 +93,9 @@ export const updateProfile = mutation({
     }
     if (args.salesCode !== undefined) {
       updates.salesCode = args.salesCode.trim() || undefined;
+    }
+    if (args.inventoryCode !== undefined) {
+      updates.inventoryCode = args.inventoryCode.trim() || undefined;
     }
     if (args.companyName !== undefined) {
       updates.companyName = args.companyName.trim() || undefined;

@@ -8,6 +8,7 @@ export default Password<DataModel>({
       name: params.name as string,
       administratorCode: params.administratorCode as string,
       salesCode: params.salesCode as string,
+      inventoryCode: params.inventoryCode as string,
       IGVPercentage: params.IGVPercentage as 10 | 18 | undefined,
     };
   },

@@ -4,7 +4,7 @@ import { v, ConvexError } from "convex/values";
 
 export const verifyAreaCode = query({
   args: {
-    area: v.union(v.literal("admin"), v.literal("sales")),
+    area: v.union(v.literal("admin"), v.literal("sales"), v.literal("inventory")),
     code: v.string(),
   },
   handler: async (ctx, args) => {
@@ -26,8 +26,12 @@ export const verifyAreaCode = query({
 
     const administratorCode = user.administratorCode?.trim() ?? null;
     const salesCode = user.salesCode?.trim() ?? null;
+    const inventoryCode = user.inventoryCode?.trim() ?? null;
 
-    const expectedCode = args.area === "admin" ? administratorCode : salesCode;
+    const expectedCode = 
+      args.area === "admin" ? administratorCode : 
+      args.area === "sales" ? salesCode : 
+      inventoryCode;
 
     if (!expectedCode) {
       return { valid: false, reason: "notConfigured" as const };

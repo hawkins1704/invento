@@ -14,6 +14,7 @@ export default defineSchema({
     isAnonymous: v.optional(v.boolean()),
     administratorCode: v.optional(v.string()),
     salesCode: v.optional(v.string()),
+    inventoryCode: v.string(),
     IGVPercentage: v.optional(v.union(v.literal(10), v.literal(18))),
     personaId: v.optional(v.string()),
     personaToken: v.optional(v.string()),

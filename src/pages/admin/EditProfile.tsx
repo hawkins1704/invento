@@ -12,6 +12,7 @@ type ProfileFormState = {
   name: string;
   administratorCode: string;
   salesCode: string;
+  inventoryCode: string;
   companyName: string;
   companyCommercialName: string;
   ruc: string;
@@ -32,6 +33,7 @@ const DEFAULT_FORM: ProfileFormState = {
   name: "",
   administratorCode: "",
   salesCode: "",
+  inventoryCode: "",
     companyName: "",
     companyCommercialName: "",
     ruc: "",
@@ -68,6 +70,7 @@ const EditProfile = () => {
         name: currentUser.name ?? "",
         administratorCode: currentUser.administratorCode ?? "",
         salesCode: currentUser.salesCode ?? "",
+        inventoryCode: (currentUser as Doc<"users">).inventoryCode ?? "",
         companyName: currentUser.companyName ?? "",
         companyCommercialName: (currentUser as Doc<"users">).companyCommercialName ?? "",
         ruc: (currentUser as Doc<"users">).ruc ?? "",
@@ -167,6 +170,7 @@ const EditProfile = () => {
         name: formState.name.trim() || undefined,
         administratorCode: formState.administratorCode.trim() || undefined,
         salesCode: formState.salesCode.trim() || undefined,
+        inventoryCode: formState.inventoryCode.trim() || undefined,
         companyName: formState.companyName.trim() || undefined,
         companyCommercialName: formState.companyCommercialName.trim() || undefined,
         ruc: formState.ruc.trim() || undefined,
@@ -302,6 +306,24 @@ const EditProfile = () => {
                 onChange={handleChange}
                 className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                 placeholder="Código de ventas"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="inventoryCode"
+                className="text-sm font-medium text-slate-200"
+              >
+                Código de Inventario
+              </label>
+              <input
+                id="inventoryCode"
+                name="inventoryCode"
+                type="text"
+                value={formState.inventoryCode}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                placeholder="Código de inventario"
               />
             </div>
           </div>
