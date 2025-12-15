@@ -17,11 +17,12 @@ const AdminDashboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>("today");
 
   // Calcular fechas según el período seleccionado
-  const { from, to, periodLabel } = useMemo(() => {
+  const { from, to, periodLabel, dateRangeLabel } = useMemo(() => {
     const now = Date.now();
     let from: number;
     let to: number;
     let label: string;
+    let dateRange: string;
 
     switch (selectedPeriod) {
       case "today": {
@@ -32,6 +33,7 @@ const AdminDashboard = () => {
         from = startOfDay.getTime();
         to = endOfDay.getTime();
         label = "Hoy";
+        dateRange = formatDate(now);
         break;
       }
       case "lastWeek": {
@@ -43,6 +45,7 @@ const AdminDashboard = () => {
         from = startOfWeek.getTime();
         to = endOfDay.getTime();
         label = "Última semana";
+        dateRange = `${formatDate(from)} - ${formatDate(to)}`;
         break;
       }
       case "lastMonth": {
@@ -54,11 +57,12 @@ const AdminDashboard = () => {
         from = startOfMonth.getTime();
         to = endOfDay.getTime();
         label = "Último mes";
+        dateRange = `${formatDate(from)} - ${formatDate(to)}`;
         break;
       }
     }
 
-    return { from, to, periodLabel: label };
+    return { from, to, periodLabel: label, dateRangeLabel: dateRange };
   }, [selectedPeriod]);
 
   // Queries para las métricas
@@ -107,13 +111,6 @@ const AdminDashboard = () => {
       }>
     | undefined;
 
-  const salesByHour = useQuery(api.sales.getSalesByHour, { from, to }) as
-    | Array<{
-        hour: number;
-        amount: number;
-      }>
-    | undefined;
-
   const lowStockAlerts = useQuery(api.branchInventory.getLowStockAlerts, { threshold: 10 }) as
     | Array<{
         productId: Id<"products">;
@@ -126,10 +123,6 @@ const AdminDashboard = () => {
     | undefined;
 
 
-  const formatHour = (hour: number) => {
-    return `${hour.toString().padStart(2, "0")}:00`;
-  };
-
   const getPaymentMethodLabel = (method: string) => {
     const labels: Record<string, string> = {
       Contado: "Efectivo",
@@ -140,10 +133,6 @@ const AdminDashboard = () => {
     };
     return labels[method] || method;
   };
-
-  const maxHourlyAmount = salesByHour
-    ? Math.max(...salesByHour.map((h) => h.amount), 1)
-    : 1;
 
   return (
     <div className="space-y-10">
@@ -173,7 +162,7 @@ const AdminDashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span>{periodLabel} - {formatDate(Date.now())}</span>
+            <span>{periodLabel} - {dateRangeLabel}</span>
           </div>
         </div>
       </header>
@@ -412,50 +401,6 @@ const AdminDashboard = () => {
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
-      </section>
-
-      {/* Sección 7: Gráfico de ventas por hora */}
-      <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
-        <h2 className="text-xl font-semibold text-white mb-6">Ventas por hora</h2>
-        {!salesByHour || salesByHour.length === 0 || salesByHour.every((h) => h.amount === 0) ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-400">
-            <HiOutlineReceiptTax className="w-8 h-8 text-slate-600" />
-            <p className="text-sm">Aún no hay ventas registradas en el período</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {salesByHour.map((hourData) => {
-              const barWidth = (hourData.amount / maxHourlyAmount) * 100;
-              const currentHour = new Date().getHours();
-              const isCurrentHour = hourData.hour === currentHour;
-
-              return (
-                <div key={hourData.hour} className="flex items-center gap-3">
-                  <div className="w-16 text-xs font-semibold text-slate-400">
-                    {formatHour(hourData.hour)}
-                  </div>
-                  <div className="flex-1 relative">
-                    <div className="h-8 rounded-lg bg-slate-950/60 overflow-hidden">
-                      <div
-                        className={`h-full rounded-lg transition-all ${
-                          isCurrentHour
-                            ? "bg-[#fa7316]"
-                            : hourData.amount > 0
-                              ? "bg-[#fa7316]/60"
-                              : "bg-slate-800"
-                        }`}
-                        style={{ width: `${Math.max(barWidth, hourData.amount > 0 ? 2 : 0)}%` }}
-                      />
-                    </div>
-                  </div>
-                  <div className="w-24 text-right">
-                    <p className="text-sm font-semibold text-white">{formatCurrency(hourData.amount)}</p>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         )}
       </section>

@@ -125,7 +125,7 @@ const Layout = () => {
     const branchButtonRef = useRef<HTMLButtonElement | null>(null);
     const branchMenuRef = useRef<HTMLDivElement | null>(null);
     const currentUser = useQuery(api.users.getCurrent) as
-        | Doc<"users">
+        | (Doc<"users"> & { companyLogoUrl: string | null })
         | undefined;
     const {
         branchId: shiftBranchId,
@@ -516,8 +516,16 @@ const Layout = () => {
                         }
             }`}
                     >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#fa7316]/20 text-sm font-semibold text-[#fa7316]">
-                            <FiUser size={16} />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#fa7316]/20 text-sm font-semibold text-[#fa7316] overflow-hidden">
+                            {currentUser?.companyLogoUrl ? (
+                                <img
+                                    src={currentUser.companyLogoUrl}
+                                    alt="Company logo"
+                                    className="h-full w-full object-cover"
+                                />
+                            ) : (
+                                <FiUser size={16} />
+                            )}
                         </div>
                         {!isCollapsed && (
                             <div className="flex flex-col text-left">

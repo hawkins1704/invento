@@ -10,6 +10,7 @@ import {
 } from "../../utils/format";
 import Chip from "../../components/Chip";
 import { FaRegSadTear } from "react-icons/fa";
+import { HiOutlineReceiptTax } from "react-icons/hi";
 import { LuStore } from "react-icons/lu";
 import DataTable from "../../components/table/DataTable";
 import TableRow from "../../components/table/TableRow";
@@ -326,7 +327,7 @@ const AdminSales = () => {
             branchId?: Id<"branches">;
             staffId?: Id<"staff">;
         } = {
-            limit: 10,
+            limit: 3,
             from: periodRange.from,
             to: periodRange.to,
         };
@@ -362,7 +363,7 @@ const AdminSales = () => {
             branchId?: Id<"branches">;
             staffId?: Id<"staff">;
         } = {
-            limit: 5,
+            limit: 3,
             from: periodRange.from,
             to: periodRange.to,
         };
@@ -383,6 +384,38 @@ const AdminSales = () => {
               staffId: Id<"staff"> | "sinStaff";
               staffName: string;
               totalAmount: number;
+          }>
+        | undefined;
+
+    const salesByHourArgs = useMemo(() => {
+        if (!periodRange) {
+            return "skip" as const;
+        }
+        const args: {
+            from: number;
+            to: number;
+            branchId?: Id<"branches">;
+            staffId?: Id<"staff">;
+        } = {
+            from: periodRange.from,
+            to: periodRange.to,
+        };
+        if (historyBranchFilter !== "all") {
+            args.branchId = historyBranchFilter;
+        }
+        if (historyStaffFilter !== "all") {
+            args.staffId = historyStaffFilter;
+        }
+        return args;
+    }, [periodRange, historyBranchFilter, historyStaffFilter]);
+
+    const salesByHour = useQuery(
+        api.sales.getSalesByHour,
+        salesByHourArgs === "skip" ? "skip" : salesByHourArgs
+    ) as
+        | Array<{
+              hour: number;
+              amount: number;
           }>
         | undefined;
 
@@ -489,6 +522,7 @@ const AdminSales = () => {
                     paymentBreakdown={paymentBreakdown}
                     topProducts={topProducts}
                     topStaff={topStaff}
+                    salesByHour={salesByHour}
                     period={period}
                     onPeriodChange={setPeriod}
                     customDateRange={customDateRange}
@@ -549,6 +583,12 @@ type HistoryViewProps = {
               totalAmount: number;
           }>
         | undefined;
+    salesByHour:
+        | Array<{
+              hour: number;
+              amount: number;
+          }>
+        | undefined;
     period: PeriodKey;
     onPeriodChange: (period: PeriodKey) => void;
     customDateRange: { from: Date | null; to: Date | null };
@@ -580,6 +620,7 @@ const HistoryView = ({
     paymentBreakdown: paymentBreakdownData,
     topProducts,
     topStaff: topStaffData,
+    salesByHour: salesByHourData,
     period,
     onPeriodChange,
     customDateRange,
@@ -873,73 +914,87 @@ const HistoryView = ({
                             </p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto p-5 pb-0">
-                            <DataTable
-                                columns={[
-                                    { label: "Fecha", key: "date" },
-                                    { label: "Sucursal", key: "branch" },
-                                    { label: "Mesa", key: "table" },
-                                    { label: "Atiende", key: "staff" },
-                                    { label: "Método", key: "method" },
-                                    {
-                                        label: "Total",
-                                        key: "total",
-                                        align: "right",
-                                    },
-                                ]}
-                                className="min-w-full"
-                            >
+                        <>
+                            {/* Vista de tarjetas para mobile */}
+                            <div className="space-y-3 p-5 md:hidden">
                                 {data.map((entry) => (
-                                    <TableRow key={entry.sale._id}>
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-col">
-                                                <span className="font-semibold text-white">
-                                                    {formatDate(
-                                                        entry.sale.closedAt ??
-                                                            entry.sale.openedAt
-                                                    )}
-                                                </span>
-                                                <span className="text-xs text-slate-400">
-                                                    {formatTime(
-                                                        entry.sale.closedAt ??
-                                                            entry.sale.openedAt
-                                                    )}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-200">
-                                            {branchNameById.get(
-                                                entry.sale.branchId as string
-                                            ) ?? "Sucursal"}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-300">
-                                            {entry.table?.label ?? "Sin mesa"}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-300">
-                                            {entry.sale.staffId
-                                                ? (staffNameById.get(
-                                                      entry.sale
-                                                          .staffId as string
-                                                  ) ?? "Personal")
-                                                : "Sin asignar"}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-300">
-                                            {entry.sale.paymentMethod
-                                                ? methodLabel(
-                                                      entry.sale.paymentMethod
-                                                  )
-                                                : "No registrado"}
-                                        </td>
-                                        <td className="px-6 py-4 text-right text-sm font-semibold text-white">
-                                            {formatCurrency(entry.sale.total)}
-                                        </td>
-                                    </TableRow>
+                                    <SaleCard
+                                        key={entry.sale._id}
+                                        entry={entry}
+                                        branchNameById={branchNameById}
+                                        staffNameById={staffNameById}
+                                    />
                                 ))}
-                            </DataTable>
-                        </div>
+                            </div>
+                            {/* Vista de tabla para tablet y desktop */}
+                            <div className="hidden md:block overflow-x-auto p-5 pb-0">
+                                <DataTable
+                                    columns={[
+                                        { label: "Fecha", key: "date" },
+                                        { label: "Sucursal", key: "branch" },
+                                        { label: "Mesa", key: "table" },
+                                        { label: "Atiende", key: "staff" },
+                                        { label: "Método", key: "method" },
+                                        {
+                                            label: "Total",
+                                            key: "total",
+                                            align: "right",
+                                        },
+                                    ]}
+                                    className="min-w-full"
+                                >
+                                    {data.map((entry) => (
+                                        <TableRow key={entry.sale._id}>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col">
+                                                    <span className="font-semibold text-white">
+                                                        {formatDate(
+                                                            entry.sale.closedAt ??
+                                                                entry.sale.openedAt
+                                                        )}
+                                                    </span>
+                                                    <span className="text-xs text-slate-400">
+                                                        {formatTime(
+                                                            entry.sale.closedAt ??
+                                                                entry.sale.openedAt
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-200">
+                                                {branchNameById.get(
+                                                    entry.sale.branchId as string
+                                                ) ?? "Sucursal"}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-300">
+                                                {entry.table?.label ?? "Sin mesa"}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-300">
+                                                {entry.sale.staffId
+                                                    ? (staffNameById.get(
+                                                          entry.sale
+                                                              .staffId as string
+                                                      ) ?? "Personal")
+                                                    : "Sin asignar"}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-300">
+                                                {entry.sale.paymentMethod
+                                                    ? methodLabel(
+                                                          entry.sale.paymentMethod
+                                                      )
+                                                    : "No registrado"}
+                                            </td>
+                                            <td className="px-6 py-4 text-right text-sm font-semibold text-white">
+                                                {formatCurrency(entry.sale.total)}
+                                            </td>
+                                        </TableRow>
+                                    ))}
+                                </DataTable>
+                            </div>
+                        </>
                     )}
 
-                    <div className=" border-slate-800 px-5 pb-5">
+                    <div className="border-slate-800 px-5 pb-5">
                         <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -951,7 +1006,7 @@ const HistoryView = ({
                     </div>
                 </div>
 
-                <div className="space-y-5">
+                <div className="grid gap-4 lg:grid-cols-3">
                     <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-white shadow-inner shadow-black/20">
                         <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
                             Métodos de pago
@@ -1049,6 +1104,120 @@ const HistoryView = ({
                         </ul>
                     </div>
                 </div>
+            </section>
+
+            <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+                <h2 className="text-lg font-semibold mb-6">Mapa de ventas por hora</h2>
+                {!salesByHourData ||
+                salesByHourData.length === 0 ||
+                salesByHourData.every((h) => h.amount === 0) ? (
+                    <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-400">
+                        <HiOutlineReceiptTax size={40} />
+                        <p className="text-sm">
+                            Aún no hay ventas registradas en el periodo
+                            seleccionado.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {(() => {
+                            const maxHourlyAmount = Math.max(
+                                ...salesByHourData.map((h) => h.amount),
+                                1
+                            );
+                            const formatHour = (hour: number) => {
+                                return `${hour.toString().padStart(2, "0")}:00`;
+                            };
+
+                            return (
+                                <div className="flex flex-col gap-2">
+                                    {/* Gráfico vertical en móvil, horizontal en pantallas grandes */}
+                                    {/* Móvil: barras horizontales apiladas verticalmente */}
+                                    <div className="flex flex-col gap-2 md:hidden">
+                                        {salesByHourData.map((hourData) => {
+                                            const barWidth =
+                                                (hourData.amount / maxHourlyAmount) * 100;
+                                            
+                                            const intensity = hourData.amount > 0 
+                                                ? Math.max(0.3, barWidth / 100)
+                                                : 0;
+
+                                            return (
+                                                <div
+                                                    key={hourData.hour}
+                                                    className="flex items-center gap-3"
+                                                >
+                                                    <div className="w-16 text-xs font-semibold text-slate-400">
+                                                        {formatHour(hourData.hour)}
+                                                    </div>
+                                                    <div className="flex-1 relative">
+                                                        <div className="h-8 rounded-lg bg-slate-950/60 overflow-hidden">
+                                                            <div
+                                                                className="h-full rounded-lg transition-all bg-[#fa7316]"
+                                                                style={{
+                                                                    width: `${Math.max(
+                                                                        barWidth,
+                                                                        hourData.amount > 0
+                                                                            ? 2
+                                                                            : 0
+                                                                    )}%`,
+                                                                    opacity: intensity,
+                                                                    minWidth: hourData.amount > 0 ? '2px' : '0',
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Desktop: barras verticales en horizontal */}
+                                    <div className="hidden md:flex items-end justify-between gap-1 h-64 px-2">
+                                        {salesByHourData.map((hourData) => {
+                                            const barHeight =
+                                                (hourData.amount / maxHourlyAmount) * 100;
+                                            
+                                            const intensity = hourData.amount > 0 
+                                                ? Math.max(0.3, barHeight / 100)
+                                                : 0;
+
+                                            return (
+                                                <div
+                                                    key={hourData.hour}
+                                                    className="flex-1 flex flex-col items-center gap-1 h-full"
+                                                >
+                                                    {/* Barra vertical */}
+                                                    <div className="w-full flex-1 flex items-end relative">
+                                                        <div className="w-full rounded-t-lg bg-slate-950/60 overflow-hidden h-full flex items-end">
+                                                            <div
+                                                                className="w-full rounded-t-lg transition-all bg-[#fa7316]"
+                                                                style={{
+                                                                    height: `${Math.max(
+                                                                        barHeight,
+                                                                        hourData.amount > 0
+                                                                            ? 2
+                                                                            : 0
+                                                                    )}%`,
+                                                                    opacity: intensity,
+                                                                    minHeight: hourData.amount > 0 ? '2px' : '0',
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    {/* Hora en el eje X */}
+                                                    <div className="text-xs font-semibold text-slate-400 mt-1">
+                                                        {formatHour(hourData.hour)}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+                    </div>
+                )}
             </section>
         </div>
     );
@@ -1272,6 +1441,69 @@ const formatTime = (timestamp: number) => {
         hour: "2-digit",
         minute: "2-digit",
     });
+};
+
+const SaleCard = ({
+    entry,
+    branchNameById,
+    staffNameById,
+}: {
+    entry: HistorySale;
+    branchNameById: Map<string, string>;
+    staffNameById: Map<string, string>;
+}) => {
+    return (
+        <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60">
+            <div className="flex items-start justify-between gap-4 mb-3">
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white">
+                        {formatCurrency(entry.sale.total)}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                        {formatDate(
+                            entry.sale.closedAt ?? entry.sale.openedAt
+                        )}{" "}
+                        {formatTime(
+                            entry.sale.closedAt ?? entry.sale.openedAt
+                        )}
+                    </p>
+                </div>
+                <div className="flex-shrink-0">
+                    <span className="inline-flex items-center rounded-full border border-slate-800 bg-slate-900/60 px-3 py-1 text-xs font-semibold text-slate-300">
+                        {entry.sale.paymentMethod
+                            ? methodLabel(entry.sale.paymentMethod)
+                            : "No registrado"}
+                    </span>
+                </div>
+            </div>
+            <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500">Sucursal:</span>
+                    <p className="text-sm font-medium text-slate-200">
+                        {branchNameById.get(
+                            entry.sale.branchId as string
+                        ) ?? "Sucursal"}
+                    </p>
+                </div>
+                <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500">Mesa:</span>
+                    <p className="text-sm font-medium text-slate-300">
+                        {entry.table?.label ?? "Sin mesa"}
+                    </p>
+                </div>
+                <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500">Atiende:</span>
+                    <p className="text-sm font-medium text-slate-300">
+                        {entry.sale.staffId
+                            ? (staffNameById.get(
+                                  entry.sale.staffId as string
+                              ) ?? "Personal")
+                            : "Sin asignar"}
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default AdminSales;

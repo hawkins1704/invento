@@ -1085,6 +1085,8 @@ export const getSalesByHour = query({
   args: {
     from: v.optional(v.number()),
     to: v.optional(v.number()),
+    branchId: v.optional(v.id("branches")),
+    staffId: v.optional(v.id("staff")),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx)
@@ -1109,7 +1111,16 @@ export const getSalesByHour = query({
       .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
       .collect()
 
-    const closedSales = todaySales.filter((sale) => sale.status === "closed" && sale.closedAt)
+    let closedSales = todaySales.filter((sale) => sale.status === "closed" && sale.closedAt)
+
+    // Aplicar filtros opcionales
+    if (args.branchId) {
+      closedSales = closedSales.filter((sale) => sale.branchId === args.branchId)
+    }
+
+    if (args.staffId) {
+      closedSales = closedSales.filter((sale) => sale.staffId === args.staffId)
+    }
 
     // Inicializar horas del día (0-23)
     const hourlyData = new Map<number, number>()
@@ -1129,7 +1140,7 @@ export const getSalesByHour = query({
         })
         const hour = parseInt(hourString, 10)
         const current = hourlyData.get(hour) ?? 0
-        hourlyData.set(hour, current + sale.total)
+        hourlyData.set(hour, current + 1) // Contar cantidad de ventas, no monto
       }
     })
 

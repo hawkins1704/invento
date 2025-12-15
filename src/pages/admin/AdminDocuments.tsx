@@ -7,6 +7,11 @@ import type { APISUNATDocument, PDFFormat } from "../../types/apisunat";
 import { formatDate } from "../../utils/format";
 import { FaDownload, FaSpinner } from "react-icons/fa";
 import CloseButton from "../../components/CloseButton";
+import DataTable from "../../components/table/DataTable";
+import TableRow from "../../components/table/TableRow";
+import Pagination from "../../components/pagination/Pagination";
+import EmptyState from "../../components/empty-state/EmptyState";
+import PageHeader from "../../components/page-header/PageHeader";
 
 const getStatusBadge = (status: string) => {
   const statusConfig = {
@@ -55,11 +60,15 @@ const getDocumentTypeName = (type: string): string => {
   return typeMap[type] || type;
 };
 
+const ITEMS_PER_PAGE = 10;
+
 const AdminDocuments = () => {
   const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
   const { listDocuments, downloadPDF, isLoading, error } = useAPISUNAT();
   const [documents, setDocuments] = useState<APISUNATDocument[]>([]);
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [selectedDocument, setSelectedDocument] = useState<APISUNATDocument | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<PDFFormat>("A4");
   const [isDownloading, setIsDownloading] = useState(false);
@@ -72,17 +81,31 @@ const AdminDocuments = () => {
       }
 
       setIsLoadingDocuments(true);
+      const skip = (currentPage - 1) * ITEMS_PER_PAGE;
       const result = await listDocuments(
         currentUser.personaId,
         currentUser.personaToken,
         {
-          limit: 100,
+          limit: ITEMS_PER_PAGE,
+          skip,
           order: "DESC",
         }
       );
 
       if (result) {
         setDocuments(result);
+        // Si la respuesta tiene menos elementos que el limit, es la última página
+        if (result.length < ITEMS_PER_PAGE) {
+          setTotalItems(skip + result.length);
+        } else {
+          // Si tiene exactamente el limit, podría haber más páginas
+          // Establecemos totalItems para permitir navegar a la siguiente página
+          // Si ya tenemos un totalItems mayor, lo mantenemos, sino asumimos que hay al menos una página más
+          setTotalItems((prevTotal) => {
+            const minTotal = skip + result.length + 1;
+            return prevTotal > minTotal ? prevTotal : minTotal;
+          });
+        }
       }
       setIsLoadingDocuments(false);
     };
@@ -90,7 +113,13 @@ const AdminDocuments = () => {
     if (currentUser?.personaId && currentUser?.personaToken) {
       void loadDocuments();
     }
-  }, [currentUser?.personaId, currentUser?.personaToken, listDocuments]);
+  }, [currentUser?.personaId, currentUser?.personaToken, listDocuments, currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
   const handleDownloadClick = (document: APISUNATDocument) => {
     setSelectedDocument(document);
@@ -142,14 +171,11 @@ const AdminDocuments = () => {
   if (!currentUser.personaId || !currentUser.personaToken) {
     return (
       <div className="space-y-8">
-        <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-3">
-            <h1 className="text-3xl font-semibold">Documentos Emitidos</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400">
-              Visualiza todos los documentos electrónicos emitidos a través de APISUNAT.
-            </p>
-          </div>
-        </header>
+        <PageHeader
+          chipLabel="Documentos"
+          title="Documentos Emitidos"
+          description="Visualiza todos los documentos electrónicos emitidos a través de APISUNAT."
+        />
 
         <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
@@ -167,14 +193,11 @@ const AdminDocuments = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-3">
-          <h1 className="text-3xl font-semibold">Documentos Emitidos</h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">
-            Visualiza todos los documentos electrónicos emitidos como boletas de venta o facturas.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        chipLabel="Documentos"
+        title="Documentos Emitidos"
+        description="Visualiza todos los documentos electrónicos emitidos como boletas de venta o facturas."
+      />
 
       <section className="">
         {isLoadingDocuments || isLoading ? (
@@ -192,45 +215,36 @@ const AdminDocuments = () => {
             <p className="text-sm text-red-400">{error}</p>
           </div>
         ) : documents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-            <span className="text-4xl" aria-hidden>
-              📄
-            </span>
-            <p className="text-sm text-slate-400">
-              No hay documentos emitidos aún. Los documentos aparecerán aquí después de ser emitidos.
-            </p>
-          </div>
+          <EmptyState
+            icon={<span className="text-4xl">📄</span>}
+            message="No hay documentos emitidos aún. Los documentos aparecerán aquí después de ser emitidos."
+          />
         ) : (
-          <div className="overflow-hidden rounded-lg border border-slate-800">
-            <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Filename
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Tipo
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Fecha Emisión
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Fecha Respuesta
-                  </th>
-                  <th scope="col" className="px-6 py-4 font-semibold">
-                    Descargar
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
-                {documents.map((document, index) => (
-                  <tr
-                    key={index}
-                    className="transition hover:bg-slate-900/60"
-                  >
+          <>
+            {/* Vista de tarjetas para mobile */}
+            <div className="space-y-3 md:hidden">
+              {documents.map((document) => (
+                <DocumentCard
+                  key={document.id}
+                  document={document}
+                  onDownloadClick={handleDownloadClick}
+                />
+              ))}
+            </div>
+            {/* Vista de tabla para tablet y desktop */}
+            <div className="hidden md:block">
+              <DataTable
+                columns={[
+                  { label: "Filename", key: "filename" },
+                  { label: "Tipo", key: "type" },
+                  { label: "Status", key: "status" },
+                  { label: "Fecha Emisión", key: "issueDate" },
+                  { label: "Fecha Respuesta", key: "responseDate" },
+                  { label: "Descargar", key: "download", align: "right" },
+                ]}
+              >
+                {documents.map((document) => (
+                  <TableRow key={document.id}>
                     <td className="px-6 py-4">
                       <p className="text-sm font-semibold text-white">
                         {document.fileName}
@@ -248,21 +262,29 @@ const AdminDocuments = () => {
                     <td className="px-6 py-4 text-sm text-slate-300">
                       {document.responseTime ? formatDate(document.responseTime * 1000) : "-"}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-right">
                       <button
                         type="button"
                         onClick={() => handleDownloadClick(document)}
-                        className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900/50 p-2 text-slate-300 transition hover:border-[#fa7316]  hover:text-[#fa7316] cursor-pointer"
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900/50 p-2 text-slate-300 transition hover:border-[#fa7316] hover:text-[#fa7316] cursor-pointer"
                         aria-label="Descargar PDF"
                       >
                         <FaDownload className="text-lg" />
                       </button>
                     </td>
-                  </tr>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </DataTable>
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={handlePageChange}
+              itemLabel="documentos"
+            />
+          </>
         )}
       </section>
 
@@ -345,6 +367,59 @@ const AdminDocuments = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+const DocumentCard = ({
+  document,
+  onDownloadClick,
+}: {
+  document: APISUNATDocument;
+  onDownloadClick: (document: APISUNATDocument) => void;
+}) => {
+  return (
+    <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60">
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white truncate">
+            {document.fileName}
+          </p>
+          <p className="text-xs text-slate-400 mt-1">
+            {getDocumentTypeName(document.type)}
+          </p>
+        </div>
+        <div className="flex-shrink-0">
+          {getStatusBadge(document.status)}
+        </div>
+      </div>
+      <div className="space-y-2 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-slate-500">Fecha Emisión:</span>
+          <p className="text-sm font-medium text-slate-200">
+            {formatDate(document.issueTime * 1000)}
+          </p>
+        </div>
+        {document.responseTime && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500">Fecha Respuesta:</span>
+            <p className="text-sm font-medium text-slate-200">
+              {formatDate(document.responseTime * 1000)}
+            </p>
+          </div>
+        )}
+      </div>
+      <div className="mt-3 pt-3 border-t border-slate-800">
+        <button
+          type="button"
+          onClick={() => onDownloadClick(document)}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-[#fa7316]"
+          aria-label="Descargar PDF"
+        >
+          <FaDownload className="text-sm" />
+          Descargar PDF
+        </button>
+      </div>
     </div>
   );
 };
