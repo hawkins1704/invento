@@ -135,15 +135,19 @@ const Layout = () => {
         isLoadingShift,
         setBranchId,
     } = useSalesShift();
-    const shiftStaff = useQuery(
+    const shiftStaffData = useQuery(
         api.staff.list,
         shiftBranchId
             ? ({
                   branchId: shiftBranchId as Id<"branches">,
                   includeInactive: false,
+                  limit: 1000,
+                  offset: 0,
               } as const)
             : "skip"
-    ) as Doc<"staff">[] | undefined;
+    ) as { staff: Doc<"staff">[]; total: number } | undefined;
+    
+    const shiftStaff = shiftStaffData?.staff ?? [];
     const openShiftMutation = useMutation(api.shifts.open);
     const closeShiftMutation = useMutation(api.shifts.close);
     const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);

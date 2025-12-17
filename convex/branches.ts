@@ -78,6 +78,8 @@ export const update = mutation({
     branchId: v.id("branches"),
     name: v.string(),
     address: v.string(),
+    serieBoleta: v.optional(v.string()),
+    serieFactura: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -100,10 +102,19 @@ export const update = mutation({
       throw new ConvexError("Ya existe una sucursal con ese nombre.");
     }
 
-    await ctx.db.patch(args.branchId, {
+    const updates: Record<string, unknown> = {
       name: normalizedName,
       address: args.address.trim(),
-    });
+    };
+
+    if (args.serieBoleta !== undefined) {
+      updates.serieBoleta = args.serieBoleta.trim() || undefined;
+    }
+    if (args.serieFactura !== undefined) {
+      updates.serieFactura = args.serieFactura.trim() || undefined;
+    }
+
+    await ctx.db.patch(args.branchId, updates);
   },
 });
 

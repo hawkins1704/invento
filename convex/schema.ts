@@ -18,8 +18,6 @@ export default defineSchema({
     IGVPercentage: v.optional(v.union(v.literal(10), v.literal(18))),
     personaId: v.optional(v.string()),
     personaToken: v.optional(v.string()),
-    serieBoleta: v.optional(v.string()),
-    serieFactura: v.optional(v.string()),
     companyName: v.optional(v.string()),
     companyCommercialName: v.optional(v.string()),
     ruc: v.optional(v.string()),
@@ -47,6 +45,8 @@ export default defineSchema({
   branches: defineTable({
     name: v.string(),
     address: v.string(),
+    serieBoleta: v.optional(v.string()),
+    serieFactura: v.optional(v.string()),
   }).index("name", ["name"]),
   branchInventories: defineTable({
     branchId: v.id("branches"),

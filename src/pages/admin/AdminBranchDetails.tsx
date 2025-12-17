@@ -117,11 +117,15 @@ const InventoryProductCard = ({
 type BranchFormState = {
     name: string;
     address: string;
+    serieBoleta: string;
+    serieFactura: string;
 };
 
 const DEFAULT_BRANCH_FORM: BranchFormState = {
     name: "",
     address: "",
+    serieBoleta: "",
+    serieFactura: "",
 };
 
 type TableFormState = {
@@ -319,11 +323,15 @@ const AdminBranchDetails = () => {
                 const next = {
                     name: branch.name,
                     address: branch.address,
+                    serieBoleta: branch.serieBoleta ?? "",
+                    serieFactura: branch.serieFactura ?? "",
                 };
 
                 if (
                     previous.name === next.name &&
-                    previous.address === next.address
+                    previous.address === next.address &&
+                    previous.serieBoleta === next.serieBoleta &&
+                    previous.serieFactura === next.serieFactura
                 ) {
                     return previous;
                 }
@@ -445,6 +453,8 @@ const AdminBranchDetails = () => {
             setBranchForm({
                 name: branch.name,
                 address: branch.address,
+                serieBoleta: branch.serieBoleta ?? "",
+                serieFactura: branch.serieFactura ?? "",
             });
         } else {
             setBranchForm(DEFAULT_BRANCH_FORM);
@@ -476,6 +486,8 @@ const AdminBranchDetails = () => {
                 branchId,
                 name: branchForm.name.trim(),
                 address: branchForm.address.trim(),
+                serieBoleta: branchForm.serieBoleta.trim() || undefined,
+                serieFactura: branchForm.serieFactura.trim() || undefined,
             });
             setIsEditingBranch(false);
         } catch (error) {
@@ -656,6 +668,48 @@ const AdminBranchDetails = () => {
                                     className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
                                 />
                             </div>
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="serieBoleta"
+                                    className="text-sm font-medium text-slate-200"
+                                >
+                                    Serie Boleta
+                                </label>
+                                <input
+                                    id="serieBoleta"
+                                    name="serieBoleta"
+                                    type="text"
+                                    maxLength={4}
+                                    value={branchForm.serieBoleta}
+                                    onChange={handleBranchFormChange}
+                                    placeholder="B001"
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                />
+                                <p className="text-xs text-slate-400">
+                                    4 caracteres (ej: B001)
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="serieFactura"
+                                    className="text-sm font-medium text-slate-200"
+                                >
+                                    Serie Factura
+                                </label>
+                                <input
+                                    id="serieFactura"
+                                    name="serieFactura"
+                                    type="text"
+                                    maxLength={4}
+                                    value={branchForm.serieFactura}
+                                    onChange={handleBranchFormChange}
+                                    placeholder="F001"
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                />
+                                <p className="text-xs text-slate-400">
+                                    4 caracteres (ej: F001)
+                                </p>
+                            </div>
                         </div>
 
                         {branchFormError && (
@@ -723,6 +777,17 @@ const AdminBranchDetails = () => {
                                 title="Ocupadas"
                                 value={occupiedTables.toString()}
                                 helper="Mesas con ventas activas."
+                            />
+
+                            <SummaryStatCard
+                                title="Serie Boleta"
+                                value={branch?.serieBoleta ?? "—"}
+                                helper="Serie de boletas para la sucursal."
+                            />
+                            <SummaryStatCard
+                                title="Serie Factura"
+                                value={branch?.serieFactura ?? "—"}
+                                helper="Serie de facturas para la sucursal."
                             />
                         </div>
                     </>
@@ -1113,7 +1178,8 @@ const AdminBranchDetails = () => {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-white">
-                                                {item.product.inventoryActivated ? (
+                                                {item.product
+                                                    .inventoryActivated ? (
                                                     <input
                                                         type="number"
                                                         min="0"

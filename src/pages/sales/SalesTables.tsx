@@ -671,10 +671,10 @@ const SalesTablesContent = ({
                             !currentUser?.personaId ||
                             !currentUser?.personaToken ||
                             !currentUser?.ruc ||
-                            !currentUser?.serieBoleta
+                            !branch.serieBoleta
                         ) {
                             throw new Error(
-                                "Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Boleta"
+                                "Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Boleta de la sucursal"
                             );
                         }
 
@@ -683,7 +683,7 @@ const SalesTablesContent = ({
                             personaId: currentUser.personaId,
                             personaToken: currentUser.personaToken,
                             type: "03", // Boleta
-                            serie: currentUser.serieBoleta,
+                            serie: branch.serieBoleta,
                         });
 
                         if (!lastDocResponse) {
@@ -696,7 +696,7 @@ const SalesTablesContent = ({
                         const fileName = buildSunatFileName(
                             currentUser.ruc,
                             "03", // Boleta
-                            currentUser.serieBoleta,
+                            branch.serieBoleta,
                             lastDocResponse.suggestedNumber
                         );
 
@@ -721,7 +721,7 @@ const SalesTablesContent = ({
 
                         const documentBody = buildDocumentBody({
                             documentType: "03", // Boleta
-                            serie: currentUser.serieBoleta,
+                            serie: branch.serieBoleta,
                             correlativo: lastDocResponse.suggestedNumber,
                             saleData: {
                                 sale: {
@@ -886,10 +886,10 @@ const SalesTablesContent = ({
                             !currentUser?.personaId ||
                             !currentUser?.personaToken ||
                             !currentUser?.ruc ||
-                            !currentUser?.serieFactura
+                            !branch.serieFactura
                         ) {
                             throw new Error(
-                                "Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Factura"
+                                "Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Factura de la sucursal"
                             );
                         }
 
@@ -898,7 +898,7 @@ const SalesTablesContent = ({
                             personaId: currentUser.personaId,
                             personaToken: currentUser.personaToken,
                             type: "01", // Factura
-                            serie: currentUser.serieFactura,
+                            serie: branch.serieFactura,
                         });
 
                         if (!lastDocResponse) {
@@ -911,7 +911,7 @@ const SalesTablesContent = ({
                         const fileName = buildSunatFileName(
                             currentUser.ruc,
                             "01", // Factura
-                            currentUser.serieFactura,
+                            branch.serieFactura,
                             lastDocResponse.suggestedNumber
                         );
 
@@ -936,7 +936,7 @@ const SalesTablesContent = ({
 
                         const documentBody = buildDocumentBody({
                             documentType: "01", // Factura
-                            serie: currentUser.serieFactura,
+                            serie: branch.serieFactura,
                             correlativo: lastDocResponse.suggestedNumber,
                             saleData: {
                                 sale: {
@@ -2244,7 +2244,7 @@ const SaleEditorDrawer = ({
     };
 
     return (
-        <div className="fixed inset-y-0 right-0 z-40 flex flex-col w-full border-l border-slate-800 bg-slate-950/95 text-white shadow-xl shadow-black/50">
+        <div className="fixed inset-0 right-0 z-50 flex flex-col w-full  bg-slate-950 text-white shadow-xl shadow-black/50">
             <header className="flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-800">
                 <div>
                     <p className="text-xs uppercase tracking-[0.1em] text-slate-400">
@@ -2368,9 +2368,13 @@ const SaleEditorDrawer = ({
                                                             product.price
                                                         )}
                                                     </p>
-                                                    <p className="text-xs text-slate-400">
-                                                        Stock: {availableStock}
-                                                    </p>
+                                                    {
+                                                        product.inventoryActivated && (
+                                                            <p className="text-xs text-slate-400">
+                                                                Stock: {availableStock}
+                                                            </p>
+                                                        )
+                                                    }
                                                 </div>
                                             </div>
                                         </button>
