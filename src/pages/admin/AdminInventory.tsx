@@ -23,6 +23,8 @@ type ProductFormState = {
   price: string;
   stocks: Record<string, string>;
   imageFile: File | null;
+  inventoryActivated: boolean;
+  allowNegativeSale: boolean;
 };
 
 const DEFAULT_FORM: ProductFormState = {
@@ -33,6 +35,8 @@ const DEFAULT_FORM: ProductFormState = {
   price: "",
   stocks: {},
   imageFile: null,
+  inventoryActivated: true,
+  allowNegativeSale: false,
 };
 
 const formatCurrency = (value: number) =>
@@ -77,10 +81,20 @@ const AdminInventory = () => {
   const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [formState, setFormState] = useState<ProductFormState>(DEFAULT_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [lastEditedField, setLastEditedField] = useState<"unitValue" | "price" | null>(null);
+  
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsFormOpen(false);
+      setIsClosing(false);
+      initializeForm();
+    }, 300); // Esperar a que termine la animación (300ms)
+  };
 
   const IGVPercentage = currentUser?.IGVPercentage ?? 18;
   
@@ -167,6 +181,8 @@ const updateStockField = (branchId: string, value: string) => {
       ...DEFAULT_FORM,
       categoryId: initialCategory,
       stocks: initialStocks,
+      inventoryActivated: true,
+      allowNegativeSale: false,
     });
     setLastEditedField(null);
     setFormError(null);
@@ -181,11 +197,6 @@ const updateStockField = (branchId: string, value: string) => {
       return;
     }
 
-    if (!branches || branches.length === 0) {
-      setFormError("Crea al menos una sucursal antes de agregar productos.");
-      return;
-    }
-
     // Función para redondear a 2 decimales
     const roundToCents = (val: number): number => Math.round(val * 100) / 100;
     
@@ -196,26 +207,34 @@ const updateStockField = (branchId: string, value: string) => {
       return;
     }
 
-    let stockByBranch: { branchId: Id<"branches">; stock: number }[];
+    let stockByBranch: { branchId: Id<"branches">; stock: number }[] = [];
 
-    try {
-      stockByBranch = branches.map((branch) => {
-        const key = branch._id as unknown as string;
-        const rawValue = formState.stocks[key] ?? "0";
-        const parsed = Number(rawValue);
-        if (Number.isNaN(parsed) || parsed < 0) {
-          throw new Error(`El stock para la sucursal ${branch.name} no es válido.`);
-        }
-        return {
-          branchId: branch._id,
-          stock: Math.floor(parsed),
-        };
-      });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Revisa los valores de stock ingresados.";
-      setFormError(message);
-      return;
+    // Solo validar y procesar stock si el inventario está activado
+    if (formState.inventoryActivated) {
+      if (!branches || branches.length === 0) {
+        setFormError("Crea al menos una sucursal antes de agregar productos con inventario.");
+        return;
+      }
+
+      try {
+        stockByBranch = branches.map((branch) => {
+          const key = branch._id as unknown as string;
+          const rawValue = formState.stocks[key] ?? "0";
+          const parsed = Number(rawValue);
+          if (Number.isNaN(parsed) || parsed < 0) {
+            throw new Error(`El stock para la sucursal ${branch.name} no es válido.`);
+          }
+          return {
+            branchId: branch._id,
+            stock: Math.floor(parsed),
+          };
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Revisa los valores de stock ingresados.";
+        setFormError(message);
+        return;
+      }
     }
 
     try {
@@ -253,14 +272,14 @@ const updateStockField = (branchId: string, value: string) => {
         unitValue: finalUnitValue,
         stockByBranch,
         ...(storageId ? { image: storageId } : {}),
-        inventoryActivated: true, // Por defecto activado al crear con stock
-        allowNegativeSale: false,
+        inventoryActivated: formState.inventoryActivated,
+        allowNegativeSale: formState.allowNegativeSale,
       });
 
-      initializeForm();
-      setIsFormOpen(false);
       // Reset to first page to see the new product
       setCurrentPage(1);
+      // Cerrar con animación
+      handleClose();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Ocurrió un problema creando el producto.";
@@ -359,17 +378,18 @@ const updateStockField = (branchId: string, value: string) => {
       </section>
 
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-          <div className="relative w-full max-w-2xl rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center px-4 py-10 backdrop-blur ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`}>
+          <div className={`absolute inset-0 bg-slate-950/70 ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`} />
+          <div className={`relative flex flex-col w-full max-w-2xl max-h-[90vh] rounded-lg border border-slate-800 bg-slate-900 text-white shadow-2xl shadow-black/60 ${isClosing ? 'animate-[fadeOutScale_0.3s_ease-out]' : 'animate-[fadeInScale_0.3s_ease-out]'}`}>
             <button
               type="button"
-              onClick={() => setIsFormOpen(false)}
-              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 text-slate-300 transition hover:text-white"
+              onClick={handleClose}
+              className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 text-slate-300 transition hover:text-white"
               aria-label="Cerrar"
             >
               ✕
             </button>
-            <header className="mb-6 space-y-2">
+            <header className="px-8 pt-8 pb-6 space-y-2 flex-shrink-0">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
                 Nuevo producto
               </span>
@@ -378,7 +398,8 @@ const updateStockField = (branchId: string, value: string) => {
                 Completa los detalles del producto y asigna el stock inicial para cada sucursal.
               </p>
             </header>
-            <form className="space-y-5" onSubmit={handleCreateProduct}>
+            <div className="flex-1 overflow-y-auto px-8">
+              <form id="product-form" className="space-y-5 pb-5" onSubmit={handleCreateProduct}>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-sm font-medium text-slate-200">
@@ -503,36 +524,118 @@ const updateStockField = (branchId: string, value: string) => {
                 </p>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-white">Stock inicial por sucursal</p>
-                {branches && branches.length > 0 ? (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {branches.map((branch) => {
-                      const branchKey = branch._id as unknown as string;
-                      return (
-                        <div
-                          key={branchKey}
-                          className="space-y-1 rounded-lg border border-slate-800 bg-slate-900/70 p-4"
-                        >
-                          <p className="text-sm font-semibold text-white">{branch.name}</p>
-                          <p className="text-xs text-slate-500">
-                            {branch.address}
-                          </p>
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={formState.stocks[branchKey] ?? "0"}
-                            onChange={(event) => updateStockField(branchKey, event.target.value)}
-                            className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                          />
-                        </div>
-                      );
-                    })}
+              <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900/60 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <label className="text-sm font-semibold text-white">
+                      Control de inventario
+                    </label>
+                    <p className="text-xs text-slate-400">
+                      Activa el control de stock para este producto
+                    </p>
                   </div>
-                ) : (
-                  <div className="rounded-lg border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
-                    Crea una sucursal para asignar stock.
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormState((previous) => ({
+                        ...previous,
+                        inventoryActivated: !previous.inventoryActivated,
+                        // Si se desactiva el inventario, también desactivar ventas en negativo
+                        allowNegativeSale: previous.inventoryActivated ? false : previous.allowNegativeSale,
+                      }))
+                    }
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                      formState.inventoryActivated
+                        ? "bg-[#fa7316]"
+                        : "bg-slate-700"
+                    }`}
+                    role="switch"
+                    aria-checked={formState.inventoryActivated}
+                    aria-label="Activar control de inventario"
+                    disabled={isSubmitting}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        formState.inventoryActivated
+                          ? "translate-x-6"
+                          : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {formState.inventoryActivated && (
+                  <div className="space-y-4 border-t border-slate-800 pt-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <label className="text-sm font-semibold text-white">
+                          Permitir ventas en negativo
+                        </label>
+                        <p className="text-xs text-slate-400">
+                          Permite vender aunque el stock sea 0 o negativo
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormState((previous) => ({
+                            ...previous,
+                            allowNegativeSale: !previous.allowNegativeSale,
+                          }))
+                        }
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                          formState.allowNegativeSale
+                            ? "bg-[#fa7316]"
+                            : "bg-slate-700"
+                        }`}
+                        role="switch"
+                        aria-checked={formState.allowNegativeSale}
+                        aria-label="Permitir ventas en negativo"
+                        disabled={isSubmitting}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            formState.allowNegativeSale
+                              ? "translate-x-6"
+                              : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      <p className="text-sm font-semibold text-white">Stock inicial por sucursal</p>
+                      {branches && branches.length > 0 ? (
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {branches.map((branch) => {
+                            const branchKey = branch._id as unknown as string;
+                            return (
+                              <div
+                                key={branchKey}
+                                className="space-y-1 rounded-lg border border-slate-800 bg-slate-900/70 p-4"
+                              >
+                                <p className="text-sm font-semibold text-white">{branch.name}</p>
+                                <p className="text-xs text-slate-500">
+                                  {branch.address}
+                                </p>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="1"
+                                  value={formState.stocks[branchKey] ?? "0"}
+                                  onChange={(event) => updateStockField(branchKey, event.target.value)}
+                                  className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
+                          Crea una sucursal para asignar stock.
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -542,11 +645,13 @@ const updateStockField = (branchId: string, value: string) => {
                   {formError}
                 </div>
               )}
-
+              </form>
+            </div>
+            <div className="px-8 pb-8 pt-4 flex-shrink-0 border-t border-slate-800 bg-slate-900">
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   type="button"
-                  onClick={() => setIsFormOpen(false)}
+                  onClick={handleClose}
                   className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                   disabled={isSubmitting}
                 >
@@ -554,13 +659,14 @@ const updateStockField = (branchId: string, value: string) => {
                 </button>
                 <button
                   type="submit"
+                  form="product-form"
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : "Guardar producto"}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

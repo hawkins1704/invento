@@ -1152,7 +1152,15 @@ const NewSaleModal = ({
         }>;
     }) => Promise<void>;
 }) => {
+    const [isClosing, setIsClosing] = useState(false);
     const [staffId, setStaffId] = useState<Id<"staff"> | "">("");
+    
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+        }, 300); // Esperar a que termine la animación (300ms)
+    };
     const [notes, setNotes] = useState("");
     const [search, setSearch] = useState("");
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
@@ -1388,13 +1396,13 @@ const NewSaleModal = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 py-10 ">
-            <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
-            <div className="relative flex w-full max-w-5xl flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 h-[90vh] overflow-hidden">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 py-10 ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`}>
+            <div className={`absolute inset-0 bg-slate-950/70 backdrop-blur ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`} />
+            <div className={`relative flex w-full max-w-5xl flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 h-[90vh] overflow-hidden ${isClosing ? 'animate-[fadeOutScale_0.3s_ease-out]' : 'animate-[fadeInScale_0.3s_ease-out]'}`}>
                 <header className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-semibold">Nueva venta</h2>
-                        <CloseButton onClick={onClose} />
+                        <CloseButton onClick={handleClose} />
                     </div>
                 </header>
 
@@ -1732,7 +1740,7 @@ const NewSaleModal = ({
                 <footer className="flex flex-col gap-3 md:flex-row md:justify-end">
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                         disabled={isSubmitting}
                     >
@@ -2254,7 +2262,7 @@ const SaleEditorDrawer = ({
                         {formatCurrency(sale.sale.total)}
                     </h2>
                 </div>
-               <CloseButton onClick={onClose} />
+                        <CloseButton onClick={onClose} />
             </header>
 
             <div className="flex-1 flex flex-col gap-6 overflow-hidden p-6 lg:flex-row lg:gap-8 min-h-0">

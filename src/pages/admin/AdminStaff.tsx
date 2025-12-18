@@ -105,9 +105,20 @@ const AdminStaff = () => {
   const navigate = useNavigate();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [formState, setFormState] = useState<StaffFormState>(DEFAULT_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsFormOpen(false);
+      setIsClosing(false);
+      setFormState(DEFAULT_FORM);
+      setFormError(null);
+    }, 300); // Esperar a que termine la animación (300ms)
+  };
 
   const branchesMap = useMemo(() => {
     const map = new Map<string, Doc<"branches">>();
@@ -156,10 +167,10 @@ const AdminStaff = () => {
         phone: formState.phone.trim() || undefined,
         email: formState.email.trim() ? formState.email.trim().toLowerCase() : undefined,
       });
-      setIsFormOpen(false);
-      setFormState(DEFAULT_FORM);
       // Reset to first page to see the new staff member
       setCurrentPage(1);
+      // Cerrar con animación
+      handleClose();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "No se pudo crear el miembro del personal. Inténtalo de nuevo.";
@@ -267,9 +278,10 @@ const AdminStaff = () => {
         )}
       </section>
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-          <div className="relative w-full max-w-2xl rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60">
-            <CloseButton onClick={() => setIsFormOpen(false)} />
+        <div className={`fixed inset-0 z-50 flex items-center justify-center px-4 py-10 backdrop-blur ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`}>
+          <div className={`absolute inset-0 bg-slate-950/70 ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`} />
+          <div className={`relative w-full max-w-2xl rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60 ${isClosing ? 'animate-[fadeOutScale_0.3s_ease-out]' : 'animate-[fadeInScale_0.3s_ease-out]'}`}>
+            <CloseButton onClick={handleClose} />
             <header className="mb-6 space-y-2">
               <h2 className="text-2xl font-semibold text-white">Registrar trabajador</h2>
             </header>
@@ -362,7 +374,7 @@ const AdminStaff = () => {
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   type="button"
-                  onClick={() => setIsFormOpen(false)}
+                  onClick={handleClose}
                   className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
                   disabled={isSubmitting}
                 >
