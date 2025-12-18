@@ -45,7 +45,7 @@ type CloseSaleDialogProps = {
         customerMetadata: CustomerMetadata,
         paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
         notes?: string
-    ) => void;
+    ) => Promise<{ success: boolean; error?: string }>;
     onEmitBoleta: (
         customerData: CustomerFormState | null,
         customerMetadata: CustomerMetadata,
@@ -85,12 +85,13 @@ const CloseSaleDialog = ({
     const [showCustomerForm, setShowCustomerForm] = useState(false);
     const [sendEmail, setSendEmail] = useState(false);
     const [isLoadingCustomerData, setIsLoadingCustomerData] = useState(false);
-    const [emissionStatus, setEmissionStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+    const [emissionStatus, setEmissionStatus] = useState<"idle" | "loading" | "success" | "error" | "closed">("idle");
     const [emissionError, setEmissionError] = useState<string | null>(null);
     const [emittedDocumentId, setEmittedDocumentId] = useState<string | null>(null);
     const [emittedFileName, setEmittedFileName] = useState<string | null>(null);
     const [originalCustomerData, setOriginalCustomerData] = useState<CustomerFormState | null>(null);
     const [customerIdFromConvex, setCustomerIdFromConvex] = useState<Id<"customers"> | null>(null);
+    const [isDocumentEmitted, setIsDocumentEmitted] = useState(false);
     
     const { consultarRUC, consultarDNI } = useDecolecta();
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -382,16 +383,18 @@ const CloseSaleDialog = ({
         setEmissionError(null);
         setEmittedDocumentId(null);
         setEmittedFileName(null);
+        setIsDocumentEmitted(false);
         setOriginalCustomerData(null);
         setCustomerIdFromConvex(null);
         lastQueriedRef.current = "";
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
+        // Cerrar el diálogo y limpiar el estado en el componente padre
         onClose();
     };
 
-    const handleCloseWithoutEmit = () => {
+    const handleCloseWithoutEmit = async () => {
         const customerData =
             showCustomerForm &&
             customerForm.documentType &&
@@ -406,13 +409,28 @@ const CloseSaleDialog = ({
             originalData: originalCustomerData,
         };
         
-        onCloseWithoutEmit(
-            customerData,
-            customerMetadata,
-            paymentMethod,
-            notes.trim() || undefined
-        );
-        handleClose();
+        setEmissionStatus("loading");
+        setEmissionError(null);
+        setIsDocumentEmitted(false);
+        
+        try {
+            const result = await onCloseWithoutEmit(
+                customerData,
+                customerMetadata,
+                paymentMethod,
+                notes.trim() || undefined
+            );
+            
+            if (result.success) {
+                setEmissionStatus("closed");
+            } else {
+                setEmissionStatus("error");
+                setEmissionError(result.error || "Error al cerrar la venta");
+            }
+        } catch (error) {
+            setEmissionStatus("error");
+            setEmissionError(error instanceof Error ? error.message : "Error desconocido al cerrar la venta");
+        }
     };
 
     const handleEmitBoleta = async () => {
@@ -457,6 +475,7 @@ const CloseSaleDialog = ({
             );
 
             if (result.success && result.documentId) {
+                setIsDocumentEmitted(true);
                 setEmissionStatus("success");
                 setEmittedDocumentId(result.documentId);
                 setEmittedFileName(result.fileName || null);
@@ -513,6 +532,7 @@ const CloseSaleDialog = ({
             );
 
             if (result.success && result.documentId) {
+                setIsDocumentEmitted(true);
                 setEmissionStatus("success");
                 setEmittedDocumentId(result.documentId);
                 setEmittedFileName(result.fileName || null);
@@ -927,20 +947,24 @@ const CloseSaleDialog = ({
                             </button>
                         </div>
                     </>
-                ) : emissionStatus === "success" ? (
+                ) : emissionStatus === "success" || emissionStatus === "closed" ? (
                     <>
                         <header className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-2xl font-semibold">Documento emitido</h2>
+                                <h2 className="text-2xl font-semibold">
+                                    {isDocumentEmitted ? "Documento emitido" : "Venta cerrada"}
+                                </h2>
                             </div>
                         </header>
                         <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12">
                             <BiBadgeCheck className="h-12 w-12 text-green-500" />
                             <p className="text-sm font-medium text-green-400 text-center">
-                                El documento se emitió de manera satisfactoria
+                                {isDocumentEmitted
+                                    ? "El documento se emitió de manera satisfactoria"
+                                    : "La venta se cerró correctamente"}
                             </p>
                             <div className="flex flex-row gap-3 w-full max-w-md">
-                                {onDownloadPDF && emittedDocumentId && emittedFileName && (
+                                {isDocumentEmitted && onDownloadPDF && emittedDocumentId && emittedFileName && (
                                     <button
                                         type="button"
                                         onClick={async () => {
@@ -956,7 +980,7 @@ const CloseSaleDialog = ({
                                 <button
                                     type="button"
                                     onClick={handleClose}
-                                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
+                                    className={`inline-flex ${isDocumentEmitted && onDownloadPDF && emittedDocumentId && emittedFileName ? 'flex-1' : 'w-full'} items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white`}
                                 >
                                     CERRAR
                                 </button>

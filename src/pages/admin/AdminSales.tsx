@@ -9,13 +9,16 @@ import {
     formatDuration,
 } from "../../utils/format";
 import Chip from "../../components/Chip";
-import { FaRegSadTear } from "react-icons/fa";
+import { FaRegSadTear, FaDownload, FaSpinner } from "react-icons/fa";
 import { HiOutlineReceiptTax } from "react-icons/hi";
 import { LuStore } from "react-icons/lu";
 import DataTable from "../../components/table/DataTable";
 import TableRow from "../../components/table/TableRow";
 import Pagination from "../../components/pagination/Pagination";
 import DateRangePicker from "../../components/date-range-picker/DateRangePicker";
+import CloseButton from "../../components/CloseButton";
+import { useAPISUNAT } from "../../hooks/useAPISUNAT";
+import type { PDFFormat } from "../../types/apisunat";
 
 type PeriodKey = "day" | "month" | "custom";
 
@@ -638,6 +641,85 @@ const HistoryView = ({
     totalItems,
     onPageChange,
 }: HistoryViewProps) => {
+    const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
+    const { getDocument, downloadPDF } = useAPISUNAT();
+    const [selectedSale, setSelectedSale] = useState<HistorySale | null>(null);
+    const [documentFileName, setDocumentFileName] = useState<string | null>(null);
+    const [selectedFormat, setSelectedFormat] = useState<PDFFormat>("A4");
+    const [isLoadingDocument, setIsLoadingDocument] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [downloadError, setDownloadError] = useState<string | null>(null);
+
+    const handleDocumentClick = async (entry: HistorySale) => {
+        if (!entry.sale.documentId || !currentUser?.personaToken) {
+            return;
+        }
+
+        setSelectedSale(entry);
+        setSelectedFormat("A4");
+        setDownloadError(null);
+        setDocumentFileName(null);
+        setIsLoadingDocument(true);
+
+        try {
+            // Obtener el documento para conseguir el fileName
+            const document = await getDocument(
+                entry.sale.documentId,
+                currentUser.personaToken
+            );
+
+            if (document) {
+                setDocumentFileName(document.fileName);
+            } else {
+                setDownloadError("No se pudo obtener la información del documento");
+            }
+        } catch (error) {
+            setDownloadError(
+                error instanceof Error ? error.message : "Error al obtener el documento"
+            );
+        } finally {
+            setIsLoadingDocument(false);
+        }
+    };
+
+    const handleCloseModal = () => {
+        if (!isDownloading) {
+            setSelectedSale(null);
+            setDocumentFileName(null);
+            setDownloadError(null);
+        }
+    };
+
+    const handleDownload = async () => {
+        if (!selectedSale?.sale.documentId || !documentFileName || !currentUser?.personaToken) {
+            return;
+        }
+
+        setIsDownloading(true);
+        setDownloadError(null);
+
+        try {
+            await downloadPDF(
+                selectedSale.sale.documentId,
+                selectedFormat,
+                documentFileName
+            );
+
+            // Cerrar modal después de abrir el PDF
+            setSelectedSale(null);
+        } catch (err) {
+            setDownloadError(
+                err instanceof Error ? err.message : "Error al abrir el PDF"
+            );
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const getDocumentTypeLabel = (documentType?: "01" | "03") => {
+        if (!documentType) return null;
+        return documentType === "01" ? "FACTURA" : "BOLETA";
+    };
     const getPaymentMethodLabel = (method: string) => {
         const labels: Record<string, string> = {
             Contado: "Efectivo",
@@ -923,6 +1005,7 @@ const HistoryView = ({
                                         entry={entry}
                                         branchNameById={branchNameById}
                                         staffNameById={staffNameById}
+                                        onDocumentClick={handleDocumentClick}
                                     />
                                 ))}
                             </div>
@@ -935,6 +1018,7 @@ const HistoryView = ({
                                         { label: "Mesa", key: "table" },
                                         { label: "Atiende", key: "staff" },
                                         { label: "Método", key: "method" },
+                                        { label: "Documento Emitido", key: "document" },
                                         {
                                             label: "Total",
                                             key: "total",
@@ -983,6 +1067,19 @@ const HistoryView = ({
                                                           entry.sale.paymentMethod
                                                       )
                                                     : "No registrado"}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                {entry.sale.documentId && entry.sale.documentType ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDocumentClick(entry)}
+                                                        className="text-[#fa7316] hover:text-[#e86811] transition-colors cursor-pointer font-semibold"
+                                                    >
+                                                        {getDocumentTypeLabel(entry.sale.documentType)}
+                                                    </button>
+                                                ) : (
+                                                    <span className="text-slate-500">SIN DOC</span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-right text-sm font-semibold text-white">
                                                 {formatCurrency(entry.sale.total)}
@@ -1219,6 +1316,101 @@ const HistoryView = ({
                     </div>
                 )}
             </section>
+
+            {/* Modal de descarga de documento */}
+            {selectedSale && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
+                    <div className="relative w-full max-w-md rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+                        <CloseButton onClick={handleCloseModal} />
+
+                        <div className="space-y-5 pt-6">
+                            <header className="space-y-2">
+                                <h2 className="text-2xl font-semibold text-white">Descargar PDF</h2>
+                                <p className="text-sm text-slate-400">
+                                    Selecciona el formato del documento que deseas descargar.
+                                </p>
+                            </header>
+
+                            {isLoadingDocument ? (
+                                <div className="flex flex-col items-center justify-center gap-3 py-8">
+                                    <FaSpinner className="animate-spin text-2xl text-[#fa7316]" />
+                                    <p className="text-sm text-slate-400">Cargando información del documento...</p>
+                                </div>
+                            ) : documentFileName ? (
+                                <>
+                                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Documento</p>
+                                        <p className="mt-2 text-lg font-semibold text-white">{documentFileName}</p>
+                                        <p className="text-xs text-slate-500">
+                                            {selectedSale.sale.documentType === "01" ? "Factura" : "Boleta de Venta"}
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500" htmlFor="pdf-format">
+                                            Formato
+                                        </label>
+                                        <select
+                                            id="pdf-format"
+                                            value={selectedFormat}
+                                            onChange={(e) => setSelectedFormat(e.target.value as PDFFormat)}
+                                            disabled={isDownloading}
+                                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            <option value="A4">A4</option>
+                                            <option value="A5">A5</option>
+                                            <option value="ticket58mm">Ticket 58mm</option>
+                                            <option value="ticket80mm">Ticket 80mm</option>
+                                        </select>
+                                        <p className="text-xs text-slate-500">
+                                            Selecciona el formato de impresión del documento.
+                                        </p>
+                                    </div>
+
+                                    {downloadError && (
+                                        <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                                            {downloadError}
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={handleCloseModal}
+                                            disabled={isDownloading}
+                                            className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleDownload}
+                                            disabled={isDownloading}
+                                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                                        >
+                                            {isDownloading ? (
+                                                <>
+                                                    <FaSpinner className="animate-spin" />
+                                                    Descargando...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FaDownload />
+                                                    Descargar
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                                    {downloadError || "No se pudo cargar la información del documento"}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -1447,11 +1639,18 @@ const SaleCard = ({
     entry,
     branchNameById,
     staffNameById,
+    onDocumentClick,
 }: {
     entry: HistorySale;
     branchNameById: Map<string, string>;
     staffNameById: Map<string, string>;
+    onDocumentClick?: (entry: HistorySale) => void;
 }) => {
+    const getDocumentTypeLabel = (documentType?: "01" | "03") => {
+        if (!documentType) return null;
+        return documentType === "01" ? "FACTURA" : "BOLETA";
+    };
+
     return (
         <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60">
             <div className="flex items-start justify-between gap-4 mb-3">
@@ -1500,6 +1699,20 @@ const SaleCard = ({
                               ) ?? "Personal")
                             : "Sin asignar"}
                     </p>
+                </div>
+                <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500">Documento:</span>
+                    {entry.sale.documentId && entry.sale.documentType ? (
+                        <button
+                            type="button"
+                            onClick={() => onDocumentClick?.(entry)}
+                            className="text-sm font-medium text-[#fa7316] underline hover:text-[#e86811] transition-colors"
+                        >
+                            {getDocumentTypeLabel(entry.sale.documentType)}
+                        </button>
+                    ) : (
+                        <p className="text-sm font-medium text-slate-500">SIN DOC</p>
+                    )}
                 </div>
             </div>
         </div>

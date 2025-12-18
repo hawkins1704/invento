@@ -157,13 +157,21 @@ class APISUNATClient {
    * @param personaToken Token de autenticación
    * @returns Documento completo
    */
+  /**
+   * Obtiene un documento específico por ID
+   * Endpoint: GET /documents/:documentId/getById
+   * 
+   * @param documentId ID del documento obtenido como respuesta del método sendBill
+   * @param personaToken Token de autenticación
+   * @returns Documento con toda su información incluyendo fileName, status, type, etc.
+   */
   async getDocument(
     documentId: string,
     personaToken: string
   ): Promise<APISUNATDocument> {
     try {
       const { data } = await this.axiosInstance.get<APISUNATDocument>(
-        `/documents/${documentId}`,
+        `/documents/${documentId}/getById`,
         {
           headers: {
             Authorization: `Bearer ${personaToken}`,

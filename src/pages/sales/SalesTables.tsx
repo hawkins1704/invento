@@ -544,6 +544,7 @@ const SalesTablesContent = ({
                         paymentMethod: "Contado",
                         notes: "",
                     });
+                    setSelectedSaleId(null);
                 }}
                 onCloseWithoutEmit={async (
                     customerData,
@@ -552,7 +553,7 @@ const SalesTablesContent = ({
                     notes
                 ) => {
                     if (!closeState.saleId) {
-                        return;
+                        return { success: false, error: "No hay venta seleccionada" };
                     }
                     setIsProcessingClose(true);
                     try {
@@ -601,14 +602,13 @@ const SalesTablesContent = ({
                             notes,
                             customerId,
                         });
-                        setIsClosingSale(false);
-                        setCloseState({
-                            saleId: null,
-                            saleData: null,
-                            paymentMethod: "Contado",
-                            notes: "",
-                        });
+                        // No cerrar el diálogo aquí, dejar que el componente hijo muestre la confirmación
+                        // El diálogo se cerrará cuando el usuario haga clic en "CERRAR" después de ver la confirmación
                         setSelectedSaleId(null);
+                        return { success: true };
+                    } catch (error) {
+                        const errorMessage = error instanceof Error ? error.message : "Error al cerrar la venta";
+                        return { success: false, error: errorMessage };
                     } finally {
                         setIsProcessingClose(false);
                     }
@@ -790,17 +790,17 @@ const SalesTablesContent = ({
                             documentId: emitResponse.documentId,
                         });
 
-                        console.log("fileName generado:", fileName);
+                        // console.log("fileName generado:", fileName);
                         console.log(
                             "saleData disponible:",
                             closeState.saleData
                         );
-                        console.log("documentBody:", documentBody);
+                        // console.log("documentBody:", documentBody);
                         console.log(
                             "customerEmail:",
                             customerEmail || "No se enviará correo"
                         );
-                        console.log("Documento emitido:", emitResponse);
+                        // console.log("Documento emitido:", emitResponse);
 
                         await closeSaleMutation({
                             saleId: closeState.saleId,
@@ -1001,17 +1001,17 @@ const SalesTablesContent = ({
                             documentId: emitResponse.documentId,
                         });
 
-                        console.log("fileName generado:", fileName);
+                        // console.log("fileName generado:", fileName);
                         console.log(
                             "saleData disponible:",
                             closeState.saleData
                         );
-                        console.log("documentBody:", documentBody);
+                        // console.log("documentBody:", documentBody);
                         console.log(
                             "customerEmail:",
                             customerEmail || "No se enviará correo"
                         );
-                        console.log("Documento emitido:", emitResponse);
+                        // console.log("Documento emitido:", emitResponse);
 
                         await closeSaleMutation({
                             saleId: closeState.saleId,

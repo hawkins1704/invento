@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "convex/react";
 import type { ChangeEvent, FormEvent } from "react";
@@ -7,6 +7,8 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { FaArrowLeft } from "react-icons/fa";
 import { MdDeleteOutline } from "react-icons/md";
+import { useDecolecta } from "../../hooks/useDecolecta";
+import type { RUCResponse } from "../../types/decolecta";
 
 type ProfileFormState = {
   name: string;
@@ -59,9 +61,15 @@ const EditProfile = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isCompanyLogoRemoved, setIsCompanyLogoRemoved] = useState(false);
+  const [isLoadingRUC, setIsLoadingRUC] = useState(false);
+  
+  const { consultarRUC } = useDecolecta();
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastQueriedRUCRef = useRef<string>("");
 
   useEffect(() => {
     if (currentUser) {
+      const initialRUC = (currentUser as Doc<"users">).ruc ?? "";
       setFormState({
         name: currentUser.name ?? "",
         administratorCode: currentUser.administratorCode ?? "",
@@ -69,7 +77,7 @@ const EditProfile = () => {
         inventoryCode: (currentUser as Doc<"users">).inventoryCode ?? "",
         companyName: currentUser.companyName ?? "",
         companyCommercialName: (currentUser as Doc<"users">).companyCommercialName ?? "",
-        ruc: (currentUser as Doc<"users">).ruc ?? "",
+        ruc: initialRUC,
         companyLogoFile: null,
         personaId: currentUser.personaId ?? "",
         personaToken: currentUser.personaToken ?? "",
@@ -83,6 +91,11 @@ const EditProfile = () => {
       setCurrentCompanyLogoUrl(
         (currentUser as Doc<"users"> & { companyLogoUrl: string | null }).companyLogoUrl ?? null
       );
+      // Marcar el RUC inicial como ya consultado para evitar consultas automáticas al cargar
+      const rucNumber = initialRUC.trim().replace(/\D/g, "");
+      if (rucNumber.length === 11) {
+        lastQueriedRUCRef.current = rucNumber;
+      }
     }
   }, [currentUser]);
 
@@ -93,6 +106,86 @@ const EditProfile = () => {
       }
     };
   }, [previewCompanyLogoUrl]);
+
+  // Efecto para consultar datos de RUC automáticamente cuando se ingresa un RUC válido
+  useEffect(() => {
+    // Limpiar timer anterior si existe
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    const rucNumber = formState.ruc.trim().replace(/\D/g, ""); // Solo números
+    const length = rucNumber.length;
+
+    // Solo consultar si el RUC tiene exactamente 11 dígitos
+    if (length === 11) {
+      const queryKey = rucNumber;
+      
+      // Evitar consultas duplicadas
+      if (queryKey === lastQueriedRUCRef.current) {
+        return;
+      }
+
+      // Debounce: esperar 500ms después de que el usuario deje de escribir
+      debounceTimerRef.current = setTimeout(async () => {
+        setIsLoadingRUC(true);
+        lastQueriedRUCRef.current = queryKey;
+
+        try {
+          const response = await consultarRUC(rucNumber);
+          if (response) {
+            // Mapear datos de RUC según estructura de Decolecta API
+            setFormState((previous) => {
+              const updated = { ...previous };
+              const rucResponse = response as RUCResponse;
+              
+              // Mapear razón social
+              if (rucResponse.razon_social) {
+                updated.companyName = rucResponse.razon_social;
+              }
+              
+              // Mapear dirección
+              if (rucResponse.direccion) {
+                updated.companyAddress = rucResponse.direccion;
+              }
+              
+              // Mapear distrito
+              if (rucResponse.distrito) {
+                updated.companyDistrict = rucResponse.distrito;
+              }
+              
+              // Mapear provincia
+              if (rucResponse.provincia) {
+                updated.companyProvince = rucResponse.provincia;
+              }
+              
+              // Mapear departamento
+              if (rucResponse.departamento) {
+                updated.companyDepartment = rucResponse.departamento;
+              }
+              
+              return updated;
+            });
+          }
+        } catch (error) {
+          // Silenciar errores, solo no autocompletar si falla
+          console.error("Error al consultar datos del RUC:", error);
+        } finally {
+          setIsLoadingRUC(false);
+        }
+      }, 500); // 500ms de debounce
+    } else {
+      // Si no tiene 11 dígitos, ocultar loading
+      setIsLoadingRUC(false);
+    }
+
+    // Cleanup function
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [formState.ruc, consultarRUC]);
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setFormState((previous) => ({
@@ -373,16 +466,32 @@ const EditProfile = () => {
                 className="text-sm font-medium text-slate-200"
               >
                 RUC
+                {isLoadingRUC && (
+                  <span className="ml-2 text-xs text-slate-400">
+                    Consultando...
+                  </span>
+                )}
               </label>
-              <input
-                id="ruc"
-                name="ruc"
-                type="text"
-                value={formState.ruc}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
-                placeholder="Número de RUC"
-              />
+              <div className="relative">
+                <input
+                  id="ruc"
+                  name="ruc"
+                  type="text"
+                  value={formState.ruc}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                  placeholder="Número de RUC"
+                  disabled={isSubmitting}
+                />
+                {isLoadingRUC && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-[#fa7316]"></div>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-slate-500">
+                Los datos de la empresa se autocompletarán al ingresar un RUC válido.
+              </p>
             </div>
           </div>
 
