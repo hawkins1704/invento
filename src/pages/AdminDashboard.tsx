@@ -172,7 +172,7 @@ const AdminDashboard = () => {
         <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Total vendido</p>
           <div className="mt-4">
-            <span className="text-3xl font-semibold text-white">
+            <span className="text-2xl font-semibold text-white">
               {todaySummary ? formatCurrency(todaySummary.totalAmount) : "S/ 0.00"}
             </span>
           </div>
@@ -182,7 +182,7 @@ const AdminDashboard = () => {
         <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Tickets cerrados</p>
           <div className="mt-4">
-            <span className="text-3xl font-semibold text-white">
+            <span className="text-2xl font-semibold text-white">
               {todaySummary ? todaySummary.totalTickets : 0}
             </span>
           </div>
@@ -192,7 +192,7 @@ const AdminDashboard = () => {
         <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Ticket promedio</p>
           <div className="mt-4">
-            <span className="text-3xl font-semibold text-white">
+            <span className="text-2xl font-semibold text-white">
               {todaySummary ? formatCurrency(todaySummary.averageTicket) : "S/ 0.00"}
             </span>
           </div>
@@ -202,7 +202,7 @@ const AdminDashboard = () => {
         <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Tickets abiertos</p>
           <div className="mt-4">
-            <span className="text-3xl font-semibold text-white">
+            <span className="text-2xl font-semibold text-white">
               {todaySummary ? todaySummary.openTickets : 0}
             </span>
           </div>
@@ -212,7 +212,7 @@ const AdminDashboard = () => {
         <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Sucursales activas</p>
           <div className="mt-4">
-            <span className="text-3xl font-semibold text-white">
+            <span className="text-2xl font-semibold text-white">
               {summaryByBranch ? summaryByBranch.filter((b) => b.hasActiveShift).length : 0}
             </span>
           </div>
@@ -250,7 +250,7 @@ const AdminDashboard = () => {
                 key={branch.branchId as string}
                 type="button"
                 onClick={() => navigate(`/admin/branches/${branch.branchId}`)}
-                className="group text-left rounded-lg border border-slate-800 bg-slate-900/60 p-5 transition hover:border-[#fa7316] hover:bg-slate-900/80"
+                className="group text-left rounded-lg border border-slate-800 bg-slate-900/60 p-5 transition hover:border-[#fa7316] hover:bg-slate-900/80 flex flex-col justify-start"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">

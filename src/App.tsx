@@ -22,6 +22,7 @@ import SalesDaily from './pages/sales/SalesDaily'
 import SalesInventory from './pages/sales/SalesInventory'
 import SalesSelectBranch from './pages/sales/SalesSelectBranch'
 import EditProfile from './pages/admin/EditProfile'
+import AdminSubscription from './pages/admin/AdminSubscription'
 
 function App() {
 
@@ -67,6 +68,7 @@ function App() {
                             <Route path=":branchId" element={<AdminBranchDetails />} />
                         </Route>
                         <Route path="profile" element={<EditProfile />} />
+                        <Route path="suscripcion" element={<AdminSubscription />} />
                     </Route>
                     <Route path="sales">
                         <Route index element={<SalesDashboard />} />

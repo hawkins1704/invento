@@ -17,6 +17,7 @@ import { MdOutlineDinnerDining } from "react-icons/md";
 import { IoLogInOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
 import { FaFileInvoice } from "react-icons/fa6";
+import { FaCreditCard } from "react-icons/fa";
 import { LuStore } from "react-icons/lu";
 import { FaCheck } from "react-icons/fa";
 import CloseButton from "./CloseButton";
@@ -116,7 +117,9 @@ const Layout = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const [isProfileMenuClosing, setIsProfileMenuClosing] = useState(false);
     const [isBranchMenuOpen, setIsBranchMenuOpen] = useState(false);
+    const [isBranchMenuClosing, setIsBranchMenuClosing] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     const { signOut } = useAuthActions();
@@ -146,7 +149,7 @@ const Layout = () => {
               } as const)
             : "skip"
     ) as { staff: Doc<"staff">[]; total: number } | undefined;
-    
+
     const shiftStaff = shiftStaffData?.staff ?? [];
     const openShiftMutation = useMutation(api.shifts.open);
     const closeShiftMutation = useMutation(api.shifts.close);
@@ -158,6 +161,18 @@ const Layout = () => {
     const [shiftStaffId, setShiftStaffId] = useState<string>("");
     const [shiftError, setShiftError] = useState<string | null>(null);
     const [isProcessingShift, setIsProcessingShift] = useState(false);
+    const [isShiftModalClosing, setIsShiftModalClosing] = useState(false);
+
+    const handleCloseShiftModal = () => {
+        if (!isProcessingShift) {
+            setIsShiftModalClosing(true);
+            setTimeout(() => {
+                setIsShiftModalOpen(false);
+                setIsShiftModalClosing(false);
+                setShiftError(null);
+            }, 300); // Esperar a que termine la animación (300ms)
+        }
+    };
 
     const activeShift = activeShiftSummary?.shift ?? null;
     const shiftExpectedCash = activeShiftSummary?.expectedCash ?? 0;
@@ -290,36 +305,70 @@ const Layout = () => {
 
     const closeMobileSidebar = () => setIsMobileOpen(false);
 
+    const handleCloseProfileMenu = () => {
+        setIsProfileMenuClosing(true);
+        setTimeout(() => {
+            setIsProfileMenuOpen(false);
+            setIsProfileMenuClosing(false);
+        }, 300); // Esperar a que termine la animación (300ms)
+    };
+
+    const handleCloseBranchMenu = () => {
+        setIsBranchMenuClosing(true);
+        setTimeout(() => {
+            setIsBranchMenuOpen(false);
+            setIsBranchMenuClosing(false);
+        }, 300); // Esperar a que termine la animación (300ms)
+    };
+
     useEffect(() => {
-        if (!isProfileMenuOpen) {
+        if (!isProfileMenuOpen || isProfileMenuClosing) {
             return;
         }
 
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                (profileButtonRef.current &&
-                    profileButtonRef.current.contains(event.target as Node)) ||
-                (profileMenuRef.current &&
-                    profileMenuRef.current.contains(event.target as Node))
-            ) {
-                return;
-            }
-            setIsProfileMenuOpen(false);
-        };
+        // Pequeño delay para evitar que el clic que abre el menú lo cierre inmediatamente
+        let cleanup: (() => void) | null = null;
+        const timeoutId = setTimeout(() => {
+            const handleClickOutside = (event: MouseEvent) => {
+                const target = event.target as Node;
+                if (
+                    (profileButtonRef.current &&
+                        profileButtonRef.current.contains(target)) ||
+                    (profileMenuRef.current &&
+                        profileMenuRef.current.contains(target))
+                ) {
+                    return;
+                }
+                handleCloseProfileMenu();
+            };
 
-        document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener("mousedown", handleClickOutside);
+            cleanup = () => {
+                document.removeEventListener("mousedown", handleClickOutside);
+            };
+        }, 100);
+
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
+            clearTimeout(timeoutId);
+            if (cleanup) {
+                cleanup();
+            }
         };
-    }, [isProfileMenuOpen]);
+    }, [isProfileMenuOpen, isProfileMenuClosing]);
 
     useEffect(() => {
-        setIsProfileMenuOpen(false);
+        if (isProfileMenuOpen && (isCollapsed || isMobileOpen)) {
+            setIsProfileMenuClosing(true);
+            setTimeout(() => {
+                setIsProfileMenuOpen(false);
+                setIsProfileMenuClosing(false);
+            }, 300);
+        }
         setIsBranchMenuOpen(false);
-    }, [isCollapsed, isMobileOpen]);
+    }, [isCollapsed, isMobileOpen, isProfileMenuOpen]);
 
     useEffect(() => {
-        if (!isBranchMenuOpen) {
+        if (!isBranchMenuOpen || isBranchMenuClosing) {
             return;
         }
 
@@ -332,18 +381,18 @@ const Layout = () => {
             ) {
                 return;
             }
-            setIsBranchMenuOpen(false);
+            handleCloseBranchMenu();
         };
 
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [isBranchMenuOpen]);
+    }, [isBranchMenuOpen, isBranchMenuClosing]);
 
     const handleSignOut = async () => {
         await signOut();
-        setIsProfileMenuOpen(false);
+        handleCloseProfileMenu();
         navigate("/login");
     };
 
@@ -412,12 +461,11 @@ const Layout = () => {
                                 }}
                                 className="inline-flex items-center gap-2"
                             >
-                                <span
-                                    className="flex h-10 w-10 items-center justify-center rounded-xl text-lg font-semibold"
-                                    style={{ backgroundColor: PRIMARY_COLOR }}
-                                >
-                                    IN
-                                </span>
+                                <img
+                                    src="/logo-main.svg"
+                                    alt="Logo"
+                                    className="w-full h-7 object-contain"
+                                />
                             </button>
                             <button
                                 type="button"
@@ -425,7 +473,7 @@ const Layout = () => {
                                 className="hidden h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-sm font-semibold text-white hover:border-[#fa7316] hover:text-[#fa7316] md:flex"
                                 aria-label="Colapsar sidebar"
                             >
-                                <FaChevronLeft /> 
+                                <FaChevronLeft />
                             </button>
                         </>
                     )}
@@ -512,15 +560,25 @@ const Layout = () => {
                     <button
                         type="button"
                         ref={profileButtonRef}
-                        onClick={() =>
-                            setIsProfileMenuOpen((previous) => !previous)
-                        }
-                        className={`flex w-full items-center gap-3 rounded-lg border border-transparent px-2 py-2 transition hover:border-slate-700 hover:bg-slate-800/50 ${
-                            isCollapsed ? "justify-center" : ""
+                        onClick={() => {
+                            if (isCollapsed) {
+                                return;
+                            } else {
+                                if (isProfileMenuOpen) {
+                                    handleCloseProfileMenu();
+                                } else {
+                                    setIsProfileMenuOpen(true);
+                                }
+                            }
+                        }}
+                        className={`flex w-full items-center gap-3 rounded-lg border border-transparent px-2 py-2 transition  ${
+                            isCollapsed
+                                ? "justify-center"
+                                : "hover:border-slate-700 hover:bg-slate-800/50 cursor-pointer"
                         }
             }`}
                     >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#fa7316]/20 text-sm font-semibold text-[#fa7316] overflow-hidden">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#fa7316]/20 text-sm font-semibold text-[#fa7316] overflow-hidden">
                             {currentUser?.companyLogoUrl ? (
                                 <img
                                     src={currentUser.companyLogoUrl}
@@ -546,24 +604,41 @@ const Layout = () => {
                     {isProfileMenuOpen && (
                         <div
                             ref={profileMenuRef}
-                            className={`absolute bottom-20 z-50 w-48 rounded-lg border border-slate-800 bg-slate-900/95 p-3 shadow-xl ${
+                            className={`${
                                 isCollapsed
-                                    ? "left-1/2 -translate-x-1/2"
-                                    : "left-4"
-                            }`}
+                                    ? "fixed bottom-5 left-20"
+                                    : "absolute bottom-20 left-4"
+                            } z-50 w-48 rounded-lg border border-slate-800 bg-slate-900/95 p-3 shadow-xl ${isProfileMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
                         >
                             {currentArea === "admin" && (
-                                <button
-                                    type="button"
-                                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800/80 cursor-pointer"
-                                    onClick={() => {
-                                        setIsProfileMenuOpen(false);
-                                        navigate("/admin/profile");
-                                    }}
-                                >
-                                    Editar perfil
-                                    <FaRegUser color={PRIMARY_COLOR} />
-                                </button>
+                                <>
+                                    <button
+                                        type="button"
+                                        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800/80 cursor-pointer"
+                                        onClick={() => {
+                                            handleCloseProfileMenu();
+                                            setTimeout(() => {
+                                                navigate("/admin/profile");
+                                            }, 300);
+                                        }}
+                                    >
+                                        <span className="text-sm font-semibold text-white text-left">Editar perfil</span>
+                                        <FaRegUser color={PRIMARY_COLOR} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800/80 cursor-pointer"
+                                        onClick={() => {
+                                            handleCloseProfileMenu();
+                                            setTimeout(() => {
+                                                navigate("/admin/suscripcion");
+                                            }, 300);
+                                        }}
+                                    >
+                                        <span className="text-sm font-semibold text-white text-left">Mi suscripción</span>
+                                        <FaCreditCard color={PRIMARY_COLOR} />
+                                    </button>
+                                </>
                             )}
                             <button
                                 type="button"
@@ -572,7 +647,7 @@ const Layout = () => {
                                 }`}
                                 onClick={handleSignOut}
                             >
-                                Cerrar sesión
+                                <span className="text-sm font-semibold text-white text-left">Cerrar sesión</span>
                                 <IoLogInOutline color={PRIMARY_COLOR} />
                             </button>
                         </div>
@@ -581,11 +656,16 @@ const Layout = () => {
             </aside>
 
             {isShiftModalOpen && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-                    <div className="relative w-full max-w-xl rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
-                        <CloseButton
-                            onClick={() => setIsShiftModalOpen(false)}
-                        />
+                <div
+                    className={`fixed inset-0 z-[70] flex items-center justify-center px-4 py-10 ${isShiftModalClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
+                >
+                    <div
+                        className={`absolute inset-0 bg-slate-950/70 backdrop-blur ${isShiftModalClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
+                    />
+                    <div
+                        className={`relative w-full max-w-xl rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 ${isShiftModalClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+                    >
+                        <CloseButton onClick={handleCloseShiftModal} />
 
                         <div className="max-h-[90vh] overflow-y-auto pr-1">
                             {shiftMode === "open" ? (
@@ -682,12 +762,7 @@ const Layout = () => {
                                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                if (!isProcessingShift) {
-                                                    setIsShiftModalOpen(false);
-                                                    setShiftError(null);
-                                                }
-                                            }}
+                                            onClick={handleCloseShiftModal}
                                             className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                                             disabled={isProcessingShift}
                                         >
@@ -871,12 +946,7 @@ const Layout = () => {
                                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                if (!isProcessingShift) {
-                                                    setIsShiftModalOpen(false);
-                                                    setShiftError(null);
-                                                }
-                                            }}
+                                            onClick={handleCloseShiftModal}
                                             className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
                                             disabled={isProcessingShift}
                                         >
@@ -937,9 +1007,13 @@ const Layout = () => {
                             <button
                                 type="button"
                                 ref={branchButtonRef}
-                                onClick={() =>
-                                    setIsBranchMenuOpen((previous) => !previous)
-                                }
+                                onClick={() => {
+                                    if (isBranchMenuOpen) {
+                                        handleCloseBranchMenu();
+                                    } else {
+                                        setIsBranchMenuOpen(true);
+                                    }
+                                }}
                                 className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm font-semibold text-white transition hover:border-[#fa7316] hover:bg-slate-800/80 cursor-pointer"
                             >
                                 <LuStore color={PRIMARY_COLOR} />
@@ -960,12 +1034,12 @@ const Layout = () => {
                                 </svg>
                             </button>
 
-                            {isBranchMenuOpen &&
+                            {(isBranchMenuOpen || isBranchMenuClosing) &&
                                 branches &&
                                 branches.length > 0 && (
                                     <div
                                         ref={branchMenuRef}
-                                        className="absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-slate-800 bg-slate-900/95 p-3 shadow-xl"
+                                        className={`absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-slate-800 bg-slate-900/95 p-3 shadow-xl ${isBranchMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
                                     >
                                         <div className="mb-2 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                                             Seleccionar sucursal
@@ -988,9 +1062,7 @@ const Layout = () => {
                                                             setBranchId(
                                                                 branch._id as string
                                                             );
-                                                            setIsBranchMenuOpen(
-                                                                false
-                                                            );
+                                                            handleCloseBranchMenu();
                                                         }}
                                                         className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition ${
                                                             isSelected

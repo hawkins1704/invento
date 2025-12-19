@@ -1947,6 +1947,15 @@ const SaleEditorDrawer = ({
     ) => void;
     onCancelSale: (saleId: Id<"sales">) => void;
 }) => {
+    const [isClosing, setIsClosing] = useState(false);
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+        }, 300); // Esperar a que termine la animación (300ms)
+    };
+
     const [items, setItems] = useState<EditableItem[]>(() =>
         sale.items.map((item) => {
             const product = products.find(
@@ -2252,7 +2261,9 @@ const SaleEditorDrawer = ({
     };
 
     return (
-        <div className="fixed inset-0 right-0 z-50 flex flex-col w-full  bg-slate-950 text-white shadow-xl shadow-black/50">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`}>
+            <div className={`absolute inset-0 bg-slate-950/70 backdrop-blur ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`} />
+            <div className={`relative flex flex-col w-full h-full bg-slate-950 text-white shadow-xl shadow-black/50 ${isClosing ? 'animate-[fadeOutScale_0.3s_ease-out]' : 'animate-[fadeInScale_0.3s_ease-out]'}`}>
             <header className="flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-800">
                 <div>
                     <p className="text-xs uppercase tracking-[0.1em] text-slate-400">
@@ -2262,7 +2273,7 @@ const SaleEditorDrawer = ({
                         {formatCurrency(sale.sale.total)}
                     </h2>
                 </div>
-                        <CloseButton onClick={onClose} />
+                        <CloseButton onClick={handleClose} />
             </header>
 
             <div className="flex-1 flex flex-col gap-6 overflow-hidden p-6 lg:flex-row lg:gap-8 min-h-0">
@@ -2852,6 +2863,7 @@ const SaleEditorDrawer = ({
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 };

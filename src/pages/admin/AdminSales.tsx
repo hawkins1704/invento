@@ -492,7 +492,7 @@ const AdminSales = () => {
                     <button
                         type="button"
                         onClick={() => setViewMode("history")}
-                        className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition rounded-lg ${
+                        className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition rounded-lg cursor-pointer ${
                             viewMode === "history"
                                 ? "bg-[#fa7316] text-white"
                                 : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
@@ -503,7 +503,7 @@ const AdminSales = () => {
                     <button
                         type="button"
                         onClick={() => setViewMode("live")}
-                        className={`inline-flex items-center gap-2  px-4 py-2 text-sm font-semibold transition rounded-lg ${
+                        className={`inline-flex items-center gap-2  px-4 py-2 text-sm font-semibold transition rounded-lg cursor-pointer ${
                             viewMode === "live"
                                 ? "bg-[#fa7316] text-white "
                                 : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"

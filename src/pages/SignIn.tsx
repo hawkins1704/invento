@@ -4,7 +4,6 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import CodePinInput from "../components/CodePinInput";
 
-const PRIMARY_COLOR = "#fa7316";
 
 type Step = "signIn" | "signUp";
 
@@ -95,9 +94,10 @@ export function SignIn() {
     };
 
     return (
-        <div className=" flex min-h-screen w-full  flex-col overflow-hidden rounded-none bg-slate-950 shadow-none lg:flex-row">
-            <aside className="relative hidden w-full flex-1 items-end justify-between overflow-hidden bg-slate-900 px-12 py-14 text-white lg:flex">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.15),_transparent_55%)]" />
+        <div className=" flex min-h-screen w-full  flex-col overflow-hidden rounded-none  lg:flex-row">
+            <aside className="relative hidden w-full flex-1 items-end justify-between overflow-hidden  px-12 py-14 text-white lg:flex bg-cover bg-center bg-no-repeat " style={{ backgroundImage: "url('/background.png')" }}>
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 to-slate-950/90" />
+               
                 <div className="relative z-10 flex flex-col gap-6">
                     <h2 className="text-4xl font-semibold leading-tight text-white">
                         Gestiona tus productos, ventas y caja en un solo lugar
@@ -112,14 +112,7 @@ export function SignIn() {
             <main className="flex flex-1 items-center justify-center bg-slate-950 px-6 py-16 sm:px-10">
                 <div className="w-full max-w-md">
                     <header className="mb-10 flex flex-col gap-3 text-center">
-                        <div
-                            className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl"
-                            style={{ backgroundColor: PRIMARY_COLOR }}
-                        >
-                            <span className="text-lg font-semibold text-white">
-                                IN
-                            </span>
-                        </div>
+                        <img src="/logo-main.svg" alt="Logo" className="w-full h-10 object-contain" />
                         <div className="space-y-1">
                             <h1 className="text-3xl font-semibold text-white">
                                 {heading}
