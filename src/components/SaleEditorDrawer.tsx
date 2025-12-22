@@ -232,8 +232,6 @@ const SaleEditorDrawer = ({
                             categories={categories}
                             branchId={branchId}
                             onAddProduct={addItem}
-                            gridClassName="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3"
-                            productButtonPadding="p-4"
                             showInventoryCheck={false}
                         />
                     </div>

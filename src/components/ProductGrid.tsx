@@ -21,7 +21,7 @@ const ProductGrid = ({
     branchId,
     onAddProduct,
     gridClassName = "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3",
-    productButtonPadding = "p-2",
+    productButtonPadding = "p-4",
     showInventoryCheck = true,
 }: ProductGridProps) => {
     const [search, setSearch] = useState("");
@@ -44,7 +44,8 @@ const ProductGrid = ({
             const matchesSearch = product.name.toLowerCase().includes(query);
             const matchesCategory =
                 selectedCategoryId === "all" ||
-                (product.categoryId as unknown as string) === selectedCategoryId;
+                (product.categoryId as unknown as string) ===
+                    selectedCategoryId;
             return matchesSearch && matchesCategory;
         });
     }, [products, search, selectedCategoryId]);
@@ -71,7 +72,9 @@ const ProductGrid = ({
                             <button
                                 key={category.key}
                                 type="button"
-                                onClick={() => setSelectedCategoryId(category.key)}
+                                onClick={() =>
+                                    setSelectedCategoryId(category.key)
+                                }
                                 className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] transition ${
                                     isActive
                                         ? "border-[#fa7316] bg-[#fa7316]/10 text-white "
@@ -115,7 +118,7 @@ const ProductGrid = ({
                             const availableStock = getAvailableStock(product);
                             const allowNegativeSale =
                                 product.allowNegativeSale ?? false;
-                            
+
                             // Validar stock según la configuración
                             const isOutOfStock = showInventoryCheck
                                 ? inventoryActivated &&
@@ -128,14 +131,14 @@ const ProductGrid = ({
                                     key={product._id}
                                     type="button"
                                     onClick={() => onAddProduct(product)}
-                                    className={`flex h-full gap-3 rounded-lg border ${productButtonPadding} text-left text-sm transition border-slate-800 ${
+                                    className={`flex flex-col items-center justify-center h-full gap-3 rounded-lg border ${productButtonPadding} text-left text-sm transition border-slate-800 ${
                                         isOutOfStock
                                             ? "cursor-not-allowed border-red-500/40 bg-red-500/10 text-red-200"
                                             : "border-slate-800 bg-slate-900/60 text-slate-200 hover:border-[#fa7316] hover:text-white"
                                     }`}
                                     disabled={isOutOfStock}
                                 >
-                                    <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-slate-800 bg-slate-900/50">
+                                    <div className="flex-shrink-0 w-full aspect-square rounded-lg  overflow-hidden border border-slate-800 bg-slate-900/50">
                                         {product.imageUrl ? (
                                             <img
                                                 src={product.imageUrl}
@@ -148,28 +151,33 @@ const ProductGrid = ({
                                             </div>
                                         )}
                                     </div>
-                                    <div className="flex-1 flex flex-col gap-2 min-w-0">
+                                    <div className="flex-1 flex flex-col gap-2 min-w-0 items-center justify-center">
                                         <div className="space-y-1">
+                                            {inventoryActivated && (
+                                                <p className="text-xs text-slate-400 text-center">
+                                                    Stock: {availableStock}
+                                                </p>
+                                            )}
+                                            {isOutOfStock && (
+                                                <p className="text-xs text-red-200/80 text-center">
+                                                    Producto agotado
+                                                </p>
+                                            )}
                                             <p
-                                                className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} line-clamp-2`}
+                                                className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} line-clamp-2 text-center`}
                                             >
                                                 {product.name}
                                             </p>
                                             <p
-                                                className={`text-xs ${isOutOfStock ? "text-red-200/80" : "text-slate-400"} line-clamp-3`}
+                                                className={`text-xs ${isOutOfStock ? "text-red-200/80" : "text-slate-400"} line-clamp-3 text-center`}
                                             >
                                                 {product.description}
                                             </p>
                                             <p
-                                                className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"}`}
+                                                className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} text-center`}
                                             >
                                                 {formatCurrency(product.price)}
                                             </p>
-                                            {inventoryActivated && (
-                                                <p className="text-xs text-slate-400">
-                                                    Stock: {availableStock}
-                                                </p>
-                                            )}
                                         </div>
                                     </div>
                                 </button>
@@ -183,4 +191,3 @@ const ProductGrid = ({
 };
 
 export default ProductGrid;
-
