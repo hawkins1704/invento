@@ -1,0 +1,239 @@
+import { useMemo, useState } from "react";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
+import type { ProductListItem } from "../types/products";
+import EditItemModal, { type EditableItem } from "./EditItemModal";
+import ProductGrid from "./ProductGrid";
+import OrderItemsList from "./OrderItemsList";
+import CloseButton from "./CloseButton";
+import { useOrderItems } from "../hooks/useOrderItems";
+
+type NewSaleModalProps = {
+    branchId: Id<"branches">;
+    table: Doc<"branchTables"> | null;
+    products: ProductListItem[];
+    categories: Doc<"categories">[];
+    staffMembers: Doc<"staff">[];
+    onClose: () => void;
+    onCreate: (payload: {
+        branchId: Id<"branches">;
+        tableId?: Id<"branchTables">;
+        staffId?: Id<"staff">;
+        notes?: string;
+        items?: Array<{
+            productId: Id<"products">;
+            quantity: number;
+            unitPrice: number;
+            discountAmount?: number;
+            notes?: string;
+        }>;
+    }) => Promise<void>;
+};
+
+const NewSaleModal = ({
+    branchId,
+    table,
+    products,
+    categories,
+    staffMembers,
+    onClose,
+    onCreate,
+}: NewSaleModalProps) => {
+    const [isClosing, setIsClosing] = useState(false);
+    const [staffId, setStaffId] = useState<Id<"staff"> | "">("");
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+        }, 300); // Esperar a que termine la animación (300ms)
+    };
+    const [notes, setNotes] = useState("");
+    const [items, setItems] = useState<EditableItem[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editingItemId, setEditingItemId] = useState<Id<"products"> | null>(
+        null
+    );
+
+    const editingItem = useMemo(() => {
+        if (!editingItemId) return null;
+        return items.find((i) => i.productId === editingItemId) ?? null;
+    }, [editingItemId, items]);
+
+    const {
+        addProduct,
+        updateItemQuantity,
+        removeItem,
+        updateItemDiscount,
+        validateStock,
+    } = useOrderItems({
+        items,
+        setItems,
+        products,
+        branchId,
+        showInventoryCheck: true,
+    });
+
+    const handleSubmit = async () => {
+        if (items.length === 0) {
+            setIsSubmitting(true);
+            try {
+                await onCreate({
+                    branchId,
+                    ...(table ? { tableId: table._id } : {}),
+                    ...(staffId ? { staffId } : {}),
+                    notes: notes.trim() || undefined,
+                });
+            } finally {
+                setIsSubmitting(false);
+            }
+            return;
+        }
+
+        // Validar stock antes de crear la venta
+        const stockErrors = validateStock();
+        if (stockErrors.length > 0) {
+            alert(
+                "No se puede crear la venta. El pedido excede el inventario disponible:\n\n" +
+                    stockErrors.join("\n")
+            );
+            return;
+        }
+
+        const payloadItems = items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            discountAmount:
+                item.discountAmount > 0 ? item.discountAmount : undefined,
+        }));
+
+        setIsSubmitting(true);
+        try {
+            await onCreate({
+                branchId,
+                ...(table ? { tableId: table._id } : {}),
+                ...(staffId ? { staffId } : {}),
+                notes: notes.trim() || undefined,
+                items: payloadItems,
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div
+            className={`fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 ${isClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
+        >
+            <div
+                className={`absolute inset-0 bg-slate-950/70 backdrop-blur ${isClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
+            />
+            <div
+                className={`relative flex w-full max-w-7xl flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 h-[90vh] max-h-[90vh] overflow-y-auto ${isClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+            >
+                <header className="flex-shrink-0 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-semibold">Nueva venta</h2>
+                        <CloseButton onClick={handleClose} />
+                    </div>
+                </header>
+
+                <div className="flex flex-1 flex-col gap-6 min-h-0 lg:flex-row lg:gap-8 ">
+                    <div className="flex flex-3 flex-col gap-4 min-h-0">
+                        <ProductGrid
+                            products={products}
+                            categories={categories}
+                            branchId={branchId}
+                            onAddProduct={addProduct}
+                            showInventoryCheck={true}
+                        />
+                    </div>
+
+                    <div className="flex flex-2 flex-col gap-4 overflow-y-auto min-h-0">
+                        <div className="flex-shrink-0 rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+                            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                Personal asignado
+                                <select
+                                    value={staffId}
+                                    onChange={(event) =>
+                                        setStaffId(
+                                            event.target.value as
+                                                | Id<"staff">
+                                                | ""
+                                        )
+                                    }
+                                    className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                >
+                                    <option value="">Sin asignar</option>
+                                    {staffMembers.map((member) => (
+                                        <option
+                                            key={member._id}
+                                            value={member._id as string}
+                                        >
+                                            {member.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="mt-4 flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                Notas
+                                <textarea
+                                    value={notes}
+                                    onChange={(event) =>
+                                        setNotes(event.target.value)
+                                    }
+                                    rows={3}
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                    placeholder="Agregar algún detalle del pedido o mesa"
+                                />
+                            </label>
+                        </div>
+
+                        <OrderItemsList
+                            items={items}
+                            products={products}
+                            branchId={branchId}
+                            onEdit={(productId) => setEditingItemId(productId)}
+                            onRemove={removeItem}
+                            onUpdateQuantity={updateItemQuantity}
+                            emptyStateMessage="Selecciona productos para construir el ticket."
+                            showInventoryCheck={true}
+                            useIconsForButtons={false}
+                        />
+                    </div>
+                </div>
+
+                <footer className="flex-shrink-0 flex flex-col gap-3 md:flex-row md:justify-end">
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
+                        disabled={isSubmitting}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleSubmit}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? "Guardando..." : "Crear venta"}
+                    </button>
+                </footer>
+            </div>
+
+            {editingItem && (
+                <EditItemModal
+                    item={editingItem}
+                    onUpdateQuantity={updateItemQuantity}
+                    onUpdateDiscount={updateItemDiscount}
+                    onClose={() => setEditingItemId(null)}
+                />
+            )}
+        </div>
+    );
+};
+
+export default NewSaleModal;
+
