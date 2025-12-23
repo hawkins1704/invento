@@ -53,6 +53,7 @@ const NewSaleModal = ({
     const [editingItemId, setEditingItemId] = useState<Id<"products"> | null>(
         null
     );
+    const [activeTab, setActiveTab] = useState<"catalogo" | "pedido">("catalogo");
 
     const editingItem = useMemo(() => {
         if (!editingItemId) return null;
@@ -136,9 +137,41 @@ const NewSaleModal = ({
                         <h2 className="text-2xl font-semibold">Nueva venta</h2>
                         <CloseButton onClick={handleClose} />
                     </div>
+                    
+                    {/* Tabs solo visibles en pantallas menores a 1024px */}
+                    <div className="lg:hidden flex gap-2  mt-2  ">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("catalogo")}
+                            className={`flex-1 px-4 py-2 text-sm font-semibold transition border-1 rounded-lg ${
+                                activeTab === "catalogo"
+                                    ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
+                                    : "border-transparent text-slate-400 hover:text-slate-300"
+                            }`}
+                        >
+                            CATÁLOGO
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("pedido")}
+                            className={`flex-1 px-4 py-2 text-sm font-semibold transition border-1 rounded-lg flex items-center justify-center ${
+                                activeTab === "pedido"
+                                    ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
+                                    : "border-transparent text-slate-400 hover:text-slate-300"
+                            }`}
+                        >
+                            PEDIDO
+                            {items.length > 0 && (
+                                <span className="rounded-full font-bold mx-1 bg-[#fa7316] text-xs font-semibold text-white px-2 py-1">
+                                    {items.length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
                 </header>
 
-                <div className="flex flex-1 flex-col gap-6 min-h-0 lg:flex-row lg:gap-8 ">
+                {/* Layout para pantallas grandes (≥1024px) - Mantiene el diseño original */}
+                <div className="hidden lg:flex flex-1 flex-col gap-6 min-h-0 lg:flex-row lg:gap-8">
                     <div className="flex flex-3 flex-col gap-4 min-h-0">
                         <ProductGrid
                             products={products}
@@ -201,6 +234,77 @@ const NewSaleModal = ({
                             useIconsForButtons={false}
                         />
                     </div>
+                </div>
+
+                {/* Layout para pantallas pequeñas (<1024px) - Sistema de Tabs */}
+                <div className="lg:hidden flex flex-1 flex-col gap-6 min-h-0 overflow-y-auto">
+                    {activeTab === "catalogo" && (
+                        <div className="flex flex-1 flex-col gap-4 min-h-0">
+                            <ProductGrid
+                                products={products}
+                                categories={categories}
+                                branchId={branchId}
+                                onAddProduct={addProduct}
+                                gridClassName="grid grid-cols-1 md:grid-cols-2 gap-3"
+                                showInventoryCheck={true}
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === "pedido" && (
+                        <div className="flex flex-1 flex-col gap-4 overflow-y-auto min-h-0">
+                            <div className="flex-shrink-0 rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+                                <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                    Personal asignado
+                                    <select
+                                        value={staffId}
+                                        onChange={(event) =>
+                                            setStaffId(
+                                                event.target.value as
+                                                    | Id<"staff">
+                                                    | ""
+                                            )
+                                        }
+                                        className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                    >
+                                        <option value="">Sin asignar</option>
+                                        {staffMembers.map((member) => (
+                                            <option
+                                                key={member._id}
+                                                value={member._id as string}
+                                            >
+                                                {member.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                                <label className="mt-4 flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                    Notas
+                                    <textarea
+                                        value={notes}
+                                        onChange={(event) =>
+                                            setNotes(event.target.value)
+                                        }
+                                        rows={3}
+                                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                        placeholder="Agregar algún detalle del pedido o mesa"
+                                    />
+                                </label>
+                            </div>
+
+                            <OrderItemsList
+                                items={items}
+                                products={products}
+                                branchId={branchId}
+                                onEdit={(productId) => setEditingItemId(productId)}
+                                onRemove={removeItem}
+                                onUpdateQuantity={updateItemQuantity}
+                                emptyStateMessage="Selecciona productos para construir el ticket."
+                                showInventoryCheck={true}
+                                useIconsForButtons={false}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <footer className="flex-shrink-0 flex flex-col gap-3 md:flex-row md:justify-end">

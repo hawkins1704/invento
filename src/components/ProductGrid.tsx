@@ -21,7 +21,7 @@ const ProductGrid = ({
     branchId,
     onAddProduct,
     gridClassName = "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3",
-    productButtonPadding = "p-4",
+    productButtonPadding = "p-2 lg:p-4",
     showInventoryCheck = true,
 }: ProductGridProps) => {
     const [search, setSearch] = useState("");
@@ -131,14 +131,14 @@ const ProductGrid = ({
                                     key={product._id}
                                     type="button"
                                     onClick={() => onAddProduct(product)}
-                                    className={`flex flex-col items-center justify-center h-full gap-3 rounded-lg border ${productButtonPadding} text-left text-sm transition border-slate-800 ${
+                                    className={`flex flex-row lg:flex-col items-center justify-center h-full gap-3 rounded-lg border ${productButtonPadding} text-left text-sm transition border-slate-800 ${
                                         isOutOfStock
                                             ? "cursor-not-allowed border-red-500/40 bg-red-500/10 text-red-200"
                                             : "border-slate-800 bg-slate-900/60 text-slate-200 hover:border-[#fa7316] hover:text-white"
                                     }`}
                                     disabled={isOutOfStock}
                                 >
-                                    <div className="flex-shrink-0 w-full aspect-square rounded-lg  overflow-hidden border border-slate-800 bg-slate-900/50">
+                                    <div className="flex-shrink-0 lg:w-full h-24 lg:h-auto aspect-square rounded-lg  overflow-hidden border border-slate-800 bg-slate-900/50">
                                         {product.imageUrl ? (
                                             <img
                                                 src={product.imageUrl}

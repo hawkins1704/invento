@@ -871,7 +871,7 @@ const CloseSaleDialog = ({
                                 )}
                         </div>
 
-                                <div className="flex flex-row gap-3 pt-4">
+                                <div className="flex flex-col lg:flex-row gap-2 lg:gap-3 pt-4">
                                     <button
                                         type="button"
                                         onClick={handleEmitFactura}

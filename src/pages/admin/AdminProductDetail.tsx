@@ -846,12 +846,27 @@ const AdminProductDetail = () => {
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            setFormState((previous) => ({
-                                                ...previous,
-                                                inventoryActivated: !previous.inventoryActivated,
-                                                // Si se desactiva el inventario, también desactivar ventas en negativo
-                                                allowNegativeSale: previous.inventoryActivated ? false : previous.allowNegativeSale,
-                                            }))
+                                            setFormState((previous) => {
+                                                const newInventoryActivated = !previous.inventoryActivated;
+                                                // Si se desactiva el inventario, poner todos los stocks en cero
+                                                const newStocks = newInventoryActivated
+                                                    ? previous.stocks
+                                                    : Object.keys(previous.stocks).reduce<Record<string, string>>(
+                                                          (acc, branchId) => {
+                                                              acc[branchId] = "0";
+                                                              return acc;
+                                                          },
+                                                          {}
+                                                      );
+                                                
+                                                return {
+                                                    ...previous,
+                                                    inventoryActivated: newInventoryActivated,
+                                                    // Si se desactiva el inventario, también desactivar ventas en negativo
+                                                    allowNegativeSale: previous.inventoryActivated ? false : previous.allowNegativeSale,
+                                                    stocks: newStocks,
+                                                };
+                                            })
                                         }
                                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
                                             formState.inventoryActivated
