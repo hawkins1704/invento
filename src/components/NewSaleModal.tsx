@@ -130,7 +130,7 @@ const NewSaleModal = ({
                 className={`absolute inset-0 bg-slate-950/70 backdrop-blur ${isClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
             />
             <div
-                className={`relative flex w-full max-w-7xl flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 h-[90vh] max-h-[90vh] overflow-y-auto ${isClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+                className={`relative flex w-full max-w-7xl flex-col gap-2 lg:gap-6 rounded-lg border border-slate-800 bg-slate-900/95 p-4 lg:p-6 text-white shadow-2xl shadow-black/60 h-[90vh] max-h-[80vh] md:max-h-[90vh] overflow-y-auto ${isClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
             >
                 <header className="flex-shrink-0 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
@@ -139,7 +139,7 @@ const NewSaleModal = ({
                     </div>
                     
                     {/* Tabs solo visibles en pantallas menores a 1024px */}
-                    <div className="lg:hidden flex gap-2  mt-2  ">
+                    <div className="lg:hidden flex gap-2 my-2">
                         <button
                             type="button"
                             onClick={() => setActiveTab("catalogo")}
@@ -162,7 +162,7 @@ const NewSaleModal = ({
                         >
                             PEDIDO
                             {items.length > 0 && (
-                                <span className="rounded-full font-bold mx-1 bg-[#fa7316] text-xs font-semibold text-white px-2 py-1">
+                                <span className="rounded-full font-bold mx-1 bg-[#fa7316] text-xs font-semibold text-white px-2">
                                     {items.length}
                                 </span>
                             )}

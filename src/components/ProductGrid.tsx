@@ -64,8 +64,8 @@ const ProductGrid = ({
 
     return (
         <div className="flex flex-col gap-4 min-h-0">
-            <div className="flex-shrink-0 space-y-3">
-                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <div className="hidden lg:block flex-shrink-0 space-y-3">
+                <div className=" flex items-center gap-2 overflow-x-auto pb-1">
                     {categoryOptions.map((category) => {
                         const isActive = selectedCategoryId === category.key;
                         return (
@@ -138,7 +138,7 @@ const ProductGrid = ({
                                     }`}
                                     disabled={isOutOfStock}
                                 >
-                                    <div className="flex-shrink-0 lg:w-full h-24 lg:h-auto aspect-square rounded-lg  overflow-hidden border border-slate-800 bg-slate-900/50">
+                                    <div className="flex-shrink-0 lg:w-full h-16 lg:h-auto aspect-square rounded-lg  overflow-hidden border border-slate-800 bg-slate-900/50">
                                         {product.imageUrl ? (
                                             <img
                                                 src={product.imageUrl}

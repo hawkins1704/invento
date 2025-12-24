@@ -1,11 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import type { ProductListItem } from "../types/products";
-import {
-    formatCurrency,
-    formatDateTime,
-    formatDuration,
-} from "../utils/format";
+import { formatCurrency, formatTime, formatDuration } from "../utils/format";
 import EditItemModal, { type EditableItem } from "./EditItemModal";
 import ProductGrid from "./ProductGrid";
 import OrderItemsList from "./OrderItemsList";
@@ -97,30 +93,38 @@ const SaleEditorDrawer = ({
     const [selectedStaffId, setSelectedStaffId] = useState<Id<"staff"> | "">(
         sale.sale.staffId ? (sale.sale.staffId as Id<"staff">) : ""
     );
-    const [isSavingItems, setIsSavingItems] = useState(false);
     const [isUpdatingDetails, setIsUpdatingDetails] = useState(false);
     const [editingItemId, setEditingItemId] = useState<Id<"products"> | null>(
         null
     );
     const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
-    const [activeTab, setActiveTab] = useState<"catalogo" | "pedido">("catalogo");
+    const [activeTab, setActiveTab] = useState<"catalogo" | "pedido">(
+        "catalogo"
+    );
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const previousItemsRef = useRef<EditableItem[]>([]);
+    const isInitialMountRef = useRef(true);
+    const saleIdRef = useRef<Id<"sales"> | null>(null);
 
     useEffect(() => {
-        setItems(
-            sale.items.map((item) => {
-                const product = products.find(
-                    (productItem) => productItem._id === item.productId
-                );
-                return {
-                    productId: item.productId,
-                    productName: product?.name ?? "Producto",
-                    imageUrl: product?.imageUrl ?? null,
-                    unitPrice: item.unitPrice,
-                    quantity: item.quantity,
-                    discountAmount: item.discountAmount ?? 0,
-                };
-            })
-        );
+        // Inicializar items desde sale
+        const initialItems = sale.items.map((item) => {
+            const product = products.find(
+                (productItem) => productItem._id === item.productId
+            );
+            return {
+                productId: item.productId,
+                productName: product?.name ?? "Producto",
+                imageUrl: product?.imageUrl ?? null,
+                unitPrice: item.unitPrice,
+                quantity: item.quantity,
+                discountAmount: item.discountAmount ?? 0,
+            };
+        });
+
+        setItems(initialItems);
+        previousItemsRef.current = initialItems;
+        saleIdRef.current = sale.sale._id;
         setSaleNotes(sale.sale.notes ?? "");
         setSelectedTableId(
             sale.sale.tableId ? (sale.sale.tableId as Id<"branchTables">) : ""
@@ -128,7 +132,70 @@ const SaleEditorDrawer = ({
         setSelectedStaffId(
             sale.sale.staffId ? (sale.sale.staffId as Id<"staff">) : ""
         );
+        
+        // Marcar que la carga inicial está completa después de un pequeño delay
+        // Esto evita que se guarde inmediatamente cuando se sincroniza desde sale
+        const timeoutId = setTimeout(() => {
+            isInitialMountRef.current = false;
+        }, 150);
+        
+        return () => {
+            clearTimeout(timeoutId);
+        };
     }, [sale, products]);
+
+    // Guardado automático cuando cambian los items
+    useEffect(() => {
+        // No guardar durante la carga inicial
+        if (isInitialMountRef.current) {
+            // Actualizar la referencia para la próxima vez
+            previousItemsRef.current = items;
+            return;
+        }
+
+        // Comparar si los items realmente cambiaron (comparación profunda)
+        const itemsChanged = JSON.stringify(items) !== JSON.stringify(previousItemsRef.current);
+        
+        if (!itemsChanged) {
+            return;
+        }
+
+        // Limpiar timeout anterior si existe
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        // Guardar después de 500ms de inactividad (debounce)
+        saveTimeoutRef.current = setTimeout(async () => {
+            if (!saleIdRef.current) return;
+            
+            try {
+                await onSaveItems(
+                    saleIdRef.current,
+                    items.map((item) => ({
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        discountAmount:
+                            item.discountAmount > 0
+                                ? item.discountAmount
+                                : undefined,
+                    }))
+                );
+                // Actualizar la referencia solo después de guardar exitosamente
+                previousItemsRef.current = items;
+            } catch (error) {
+                console.error("Error al guardar items automáticamente:", error);
+            }
+        }, 500);
+
+        // Cleanup
+        return () => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+        };
+    }, [items, onSaveItems]);
 
     const total = useMemo(() => {
         return items.reduce((accumulator, item) => {
@@ -143,11 +210,10 @@ const SaleEditorDrawer = ({
     }, [editingItemId, items]);
 
     const {
-        addProduct: addItem,
-        updateItemQuantity,
-        removeItem,
-        updateItemDiscount,
-        validateStock,
+        addProduct: addProductBase,
+        updateItemQuantity: updateItemQuantityBase,
+        removeItem: removeItemBase,
+        updateItemDiscount: updateItemDiscountBase,
     } = useOrderItems({
         items,
         setItems,
@@ -156,35 +222,39 @@ const SaleEditorDrawer = ({
         showInventoryCheck: false,
     });
 
-    const saveItems = async () => {
-        // Validar stock antes de guardar los items
-        const stockErrors = validateStock();
-        if (stockErrors.length > 0) {
-            alert(
-                "No se pueden guardar los cambios. El pedido excede el inventario disponible:\n\n" +
-                    stockErrors.join("\n")
-            );
-            return;
-        }
+    // Wrappers que actualizan el estado (el guardado automático se hace en el useEffect)
+    // También marcamos que ya no estamos en la carga inicial cuando el usuario hace una acción
+    const addItem = useCallback(
+        (product: ProductListItem) => {
+            isInitialMountRef.current = false; // Permitir guardado inmediatamente
+            addProductBase(product);
+        },
+        [addProductBase]
+    );
 
-        setIsSavingItems(true);
-        try {
-            await onSaveItems(
-                sale.sale._id,
-                items.map((item) => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                    discountAmount:
-                        item.discountAmount > 0
-                            ? item.discountAmount
-                            : undefined,
-                }))
-            );
-        } finally {
-            setIsSavingItems(false);
-        }
-    };
+    const updateItemQuantity = useCallback(
+        (productId: Id<"products">, quantity: number) => {
+            isInitialMountRef.current = false; // Permitir guardado inmediatamente
+            updateItemQuantityBase(productId, quantity);
+        },
+        [updateItemQuantityBase]
+    );
+
+    const removeItem = useCallback(
+        (productId: Id<"products">) => {
+            isInitialMountRef.current = false; // Permitir guardado inmediatamente
+            removeItemBase(productId);
+        },
+        [removeItemBase]
+    );
+
+    const updateItemDiscount = useCallback(
+        (productId: Id<"products">, discountAmount: number) => {
+            isInitialMountRef.current = false; // Permitir guardado inmediatamente
+            updateItemDiscountBase(productId, discountAmount);
+        },
+        [updateItemDiscountBase]
+    );
 
     const saveDetails = async () => {
         setIsUpdatingDetails(true);
@@ -216,7 +286,7 @@ const SaleEditorDrawer = ({
             <div
                 className={`relative flex flex-col w-full h-full bg-slate-900 text-white shadow-xl shadow-black/50 ${isClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
             >
-                <header className="flex-shrink-0 flex flex-col gap-2 p-6 border-b border-slate-800">
+                <header className="flex-shrink-0 flex flex-col gap-2 px-4 py-6 lg:p-6 border-b border-slate-800">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-md uppercase tracking-[0.1em] text-slate-400">
@@ -224,37 +294,6 @@ const SaleEditorDrawer = ({
                             </p>
                         </div>
                         <CloseButton onClick={handleClose} />
-                    </div>
-                    
-                    {/* Tabs solo visibles en pantallas menores a 1024px */}
-                    <div className="lg:hidden flex gap-2 mt-2">
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab("catalogo")}
-                            className={`flex-1 px-4 py-2 text-sm font-semibold transition border-1 rounded-lg ${
-                                activeTab === "catalogo"
-                                    ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
-                                    : "border-transparent text-slate-400 hover:text-slate-300"
-                            }`}
-                        >
-                            CATÁLOGO
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab("pedido")}
-                            className={`flex-1 px-4 py-2 text-sm font-semibold transition border-1 rounded-lg flex items-center justify-center ${
-                                activeTab === "pedido"
-                                    ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
-                                    : "border-transparent text-slate-400 hover:text-slate-300"
-                            }`}
-                        >
-                            PEDIDO
-                            {items.length > 0 && (
-                                <span className="rounded-full font-bold mx-1 bg-[#fa7316] text-xs font-semibold text-white px-2 py-1">
-                                    {items.length}
-                                </span>
-                            )}
-                        </button>
                     </div>
                 </header>
 
@@ -387,31 +426,51 @@ const SaleEditorDrawer = ({
                                 items={items}
                                 products={products}
                                 branchId={branchId}
-                                onEdit={(productId) => setEditingItemId(productId)}
+                                onEdit={(productId) =>
+                                    setEditingItemId(productId)
+                                }
                                 onRemove={removeItem}
                                 onUpdateQuantity={updateItemQuantity}
                                 emptyStateMessage="Aún no hay productos en este pedido. Selecciona productos desde el catálogo."
                                 showInventoryCheck={false}
                                 useIconsForButtons={true}
                             />
-                            <div className="flex justify-end">
-                                <button
-                                    type="button"
-                                    onClick={saveItems}
-                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
-                                    disabled={isSavingItems}
-                                >
-                                    {isSavingItems
-                                        ? "Guardando..."
-                                        : "Guardar cambios"}
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Layout para pantallas pequeñas (<1024px) - Sistema de Tabs */}
-                <div className="lg:hidden flex flex-1 flex-col gap-6 overflow-hidden p-6 min-h-0 overflow-y-auto">
+                <div className="lg:hidden flex flex-1 flex-col gap-4 lg:gap-6 overflow-hidden p-4 lg:p-6 min-h-0 overflow-y-auto">
+                    {/* Layout para pantallas pequeñas (<1024px) - Sistema de Tabs */}
+                    {/* Tabs solo visibles en pantallas menores a 1024px */}
+                    <div className="lg:hidden flex gap-2 mt-2">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("catalogo")}
+                            className={`flex-1 px-4 py-2 text-sm font-semibold transition border-1 rounded-lg ${
+                                activeTab === "catalogo"
+                                    ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
+                                    : "border-transparent text-slate-400 hover:text-slate-300"
+                            }`}
+                        >
+                            CATÁLOGO
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("pedido")}
+                            className={`flex-1 px-4 py-2 text-sm font-semibold transition border-1 rounded-lg flex items-center justify-center ${
+                                activeTab === "pedido"
+                                    ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
+                                    : "border-transparent text-slate-400 hover:text-slate-300"
+                            }`}
+                        >
+                            PEDIDO
+                            {items.length > 0 && (
+                                <span className="rounded-full font-bold mx-1 bg-[#fa7316] text-xs font-semibold text-white px-2 py-1">
+                                    {items.length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
                     {activeTab === "catalogo" && (
                         <div className="flex flex-1 flex-col gap-4 min-h-0">
                             <ProductGrid
@@ -461,17 +520,22 @@ const SaleEditorDrawer = ({
                                                 }
                                                 className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
                                             >
-                                                <option value="">Sin mesa</option>
+                                                <option value="">
+                                                    Sin mesa
+                                                </option>
                                                 {tables.map((table) => (
                                                     <option
                                                         key={table._id}
-                                                        value={table._id as string}
+                                                        value={
+                                                            table._id as string
+                                                        }
                                                         disabled={
                                                             Boolean(
                                                                 table.currentSaleId
                                                             ) &&
                                                             table._id !==
-                                                                sale.sale.tableId
+                                                                sale.sale
+                                                                    .tableId
                                                         }
                                                     >
                                                         {table.label}
@@ -503,7 +567,9 @@ const SaleEditorDrawer = ({
                                                 {staffMembers.map((member) => (
                                                     <option
                                                         key={member._id}
-                                                        value={member._id as string}
+                                                        value={
+                                                            member._id as string
+                                                        }
                                                     >
                                                         {member.name}
                                                     </option>
@@ -515,7 +581,9 @@ const SaleEditorDrawer = ({
                                             <textarea
                                                 value={saleNotes}
                                                 onChange={(event) =>
-                                                    setSaleNotes(event.target.value)
+                                                    setSaleNotes(
+                                                        event.target.value
+                                                    )
                                                 }
                                                 rows={3}
                                                 className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
@@ -543,35 +611,25 @@ const SaleEditorDrawer = ({
                                     items={items}
                                     products={products}
                                     branchId={branchId}
-                                    onEdit={(productId) => setEditingItemId(productId)}
+                                    onEdit={(productId) =>
+                                        setEditingItemId(productId)
+                                    }
                                     onRemove={removeItem}
                                     onUpdateQuantity={updateItemQuantity}
                                     emptyStateMessage="Aún no hay productos en este pedido. Selecciona productos desde el catálogo."
                                     showInventoryCheck={false}
                                     useIconsForButtons={true}
                                 />
-                                <div className="flex justify-end">
-                                    <button
-                                        type="button"
-                                        onClick={saveItems}
-                                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
-                                        disabled={isSavingItems}
-                                    >
-                                        {isSavingItems
-                                            ? "Guardando..."
-                                            : "Guardar cambios"}
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     )}
                 </div>
 
-                <footer className="flex-shrink-0 flex flex-col gap-4 p-3 border-t border-slate-800 bg-slate-900">
+                <footer className="flex-shrink-0 flex flex-col gap-4 p-4 pb-6 lg:pb-4 border-t border-slate-800 bg-slate-900">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div className="flex flex-col gap-2">
+                        <div className="flex md:flex-col justify-between gap-2">
                             <div className="flex items-center gap-3">
-                                <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                                <span className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500">
                                     Total
                                 </span>
                                 <span className="text-2xl font-semibold text-white">
@@ -579,14 +637,21 @@ const SaleEditorDrawer = ({
                                 </span>
                             </div>
                             <div className="flex flex-col gap-1 text-sm text-slate-300">
-                                <div className="flex items-center gap-2">
-                                    <span>Creada:</span>
+                                <div className="flex items-center justify-end md:justify-start gap-1">
+                                    <span className="text-xs sm:text-sm font-semibold text-slate-500">
+                                        Creada:
+                                    </span>
                                     <span className="font-semibold text-white">
-                                        {formatDateTime(sale.sale.openedAt)}
+                                        {formatTime(sale.sale.openedAt)}
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span>Tiempo en mesa:</span>
+                                <div className="flex items-center justify-end md:justify-start gap-1">
+                                    <span className="hidden sm:block text-xs sm:text-sm font-semibold text-slate-500">
+                                        Tiempo en mesa:
+                                    </span>
+                                    <span className="block sm:hidden text-xs sm:text-sm font-semibold text-slate-500">
+                                        En mesa:
+                                    </span>
                                     <span className="font-semibold text-white">
                                         {formatDuration(
                                             sale.sale.openedAt,
@@ -596,31 +661,29 @@ const SaleEditorDrawer = ({
                                 </div>
                             </div>
                         </div>
-
-                        <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                            <div className="flex flex-col gap-2 sm:flex-row">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        onCloseSale(
-                                            sale.sale._id,
-                                            sale,
-                                            "Contado",
-                                            saleNotes
-                                        )
-                                    }
-                                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200 cursor-pointer"
-                                >
-                                    Concluir venta
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => onCancelSale(sale.sale._id)}
-                                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200 cursor-pointer"
-                                >
-                                    Cancelar venta
-                                </button>
-                            </div>
+                        {/* Botones de acciones */}
+                        <div className="flex gap-2 sm:justify-end ">
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    onCloseSale(
+                                        sale.sale._id,
+                                        sale,
+                                        "Contado",
+                                        saleNotes
+                                    )
+                                }
+                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200 cursor-pointer"
+                            >
+                                Concluir venta
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onCancelSale(sale.sale._id)}
+                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200 cursor-pointer"
+                            >
+                                Cancelar venta
+                            </button>
                         </div>
                     </div>
                 </footer>
@@ -639,4 +702,3 @@ const SaleEditorDrawer = ({
 };
 
 export default SaleEditorDrawer;
-
