@@ -753,40 +753,7 @@ const HistoryView = ({
 
     return (
         <div className="space-y-6">
-            <section className="grid gap-4 lg:grid-cols-4">
-                <SummaryCard
-                    title="Total vendido"
-                    value={formatCurrency(summary.totalAmount)}
-                    subtitle="Suma de ventas cerradas en el periodo seleccionado."
-                />
-                <SummaryCard
-                    title="Tickets cerrados"
-                    value={summary.totalSales.toString()}
-                    subtitle="Cantidad de ventas finalizadas."
-                />
-                <SummaryCard
-                    title="Ticket promedio"
-                    value={
-                        summary.totalSales === 0
-                            ? "S/ 0.00"
-                            : formatCurrency(
-                                  summary.totalAmount / summary.totalSales
-                              )
-                    }
-                    subtitle="Promedio del valor de cada ticket."
-                />
-                <SummaryCard
-                    title="Métodos registrados"
-                    value={
-                        paymentBreakdownData
-                            ? paymentBreakdownData.length.toString()
-                            : "0"
-                    }
-                    subtitle="Variantes de pago utilizadas en el periodo."
-                />
-            </section>
-
-            <section className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-800 bg-slate-900/50 p-5 text-white shadow-inner shadow-black/20">
+                <section className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-800 bg-slate-900/50 p-5 text-white shadow-inner shadow-black/20">
                 <div className="flex flex-col gap-2">
                     <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                         Periodo
@@ -975,6 +942,41 @@ const HistoryView = ({
                     </select>
                 </div>
             </section>
+            
+            <section className="grid gap-4 lg:grid-cols-4">
+                <SummaryCard
+                    title="Total vendido"
+                    value={formatCurrency(summary.totalAmount)}
+                    subtitle="Suma de ventas cerradas en el periodo seleccionado."
+                />
+                <SummaryCard
+                    title="Tickets cerrados"
+                    value={summary.totalSales.toString()}
+                    subtitle="Cantidad de ventas finalizadas."
+                />
+                <SummaryCard
+                    title="Ticket promedio"
+                    value={
+                        summary.totalSales === 0
+                            ? "S/ 0.00"
+                            : formatCurrency(
+                                  summary.totalAmount / summary.totalSales
+                              )
+                    }
+                    subtitle="Promedio del valor de cada ticket."
+                />
+                <SummaryCard
+                    title="Métodos registrados"
+                    value={
+                        paymentBreakdownData
+                            ? paymentBreakdownData.length.toString()
+                            : "0"
+                    }
+                    subtitle="Variantes de pago utilizadas en el periodo."
+                />
+            </section>
+
+        
 
             <section className="grid gap-4 lg:grid-cols-[1fr,0.45fr]">
                 <div className="rounded-lg border border-slate-800 bg-slate-900/60 text-white shadow-inner shadow-black/20">

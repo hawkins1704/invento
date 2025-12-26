@@ -1047,9 +1047,7 @@ const Layout = () => {
                                 <FaBars />
                             </button>
                             <div>
-                                <p className="text-xs uppercase tracking-[0.34em] text-slate-500">
-                                    Invento
-                                </p>
+                              
                                 <h1 className="text-lg font-semibold text-white">
                                     {menuItems.find(
                                         (item) =>

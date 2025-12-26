@@ -197,7 +197,7 @@ const SalesTablesContent = ({
                 </div>
             </header>
 
-            <section className="grid gap-4 lg:grid-cols-3">
+            <section className="grid gap-4 grid-cols-1 lg:grid-cols-3">
                 <SummaryCard
                     title="Mesas registradas"
                     value={branchTables.length.toString()}
@@ -1059,6 +1059,49 @@ const SalesTablesContent = ({
                                 ? error.message
                                 : "Error al abrir el PDF"
                         );
+                    }
+                }}
+                onSendPDFToWhatsapp={async (
+                    phoneNumber: string,
+                    documentId: string,
+                    fileName: string
+                ) => {
+                    try {
+                        // Usar el formato del usuario o A4 por defecto
+                        const format =
+                            (currentUser as any)?.printFormat || "A4";
+
+                        // Construir la URL del PDF (misma lógica que downloadPDF)
+                        const fileNameWithExtension = fileName.endsWith(".pdf")
+                            ? fileName
+                            : `${fileName}.pdf`;
+                        const baseUrl =
+                            import.meta.env.VITE_APISUNAT_BASE_URL as string;
+                        const pdfUrl = `${baseUrl}/documents/${documentId}/getPDF/${format}/${fileNameWithExtension}`;
+                        console.log("pdfUrl:", pdfUrl);
+                        // Formatear el número de teléfono (solo números, sin espacios ni caracteres especiales)
+                        const cleanPhone = phoneNumber.replace(/\D/g, "");
+
+                        // Construir el mensaje con el link del PDF
+                        const message = `Hola, te comparto tu comprobante de pago:\n${pdfUrl}`;
+
+                        // Codificar el mensaje para URL
+                        const encodedMessage = encodeURIComponent(message);
+
+                        // Construir la URL de WhatsApp
+                        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+
+                        // Abrir WhatsApp en una nueva pestaña
+                        window.open(whatsappUrl, "_blank");
+
+                        return { success: true };
+                    } catch (error) {
+                        console.error("Error al enviar por WhatsApp:", error);
+                        const errorMessage =
+                            error instanceof Error
+                                ? error.message
+                                : "Error al enviar por WhatsApp";
+                        return { success: false, error: errorMessage };
                     }
                 }}
             />
