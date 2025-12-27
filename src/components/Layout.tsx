@@ -1035,7 +1035,8 @@ const Layout = () => {
                     />
                 )}
 
-                <div className="flex flex-1 flex-col">
+               
+                <div className="flex flex-1 flex-col overflow-x-scroll">
                     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-800 bg-slate-950/90 px-5 backdrop-blur">
                         <div className="flex items-center gap-3">
                             <button
@@ -1047,7 +1048,6 @@ const Layout = () => {
                                 <FaBars />
                             </button>
                             <div>
-                              
                                 <h1 className="text-lg font-semibold text-white">
                                     {menuItems.find(
                                         (item) =>
@@ -1161,7 +1161,7 @@ const Layout = () => {
                     </header>
 
                     <main className="flex-1 overflow-y-auto bg-slate-950">
-                        <div className="mx-auto w-full max-w-6xl px-6 py-10">
+                        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-6 sm:py-10">
                             <Outlet />
                         </div>
                     </main>

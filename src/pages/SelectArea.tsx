@@ -123,7 +123,7 @@ const SelectArea = () => {
           <h1 className="text-4xl font-semibold text-white">¿Dónde vas a trabajar hoy?</h1>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 grid-cols-2 sm:grid-cols-2 ">
           {AREAS.map((area) => {
             const isSelected = selectedArea === area.key;
             return (
@@ -136,11 +136,11 @@ const SelectArea = () => {
                 }`}
               >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(250,115,22,0.18),_transparent_60%)] opacity-0 transition group-hover:opacity-100" />
-                <div className="relative flex h-full flex-col gap-6 p-8 text-left">
-                  <div className="flex items-center justify-between">
+                <div className="relative flex h-full flex-col gap-6 p-4 sm:p-8 text-left">
+                  <div className="flex flex-col-reverse sm:flex-row items-start gap-2 sm:gap-0 sm:items-center justify-between">
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
-                        isSelected ? "bg-[#fa7316] text-white" : "bg-white/5 text-slate-300"
+                      className={`rounded-full sm:px-3 sm:py-1 text-xs font-semibold uppercase tracking-wider ${
+                        isSelected ? "sm:bg-[#fa7316] text-[#fa7316] sm:text-white" : "sm:bg-white/5 text-slate-300"
                       }`}
                     >
                       {area.badge}
@@ -150,7 +150,7 @@ const SelectArea = () => {
                     </span>
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-2xl font-semibold text-white">{area.title}</h2>
+                    <h2 className="text-lg sm:text-2xl font-semibold text-white">{area.title}</h2>
                   </div>
                   
                 </div>

@@ -141,7 +141,7 @@ const AdminDashboard = () => {
           Panel administrador
         </span>
         <div className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/40 p-8">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row gap-6 sm:gap-0 items-start justify-between">
             <div className="flex-1">
               <h1 className="text-3xl font-semibold text-white">Resumen general</h1>
               <p className="max-w-2xl text-sm text-slate-400 mt-2">
@@ -168,8 +168,8 @@ const AdminDashboard = () => {
       </header>
 
       {/* Sección 1: Métricas de ventas del día */}
-      <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
+      <section className="grid gap-6 grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
+        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Total vendido</p>
           <div className="mt-4">
             <span className="text-2xl font-semibold text-white">
@@ -179,7 +179,7 @@ const AdminDashboard = () => {
           <p className="mt-3 text-xs text-slate-400">Suma de todas las ventas cerradas en el período</p>
         </div>
 
-        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
+        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Tickets cerrados</p>
           <div className="mt-4">
             <span className="text-2xl font-semibold text-white">
@@ -189,7 +189,7 @@ const AdminDashboard = () => {
           <p className="mt-3 text-xs text-slate-400">Ventas finalizadas en el período</p>
         </div>
 
-        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
+        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Ticket promedio</p>
           <div className="mt-4">
             <span className="text-2xl font-semibold text-white">
@@ -199,7 +199,7 @@ const AdminDashboard = () => {
           <p className="mt-3 text-xs text-slate-400">Promedio por venta</p>
         </div>
 
-        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
+        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Tickets abiertos</p>
           <div className="mt-4">
             <span className="text-2xl font-semibold text-white">
@@ -209,7 +209,7 @@ const AdminDashboard = () => {
           <p className="mt-3 text-xs text-slate-400">Mesas activas en todas las sucursales</p>
         </div>
 
-        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
+        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Sucursales activas</p>
           <div className="mt-4">
             <span className="text-2xl font-semibold text-white">
@@ -222,7 +222,7 @@ const AdminDashboard = () => {
 
       {/* Sección 2: Resumen por sucursal */}
       <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-0 items-start justify-between mb-6">
           <div>
             <h2 className="text-xl font-semibold text-white">Resumen por sucursal</h2>
             <p className="text-xs text-slate-500 mt-1">Vista rápida del rendimiento de cada sucursal en el período</p>
@@ -407,7 +407,7 @@ const AdminDashboard = () => {
 
       {/* Sección 10: Alertas de inventario */}
       <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-0 items-start justify-between mb-6">
           <div>
             <h2 className="text-xl font-semibold text-white">Alertas de inventario</h2>
             <p className="text-xs text-slate-500 mt-1">Productos con stock bajo o sin stock</p>

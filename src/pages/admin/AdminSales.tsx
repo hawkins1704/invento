@@ -641,10 +641,14 @@ const HistoryView = ({
     totalItems,
     onPageChange,
 }: HistoryViewProps) => {
-    const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
+    const currentUser = useQuery(api.users.getCurrent) as
+        | Doc<"users">
+        | undefined;
     const { getDocument, downloadPDF } = useAPISUNAT();
     const [selectedSale, setSelectedSale] = useState<HistorySale | null>(null);
-    const [documentFileName, setDocumentFileName] = useState<string | null>(null);
+    const [documentFileName, setDocumentFileName] = useState<string | null>(
+        null
+    );
     const [selectedFormat, setSelectedFormat] = useState<PDFFormat>("A4");
     const [isLoadingDocument, setIsLoadingDocument] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -671,11 +675,15 @@ const HistoryView = ({
             if (document) {
                 setDocumentFileName(document.fileName);
             } else {
-                setDownloadError("No se pudo obtener la información del documento");
+                setDownloadError(
+                    "No se pudo obtener la información del documento"
+                );
             }
         } catch (error) {
             setDownloadError(
-                error instanceof Error ? error.message : "Error al obtener el documento"
+                error instanceof Error
+                    ? error.message
+                    : "Error al obtener el documento"
             );
         } finally {
             setIsLoadingDocument(false);
@@ -691,7 +699,11 @@ const HistoryView = ({
     };
 
     const handleDownload = async () => {
-        if (!selectedSale?.sale.documentId || !documentFileName || !currentUser?.personaToken) {
+        if (
+            !selectedSale?.sale.documentId ||
+            !documentFileName ||
+            !currentUser?.personaToken
+        ) {
             return;
         }
 
@@ -753,7 +765,7 @@ const HistoryView = ({
 
     return (
         <div className="space-y-6">
-                <section className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-800 bg-slate-900/50 p-5 text-white shadow-inner shadow-black/20">
+            <section className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-800 bg-slate-900/50 p-5 text-white shadow-inner shadow-black/20">
                 <div className="flex flex-col gap-2">
                     <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                         Periodo
@@ -942,7 +954,7 @@ const HistoryView = ({
                     </select>
                 </div>
             </section>
-            
+
             <section className="grid gap-4 lg:grid-cols-4">
                 <SummaryCard
                     title="Total vendido"
@@ -976,10 +988,8 @@ const HistoryView = ({
                 />
             </section>
 
-        
-
-            <section className="grid gap-4 lg:grid-cols-[1fr,0.45fr]">
-                <div className="rounded-lg border border-slate-800 bg-slate-900/60 text-white shadow-inner shadow-black/20">
+            <section className="grid gap-4">
+                <div className="overflow-x-auto rounded-lg border border-slate-800 bg-slate-900/60 text-white shadow-inner shadow-black/20">
                     <header className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
                         <h2 className="text-lg font-semibold">
                             Ventas cerradas
@@ -1012,7 +1022,8 @@ const HistoryView = ({
                                 ))}
                             </div>
                             {/* Vista de tabla para tablet y desktop */}
-                            <div className="hidden md:block overflow-x-auto p-5 pb-0">
+
+                            <div className="hidden w-full md:block p-5 pb-0">
                                 <DataTable
                                     columns={[
                                         { label: "Fecha", key: "date" },
@@ -1020,14 +1031,16 @@ const HistoryView = ({
                                         { label: "Mesa", key: "table" },
                                         { label: "Atiende", key: "staff" },
                                         { label: "Método", key: "method" },
-                                        { label: "Documento Emitido", key: "document" },
+                                        {
+                                            label: "Documento Emitido",
+                                            key: "document",
+                                        },
                                         {
                                             label: "Total",
                                             key: "total",
                                             align: "right",
                                         },
                                     ]}
-                                    className="min-w-full"
                                 >
                                     {data.map((entry) => (
                                         <TableRow key={entry.sale._id}>
@@ -1035,25 +1048,32 @@ const HistoryView = ({
                                                 <div className="flex flex-col">
                                                     <span className="font-semibold text-white">
                                                         {formatDate(
-                                                            entry.sale.closedAt ??
-                                                                entry.sale.openedAt
+                                                            entry.sale
+                                                                .closedAt ??
+                                                                entry.sale
+                                                                    .openedAt
                                                         )}
                                                     </span>
                                                     <span className="text-xs text-slate-400">
                                                         {formatTime(
-                                                            entry.sale.closedAt ??
-                                                                entry.sale.openedAt
+                                                            entry.sale
+                                                                .closedAt ??
+                                                                entry.sale
+                                                                    .openedAt
                                                         )}
                                                     </span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-slate-200">
                                                 {branchNameById.get(
-                                                    entry.sale.branchId as string
+                                                    entry.sale
+                                                        .branchId as string
                                                 ) ?? "Sucursal"}
                                             </td>
+                                            
                                             <td className="px-6 py-4 text-sm text-slate-300">
-                                                {entry.table?.label ?? "Sin mesa"}
+                                                {entry.table?.label ??
+                                                    "Sin mesa"}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-slate-300">
                                                 {entry.sale.staffId
@@ -1066,25 +1086,38 @@ const HistoryView = ({
                                             <td className="px-6 py-4 text-sm text-slate-300">
                                                 {entry.sale.paymentMethod
                                                     ? methodLabel(
-                                                          entry.sale.paymentMethod
+                                                          entry.sale
+                                                              .paymentMethod
                                                       )
                                                     : "No registrado"}
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                {entry.sale.documentId && entry.sale.documentType ? (
+                                                {entry.sale.documentId &&
+                                                entry.sale.documentType ? (
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleDocumentClick(entry)}
+                                                        onClick={() =>
+                                                            handleDocumentClick(
+                                                                entry
+                                                            )
+                                                        }
                                                         className="text-[#fa7316] hover:text-[#e86811] transition-colors cursor-pointer font-semibold"
                                                     >
-                                                        {getDocumentTypeLabel(entry.sale.documentType)}
+                                                        {getDocumentTypeLabel(
+                                                            entry.sale
+                                                                .documentType
+                                                        )}
                                                     </button>
                                                 ) : (
-                                                    <span className="text-slate-500">SIN DOC</span>
+                                                    <span className="text-slate-500">
+                                                        SIN DOC
+                                                    </span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-right text-sm font-semibold text-white">
-                                                {formatCurrency(entry.sale.total)}
+                                                {formatCurrency(
+                                                    entry.sale.total
+                                                )}
                                             </td>
                                         </TableRow>
                                     ))}
@@ -1163,7 +1196,9 @@ const HistoryView = ({
                                                 {product.productName}
                                             </span>
                                             <span className="font-semibold text-white">
-                                                {formatCurrency(product.revenue)}
+                                                {formatCurrency(
+                                                    product.revenue
+                                                )}
                                             </span>
                                         </div>
                                         <span className="text-xs text-slate-500">
@@ -1206,7 +1241,9 @@ const HistoryView = ({
             </section>
 
             <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-                <h2 className="text-lg font-semibold mb-6">Mapa de ventas por hora</h2>
+                <h2 className="text-lg font-semibold mb-6">
+                    Mapa de ventas por hora
+                </h2>
                 {!salesByHourData ||
                 salesByHourData.length === 0 ||
                 salesByHourData.every((h) => h.amount === 0) ? (
@@ -1235,11 +1272,17 @@ const HistoryView = ({
                                     <div className="flex flex-col gap-2 md:hidden">
                                         {salesByHourData.map((hourData) => {
                                             const barWidth =
-                                                (hourData.amount / maxHourlyAmount) * 100;
-                                            
-                                            const intensity = hourData.amount > 0 
-                                                ? Math.max(0.3, barWidth / 100)
-                                                : 0;
+                                                (hourData.amount /
+                                                    maxHourlyAmount) *
+                                                100;
+
+                                            const intensity =
+                                                hourData.amount > 0
+                                                    ? Math.max(
+                                                          0.3,
+                                                          barWidth / 100
+                                                      )
+                                                    : 0;
 
                                             return (
                                                 <div
@@ -1247,7 +1290,9 @@ const HistoryView = ({
                                                     className="flex items-center gap-3"
                                                 >
                                                     <div className="w-16 text-xs font-semibold text-slate-400">
-                                                        {formatHour(hourData.hour)}
+                                                        {formatHour(
+                                                            hourData.hour
+                                                        )}
                                                     </div>
                                                     <div className="flex-1 relative">
                                                         <div className="h-8 rounded-lg bg-slate-950/60 overflow-hidden">
@@ -1256,12 +1301,18 @@ const HistoryView = ({
                                                                 style={{
                                                                     width: `${Math.max(
                                                                         barWidth,
-                                                                        hourData.amount > 0
+                                                                        hourData.amount >
+                                                                            0
                                                                             ? 2
                                                                             : 0
                                                                     )}%`,
-                                                                    opacity: intensity,
-                                                                    minWidth: hourData.amount > 0 ? '2px' : '0',
+                                                                    opacity:
+                                                                        intensity,
+                                                                    minWidth:
+                                                                        hourData.amount >
+                                                                        0
+                                                                            ? "2px"
+                                                                            : "0",
                                                                 }}
                                                             />
                                                         </div>
@@ -1272,14 +1323,20 @@ const HistoryView = ({
                                     </div>
 
                                     {/* Desktop: barras verticales en horizontal */}
-                                    <div className="hidden md:flex items-end justify-between gap-1 h-64 px-2">
+                                    <div className="hidden md:flex items-end justify-between gap-1 h-64 px-2 overflow-x-scroll">
                                         {salesByHourData.map((hourData) => {
                                             const barHeight =
-                                                (hourData.amount / maxHourlyAmount) * 100;
-                                            
-                                            const intensity = hourData.amount > 0 
-                                                ? Math.max(0.3, barHeight / 100)
-                                                : 0;
+                                                (hourData.amount /
+                                                    maxHourlyAmount) *
+                                                100;
+
+                                            const intensity =
+                                                hourData.amount > 0
+                                                    ? Math.max(
+                                                          0.3,
+                                                          barHeight / 100
+                                                      )
+                                                    : 0;
 
                                             return (
                                                 <div
@@ -1294,19 +1351,27 @@ const HistoryView = ({
                                                                 style={{
                                                                     height: `${Math.max(
                                                                         barHeight,
-                                                                        hourData.amount > 0
+                                                                        hourData.amount >
+                                                                            0
                                                                             ? 2
                                                                             : 0
                                                                     )}%`,
-                                                                    opacity: intensity,
-                                                                    minHeight: hourData.amount > 0 ? '2px' : '0',
+                                                                    opacity:
+                                                                        intensity,
+                                                                    minHeight:
+                                                                        hourData.amount >
+                                                                        0
+                                                                            ? "2px"
+                                                                            : "0",
                                                                 }}
                                                             />
                                                         </div>
                                                     </div>
                                                     {/* Hora en el eje X */}
                                                     <div className="text-xs font-semibold text-slate-400 mt-1">
-                                                        {formatHour(hourData.hour)}
+                                                        {formatHour(
+                                                            hourData.hour
+                                                        )}
                                                     </div>
                                                 </div>
                                             );
@@ -1327,45 +1392,69 @@ const HistoryView = ({
 
                         <div className="space-y-5 pt-6">
                             <header className="space-y-2">
-                                <h2 className="text-2xl font-semibold text-white">Descargar PDF</h2>
+                                <h2 className="text-2xl font-semibold text-white">
+                                    Descargar PDF
+                                </h2>
                                 <p className="text-sm text-slate-400">
-                                    Selecciona el formato del documento que deseas descargar.
+                                    Selecciona el formato del documento que
+                                    deseas descargar.
                                 </p>
                             </header>
 
                             {isLoadingDocument ? (
                                 <div className="flex flex-col items-center justify-center gap-3 py-8">
                                     <FaSpinner className="animate-spin text-2xl text-[#fa7316]" />
-                                    <p className="text-sm text-slate-400">Cargando información del documento...</p>
+                                    <p className="text-sm text-slate-400">
+                                        Cargando información del documento...
+                                    </p>
                                 </div>
                             ) : documentFileName ? (
                                 <>
                                     <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
-                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Documento</p>
-                                        <p className="mt-2 text-lg font-semibold text-white">{documentFileName}</p>
+                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                                            Documento
+                                        </p>
+                                        <p className="mt-2 text-lg font-semibold text-white">
+                                            {documentFileName}
+                                        </p>
                                         <p className="text-xs text-slate-500">
-                                            {selectedSale.sale.documentType === "01" ? "Factura" : "Boleta de Venta"}
+                                            {selectedSale.sale.documentType ===
+                                            "01"
+                                                ? "Factura"
+                                                : "Boleta de Venta"}
                                         </p>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500" htmlFor="pdf-format">
+                                        <label
+                                            className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500"
+                                            htmlFor="pdf-format"
+                                        >
                                             Formato
                                         </label>
                                         <select
                                             id="pdf-format"
                                             value={selectedFormat}
-                                            onChange={(e) => setSelectedFormat(e.target.value as PDFFormat)}
+                                            onChange={(e) =>
+                                                setSelectedFormat(
+                                                    e.target.value as PDFFormat
+                                                )
+                                            }
                                             disabled={isDownloading}
                                             className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             <option value="A4">A4</option>
                                             <option value="A5">A5</option>
-                                            <option value="ticket58mm">Ticket 58mm</option>
-                                            <option value="ticket80mm">Ticket 80mm</option>
+                                            <option value="ticket58mm">
+                                                Ticket 58mm
+                                            </option>
+                                            <option value="ticket80mm">
+                                                Ticket 80mm
+                                            </option>
                                         </select>
                                         <p className="text-xs text-slate-500">
-                                            Selecciona el formato de impresión del documento.
+                                            Selecciona el formato de impresión
+                                            del documento.
                                         </p>
                                     </div>
 
@@ -1406,7 +1495,8 @@ const HistoryView = ({
                                 </>
                             ) : (
                                 <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                                    {downloadError || "No se pudo cargar la información del documento"}
+                                    {downloadError ||
+                                        "No se pudo cargar la información del documento"}
                                 </div>
                             )}
                         </div>
@@ -1661,12 +1751,8 @@ const SaleCard = ({
                         {formatCurrency(entry.sale.total)}
                     </p>
                     <p className="text-xs text-slate-400 mt-1">
-                        {formatDate(
-                            entry.sale.closedAt ?? entry.sale.openedAt
-                        )}{" "}
-                        {formatTime(
-                            entry.sale.closedAt ?? entry.sale.openedAt
-                        )}
+                        {formatDate(entry.sale.closedAt ?? entry.sale.openedAt)}{" "}
+                        {formatTime(entry.sale.closedAt ?? entry.sale.openedAt)}
                     </p>
                 </div>
                 <div className="flex-shrink-0">
@@ -1681,9 +1767,8 @@ const SaleCard = ({
                 <div className="flex items-center justify-between">
                     <span className="text-xs text-slate-500">Sucursal:</span>
                     <p className="text-sm font-medium text-slate-200">
-                        {branchNameById.get(
-                            entry.sale.branchId as string
-                        ) ?? "Sucursal"}
+                        {branchNameById.get(entry.sale.branchId as string) ??
+                            "Sucursal"}
                     </p>
                 </div>
                 <div className="flex items-center justify-between">
@@ -1713,7 +1798,9 @@ const SaleCard = ({
                             {getDocumentTypeLabel(entry.sale.documentType)}
                         </button>
                     ) : (
-                        <p className="text-sm font-medium text-slate-500">SIN DOC</p>
+                        <p className="text-sm font-medium text-slate-500">
+                            SIN DOC
+                        </p>
                     )}
                 </div>
             </div>

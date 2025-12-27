@@ -14,8 +14,8 @@ type DataTableProps = {
 
 const DataTable = ({ columns, children, className = "" }: DataTableProps) => {
   return (
-    <div className={`overflow-hidden rounded-lg border border-slate-800 ${className} mb-4`}>
-      <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
+    <div className={`overflow-x-auto rounded-lg border border-slate-800 ${className} mb-4`}>
+      <table className="min-w-full w-full divide-y divide-slate-800 text-left text-sm ">
         <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
           <tr>
             {columns.map((column) => {
