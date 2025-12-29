@@ -635,8 +635,9 @@ type SaleDataForDocumentBody = {
   };
   items: Array<{
     productId: string;
+    productName?: string; // Nombre personalizado (opcional, solo para esta venta)
     quantity: number;
-    unitPrice: number;
+    unitPrice: number; // Precio CON IGV (puede ser editado)
     discountAmount?: number;
   }>;
 };
@@ -751,17 +752,37 @@ export const buildDocumentBody = (params: {
         throw new Error(`Producto con ID ${item.productId} no encontrado`);
       }
 
-      if (productInfo.unitValue === undefined || productInfo.igv === undefined) {
-        throw new Error(`El producto ${productInfo.name} no tiene unitValue o igv definidos`);
+      // Si el precio fue editado (unitPrice diferente del precio original del producto),
+      // calcular unitValue e igv desde el precio editado
+      const originalPrice = productInfo.unitValue + productInfo.igv;
+      const priceWasEdited = Math.abs(item.unitPrice - originalPrice) > 0.01;
+
+      let unitValue: number;
+      let igv: number;
+
+      if (priceWasEdited) {
+        // Calcular unitValue e igv desde el precio editado (que incluye IGV)
+        unitValue = roundToCents(item.unitPrice / (1 + igvPercentage / 100));
+        igv = roundToCents(unitValue * (igvPercentage / 100));
+      } else {
+        // Usar los valores originales del producto
+        if (productInfo.unitValue === undefined || productInfo.igv === undefined) {
+          throw new Error(`El producto ${productInfo.name} no tiene unitValue o igv definidos`);
+        }
+        unitValue = productInfo.unitValue;
+        igv = productInfo.igv;
       }
+
+      // Usar el nombre personalizado si existe, sino el nombre del producto original
+      const productName = item.productName || productInfo.name;
 
       return {
         productId: item.productId,
         quantity: item.quantity,
-        unitValue: productInfo.unitValue,
-        igv: productInfo.igv,
+        unitValue,
+        igv,
         discountAmount: item.discountAmount,
-        productName: productInfo.name,
+        productName,
       };
     }
   );

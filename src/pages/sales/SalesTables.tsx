@@ -17,6 +17,7 @@ import CloseSaleDialog from "../../components/CloseSaleDialog";
 import SalesShiftGuard from "../../components/SalesShiftGuard";
 import NewSaleModal from "../../components/NewSaleModal";
 import SaleEditorDrawer from "../../components/SaleEditorDrawer";
+import SalesPageHeader from "../../components/sales-page-header/SalesPageHeader";
 import type { ShiftSummary } from "../../hooks/useSalesShift";
 import { MdOutlineDinnerDining } from "react-icons/md";
 import { BiDish } from "react-icons/bi";
@@ -187,17 +188,9 @@ const SalesTablesContent = ({
 
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
-                <div className="space-y-3">
-                    <div className="space-y-2">
-                        <h1 className="text-3xl font-semibold">
-                            Mesas y pedidos
-                        </h1>
-                    </div>
-                </div>
-            </header>
+            <SalesPageHeader title="Mesas y pedidos" />
 
-            <section className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+            <section className="grid gap-4 grid-cols-2 lg:grid-cols-3">
                 <SummaryCard
                     title="Mesas registradas"
                     value={branchTables.length.toString()}
@@ -420,8 +413,7 @@ const SalesTablesContent = ({
                                                     >
                                                         <div className="flex flex-col">
                                                             <span className="text-sm font-semibold text-white">
-                                                                {product?.name ??
-                                                                    "Producto"}
+                                                                {item.productName? item.productName : (product?.name ?? "Producto")}
                                                             </span>
                                                             <span className="text-xs text-slate-400">
                                                                 {item.quantity}{" "}
@@ -731,6 +723,7 @@ const SalesTablesContent = ({
                                 items: closeState.saleData.items.map(
                                     (item) => ({
                                         productId: item.productId as string,
+                                        productName: item.productName,
                                         quantity: item.quantity,
                                         unitPrice: item.unitPrice,
                                         discountAmount: item.discountAmount,
@@ -946,6 +939,7 @@ const SalesTablesContent = ({
                                 items: closeState.saleData.items.map(
                                     (item) => ({
                                         productId: item.productId as string,
+                                        productName: item.productName,
                                         quantity: item.quantity,
                                         unitPrice: item.unitPrice,
                                         discountAmount: item.discountAmount,

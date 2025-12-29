@@ -28,6 +28,7 @@ type SaleEditorDrawerProps = {
         saleId: Id<"sales">,
         items: Array<{
             productId: Id<"products">;
+            productName?: string;
             quantity: number;
             unitPrice: number;
             discountAmount?: number;
@@ -77,7 +78,7 @@ const SaleEditorDrawer = ({
             );
             return {
                 productId: item.productId,
-                productName: product?.name ?? "Producto",
+                productName: item.productName ?? product?.name ?? "Producto",
                 imageUrl: product?.imageUrl ?? null,
                 unitPrice: item.unitPrice,
                 quantity: item.quantity,
@@ -114,7 +115,7 @@ const SaleEditorDrawer = ({
             );
             return {
                 productId: item.productId,
-                productName: product?.name ?? "Producto",
+                productName: item.productName ?? product?.name ?? "Producto",
                 imageUrl: product?.imageUrl ?? null,
                 unitPrice: item.unitPrice,
                 quantity: item.quantity,
@@ -174,6 +175,7 @@ const SaleEditorDrawer = ({
                     saleIdRef.current,
                     items.map((item) => ({
                         productId: item.productId,
+                        productName: item.productName,
                         quantity: item.quantity,
                         unitPrice: item.unitPrice,
                         discountAmount:
@@ -214,6 +216,8 @@ const SaleEditorDrawer = ({
         updateItemQuantity: updateItemQuantityBase,
         removeItem: removeItemBase,
         updateItemDiscount: updateItemDiscountBase,
+        updateItemName: updateItemNameBase,
+        updateItemPrice: updateItemPriceBase,
     } = useOrderItems({
         items,
         setItems,
@@ -254,6 +258,22 @@ const SaleEditorDrawer = ({
             updateItemDiscountBase(productId, discountAmount);
         },
         [updateItemDiscountBase]
+    );
+
+    const updateItemName = useCallback(
+        (productId: Id<"products">, productName: string) => {
+            isInitialMountRef.current = false; // Permitir guardado inmediatamente
+            updateItemNameBase(productId, productName);
+        },
+        [updateItemNameBase]
+    );
+
+    const updateItemPrice = useCallback(
+        (productId: Id<"products">, unitPrice: number) => {
+            isInitialMountRef.current = false; // Permitir guardado inmediatamente
+            updateItemPriceBase(productId, unitPrice);
+        },
+        [updateItemPriceBase]
     );
 
     const saveDetails = async () => {
@@ -693,6 +713,8 @@ const SaleEditorDrawer = ({
                         item={editingItem}
                         onUpdateQuantity={updateItemQuantity}
                         onUpdateDiscount={updateItemDiscount}
+                        onUpdateName={updateItemName}
+                        onUpdatePrice={updateItemPrice}
                         onClose={() => setEditingItemId(null)}
                     />
                 )}

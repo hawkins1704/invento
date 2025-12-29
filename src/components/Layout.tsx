@@ -380,15 +380,30 @@ const Layout = () => {
         };
     }, [isProfileMenuOpen, isProfileMenuClosing]);
 
+    const prevIsCollapsedRef = useRef(isCollapsed);
+    const prevIsMobileOpenRef = useRef(isMobileOpen);
+
     useEffect(() => {
-        if (isProfileMenuOpen && (isCollapsed || isMobileOpen)) {
+        // Solo cerrar el menú de perfil si el sidebar cambió de estado (no si ya estaba en ese estado)
+        const collapsedChanged = prevIsCollapsedRef.current !== isCollapsed;
+        const mobileOpenChanged = prevIsMobileOpenRef.current !== isMobileOpen;
+
+        if (isProfileMenuOpen && (collapsedChanged || mobileOpenChanged)) {
             setIsProfileMenuClosing(true);
             setTimeout(() => {
                 setIsProfileMenuOpen(false);
                 setIsProfileMenuClosing(false);
             }, 300);
         }
-        setIsBranchMenuOpen(false);
+
+        // Actualizar los refs para la próxima vez
+        prevIsCollapsedRef.current = isCollapsed;
+        prevIsMobileOpenRef.current = isMobileOpen;
+
+        // Cerrar el menú de sucursal cuando el sidebar cambia
+        if (collapsedChanged || mobileOpenChanged) {
+            setIsBranchMenuOpen(false);
+        }
     }, [isCollapsed, isMobileOpen, isProfileMenuOpen]);
 
     useEffect(() => {
@@ -642,7 +657,7 @@ const Layout = () => {
                                     isCollapsed
                                         ? "fixed bottom-5 left-20"
                                         : "absolute bottom-20 left-4"
-                                } z-50 w-48 rounded-lg border border-slate-800 bg-slate-900/95 p-3 shadow-xl ${isProfileMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+                                } z-50 w-50 rounded-lg border border-slate-800 bg-slate-900 p-2 shadow-xl ${isProfileMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
                             >
                                 {currentArea === "admin" && (
                                     <>
@@ -1093,7 +1108,7 @@ const Layout = () => {
                                     branches.length > 0 && (
                                         <div
                                             ref={branchMenuRef}
-                                            className={`absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-slate-800 bg-slate-900/95 p-3 shadow-xl ${isBranchMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+                                            className={`absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-slate-800 bg-slate-900 p-3 shadow-xl ${isBranchMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
                                         >
                                             <div className="mb-2 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                                                 Seleccionar sucursal

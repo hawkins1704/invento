@@ -473,14 +473,14 @@ const AdminSales = () => {
 
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
+            <header className="flex flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-6 sm:p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
                 <div className="space-y-3">
                     <Chip label="Ventas" />
                     <div className="space-y-2">
                         <h1 className="text-3xl font-semibold">
                             Panel de ventas
                         </h1>
-                        <p className="max-w-2xl text-sm text-slate-300">
+                        <p className="max-w-2xl text-sm text-slate-300 hidden sm:block">
                             Alterna entre el historial consolidado y las ventas
                             en vivo para monitorear cada sucursal en tiempo
                             real.
@@ -488,11 +488,11 @@ const AdminSales = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap  gap-2">
                     <button
                         type="button"
                         onClick={() => setViewMode("history")}
-                        className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition rounded-lg cursor-pointer ${
+                        className={`inline-flex flex-1 justify-center items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition rounded-lg cursor-pointer ${
                             viewMode === "history"
                                 ? "bg-[#fa7316] text-white"
                                 : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
@@ -503,7 +503,7 @@ const AdminSales = () => {
                     <button
                         type="button"
                         onClick={() => setViewMode("live")}
-                        className={`inline-flex items-center gap-2  px-4 py-2 text-sm font-semibold transition rounded-lg cursor-pointer ${
+                        className={`inline-flex flex-1 justify-center items-center gap-2  px-4 py-2 text-sm font-semibold transition rounded-lg cursor-pointer ${
                             viewMode === "live"
                                 ? "bg-[#fa7316] text-white "
                                 : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
@@ -955,7 +955,7 @@ const HistoryView = ({
                 </div>
             </section>
 
-            <section className="grid gap-4 lg:grid-cols-4">
+            <section className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                 <SummaryCard
                     title="Total vendido"
                     value={formatCurrency(summary.totalAmount)}
@@ -1693,7 +1693,7 @@ const SummaryCard = ({
     subtitle: string;
 }) => {
     return (
-        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 sm:p-6 text-white shadow-inner shadow-black/20">
             <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
                 {title}
             </p>

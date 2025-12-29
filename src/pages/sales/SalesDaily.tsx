@@ -1,22 +1,12 @@
 import SalesShiftGuard from "../../components/SalesShiftGuard";
+import SalesPageHeader from "../../components/sales-page-header/SalesPageHeader";
 import type { ShiftSummary } from "../../hooks/useSalesShift";
-import { formatCurrency, formatDate } from "../../utils/format";
+import { formatCurrency } from "../../utils/format";
 
 const SalesDailyContent = ({ activeShift }: { activeShift: ShiftSummary }) => {
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 className="mt-3 text-3xl font-semibold">
-                            Ventas del día
-                        </h1>
-                    </div>
-                </div>
-                <div className="text-xs uppercase tracking-[0.1em] text-slate-400">
-                    {formatDate(Date.now())}
-                </div>
-            </header>
+            <SalesPageHeader title="Ventas del día" date={Date.now()} />
 
             <section className="grid gap-4 lg:grid-cols-3">
                 {[

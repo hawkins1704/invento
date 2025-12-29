@@ -40,14 +40,14 @@ export function SignIn() {
     }, [resetCodes, step]);
 
     const heading = useMemo(
-        () => (step === "signIn" ? "Bienvenido de nuevo" : "Crea tu cuenta"),
+        () => (step === "signIn" ? "Bienvenido de nuevo!" : "Crea tu cuenta"),
         [step]
     );
 
     const subheading = useMemo(
         () =>
             step === "signIn"
-                ? "Ingresa tus credenciales para continuar gestionando tus operaciones"
+                ? ""
                 : "Completa tus datos para configurar los accesos a cada área",
         [step]
     );

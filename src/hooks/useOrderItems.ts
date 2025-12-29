@@ -199,6 +199,44 @@ export const useOrderItems = ({
     );
 
     /**
+     * Actualiza el nombre de un item (solo para esta venta)
+     */
+    const updateItemName = useCallback(
+        (productId: Id<"products">, productName: string) => {
+            setItems((previous) =>
+                previous.map((line) =>
+                    line.productId === productId
+                        ? {
+                              ...line,
+                              productName: productName,
+                          }
+                        : line
+                )
+            );
+        },
+        [setItems]
+    );
+
+    /**
+     * Actualiza el precio unitario de un item (solo para esta venta)
+     */
+    const updateItemPrice = useCallback(
+        (productId: Id<"products">, unitPrice: number) => {
+            setItems((previous) =>
+                previous.map((line) =>
+                    line.productId === productId
+                        ? {
+                              ...line,
+                              unitPrice: Math.max(0, unitPrice),
+                          }
+                        : line
+                )
+            );
+        },
+        [setItems]
+    );
+
+    /**
      * Valida el stock de todos los items antes de guardar
      * Retorna un array de errores si hay problemas de stock
      */
@@ -234,6 +272,8 @@ export const useOrderItems = ({
         updateItemQuantity,
         removeItem,
         updateItemDiscount,
+        updateItemName,
+        updateItemPrice,
         validateStock,
         getAvailableStock,
     };

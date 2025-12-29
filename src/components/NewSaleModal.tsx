@@ -21,6 +21,7 @@ type NewSaleModalProps = {
         notes?: string;
         items?: Array<{
             productId: Id<"products">;
+            productName?: string;
             quantity: number;
             unitPrice: number;
             discountAmount?: number;
@@ -65,6 +66,8 @@ const NewSaleModal = ({
         updateItemQuantity,
         removeItem,
         updateItemDiscount,
+        updateItemName,
+        updateItemPrice,
         validateStock,
     } = useOrderItems({
         items,
@@ -102,6 +105,7 @@ const NewSaleModal = ({
 
         const payloadItems = items.map((item) => ({
             productId: item.productId,
+            productName: item.productName,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             discountAmount:
@@ -332,6 +336,8 @@ const NewSaleModal = ({
                     item={editingItem}
                     onUpdateQuantity={updateItemQuantity}
                     onUpdateDiscount={updateItemDiscount}
+                    onUpdateName={updateItemName}
+                    onUpdatePrice={updateItemPrice}
                     onClose={() => setEditingItemId(null)}
                 />
             )}

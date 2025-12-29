@@ -4,6 +4,7 @@ import { useConvex } from "convex/react";
 import type { ChangeEvent, FormEvent } from "react";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import SalesShiftGuard from "../../components/SalesShiftGuard";
+import SalesPageHeader from "../../components/sales-page-header/SalesPageHeader";
 import type { ShiftSummary } from "../../hooks/useSalesShift";
 import { formatCurrency} from "../../utils/format";
 import { api } from "../../../convex/_generated/api";
@@ -190,6 +191,7 @@ const InventoryCodeVerification = ({
                             value={code}
                             onChange={setCode}
                             focusOnMount
+                            className="flex flex-col items-center justify-center"
                         />
 
                         {error && (
@@ -368,20 +370,15 @@ const SalesInventoryContent = ({
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
-              Inventario en turno
-            </div>
-            <h1 className="mt-3 text-3xl font-semibold">Inventario</h1>
-         
-          </div>
+      <SalesPageHeader
+        title="Inventario"
+        chip="Inventario en turno"
+        actions={
           <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-2 text-sm font-semibold text-[#fa7316]">
             {branch.name}
           </span>
-        </div>
-      </header>
+        }
+      />
 
      
 

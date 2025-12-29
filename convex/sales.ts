@@ -5,6 +5,7 @@ import { getAuthUserId } from "@convex-dev/auth/server"
 import type { Id } from "./_generated/dataModel"
 const itemInputSchema = v.object({
   productId: v.id("products"),
+  productName: v.optional(v.string()),
   quantity: v.number(),
   unitPrice: v.number(),
   discountAmount: v.optional(v.number()),
@@ -17,6 +18,7 @@ const paymentMethodSchema = v.optional(
 
 type ItemInput = {
   productId: string
+  productName?: string
   quantity: number
   unitPrice: number
   discountAmount?: number
@@ -433,6 +435,7 @@ export const create = mutation({
         ctx.db.insert("saleItems", {
           saleId,
           productId: item.productId as Id<"products">,
+          productName: item.productName,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           discountAmount: item.discountAmount ?? 0,
@@ -486,6 +489,7 @@ export const setItems = mutation({
         ctx.db.insert("saleItems", {
           saleId: sale._id,
           productId: item.productId as Id<"products">,
+          productName: item.productName,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           discountAmount: item.discountAmount ?? 0,

@@ -16,6 +16,8 @@ type EditItemModalProps = {
     item: EditableItem;
     onUpdateQuantity: (productId: Id<"products">, quantity: number) => void;
     onUpdateDiscount: (productId: Id<"products">, discountAmount: number) => void;
+    onUpdateName: (productId: Id<"products">, productName: string) => void;
+    onUpdatePrice: (productId: Id<"products">, unitPrice: number) => void;
     onClose: () => void;
 };
 
@@ -23,6 +25,8 @@ const EditItemModal = ({
     item,
     onUpdateQuantity,
     onUpdateDiscount,
+    onUpdateName,
+    onUpdatePrice,
     onClose,
 }: EditItemModalProps) => {
     return (
@@ -36,13 +40,39 @@ const EditItemModal = ({
                     <h3 className="text-lg font-semibold">Editar producto</h3>
                     <CloseButton onClick={onClose} />
                 </div>
-                <div className="mb-4">
-                    <p className="font-semibold text-white">{item.productName}</p>
-                    <p className="text-xs text-slate-400">
-                        {formatCurrency(item.unitPrice)}
-                    </p>
-                </div>
                 <div className="space-y-4">
+                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                        Nombre del producto
+                        <input
+                            type="text"
+                            value={item.productName}
+                            onChange={(event) =>
+                                onUpdateName(
+                                    item.productId,
+                                    event.target.value
+                                )
+                            }
+                            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                            placeholder="Nombre del producto"
+                        />
+                    </label>
+                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                        Precio unitario (S/.)
+                        <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={item.unitPrice}
+                            onChange={(event) =>
+                                onUpdatePrice(
+                                    item.productId,
+                                    Math.max(0, Number(event.target.value) || 0)
+                                )
+                            }
+                            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                            placeholder="0.00"
+                        />
+                    </label>
                     <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
                         Cantidad
                         <div className="flex items-center justify-center gap-3">

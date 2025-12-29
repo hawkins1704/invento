@@ -39,6 +39,10 @@ function App() {
                     element={<Navigate to="/login" replace />}
                 />
                 <Route path="/login" element={<SignIn />} />
+                <Route
+                    path="*"
+                    element={<Navigate to="/login" replace />}
+                />
             </Routes>
         </Router>
     </Unauthenticated>
@@ -78,6 +82,10 @@ function App() {
                         <Route path="inventory" element={<SalesInventory />} />
                     </Route>
                 </Route>
+                <Route
+                    path="*"
+                    element={<Navigate to="/select-area" replace />}
+                />
             </Routes>
         </Router>
     </Authenticated>

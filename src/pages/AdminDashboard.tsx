@@ -140,11 +140,11 @@ const AdminDashboard = () => {
         <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
           Panel administrador
         </span>
-        <div className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/40 p-8">
+        <div className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/40 p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-0 items-start justify-between">
             <div className="flex-1">
               <h1 className="text-3xl font-semibold text-white">Resumen general</h1>
-              <p className="max-w-2xl text-sm text-slate-400 mt-2">
+              <p className="max-w-2xl text-sm text-slate-400 mt-2 hidden sm:block">
                 Aquí verás tus métricas clave, alertas de inventario y un resumen rápido de lo que ocurre en tus sucursales.
               </p>
             </div>

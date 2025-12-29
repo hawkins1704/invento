@@ -118,6 +118,7 @@ export default defineSchema({
   saleItems: defineTable({
     saleId: v.id("sales"),
     productId: v.id("products"),
+    productName: v.optional(v.string()),
     quantity: v.number(),
     unitPrice: v.number(),
     discountAmount: v.optional(v.number()),

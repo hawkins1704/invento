@@ -77,10 +77,10 @@ const AdminSubscription = () => {
             <PageHeader
                 chipLabel="Suscripciones"
                 title="Gestionar suscripciones"
-                description="Selecciona el plan que mejor se adapte a las necesidades de tu negocio."
+                description="Contacta a soporte para actualizar tu plan!"
             />
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 lg:grid-cols-3">
                 {(Object.keys(SUBSCRIPTION_INFO) as SubscriptionType[]).map(
                     (type) => {
                         const info = SUBSCRIPTION_INFO[type];
