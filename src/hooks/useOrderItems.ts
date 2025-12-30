@@ -60,7 +60,6 @@ export const useOrderItems = ({
                             imageUrl: product.imageUrl,
                             unitPrice: product.price,
                             quantity: 1,
-                            discountAmount: 0,
                         },
                     ];
                 });
@@ -105,7 +104,6 @@ export const useOrderItems = ({
                         imageUrl: product.imageUrl,
                         unitPrice: product.price,
                         quantity: 1,
-                        discountAmount: 0,
                     },
                 ];
             });
@@ -174,25 +172,6 @@ export const useOrderItems = ({
         (productId: Id<"products">) => {
             setItems((previous) =>
                 previous.filter((item) => item.productId !== productId)
-            );
-        },
-        [setItems]
-    );
-
-    /**
-     * Actualiza el descuento de un item
-     */
-    const updateItemDiscount = useCallback(
-        (productId: Id<"products">, discountAmount: number) => {
-            setItems((previous) =>
-                previous.map((line) =>
-                    line.productId === productId
-                        ? {
-                              ...line,
-                              discountAmount: Math.max(0, discountAmount),
-                          }
-                        : line
-                )
             );
         },
         [setItems]
@@ -271,7 +250,6 @@ export const useOrderItems = ({
         addProduct,
         updateItemQuantity,
         removeItem,
-        updateItemDiscount,
         updateItemName,
         updateItemPrice,
         validateStock,

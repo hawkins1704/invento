@@ -91,34 +91,9 @@ const OrderItemsList = ({
                                         <p className="font-semibold text-white truncate">
                                             {item.productName}
                                         </p>
-                                        <div className="flex items-center gap-2">
-                                            {item.discountAmount > 0 ? (
-                                                <>
-                                                    <p className="text-xs text-slate-400 line-through">
-                                                        {formatCurrency(
-                                                            item.quantity *
-                                                                item.unitPrice
-                                                        )}
-                                                    </p>
-                                                    <span className="text-xs text-slate-500">
-                                                        →
-                                                    </span>
-                                                    <p className="text-xs font-semibold text-[#fa7316]">
-                                                        {formatCurrency(
-                                                            item.quantity *
-                                                                item.unitPrice -
-                                                                item.discountAmount
-                                                        )}
-                                                    </p>
-                                                </>
-                                            ) : (
-                                                <p className="text-xs text-slate-400">
-                                                    {formatCurrency(
-                                                        item.unitPrice
-                                                    )}
-                                                </p>
-                                            )}
-                                        </div>
+                                        <p className="text-xs text-slate-400">
+                                            {formatCurrency(item.unitPrice)}
+                                        </p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <FaRegEdit

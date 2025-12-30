@@ -24,7 +24,6 @@ type NewSaleModalProps = {
             productName?: string;
             quantity: number;
             unitPrice: number;
-            discountAmount?: number;
             notes?: string;
         }>;
     }) => Promise<void>;
@@ -65,7 +64,6 @@ const NewSaleModal = ({
         addProduct,
         updateItemQuantity,
         removeItem,
-        updateItemDiscount,
         updateItemName,
         updateItemPrice,
         validateStock,
@@ -108,8 +106,6 @@ const NewSaleModal = ({
             productName: item.productName,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
-            discountAmount:
-                item.discountAmount > 0 ? item.discountAmount : undefined,
         }));
 
         setIsSubmitting(true);
@@ -335,7 +331,6 @@ const NewSaleModal = ({
                 <EditItemModal
                     item={editingItem}
                     onUpdateQuantity={updateItemQuantity}
-                    onUpdateDiscount={updateItemDiscount}
                     onUpdateName={updateItemName}
                     onUpdatePrice={updateItemPrice}
                     onClose={() => setEditingItemId(null)}

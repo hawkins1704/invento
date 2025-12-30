@@ -452,7 +452,6 @@ const buildInvoiceLineTaxTotalFromAmount = (
  * @param quantity Cantidad del producto
  * @param unitValue Precio unitario SIN IGV (unitValue del producto)
  * @param igv Monto de IGV por unidad (igv del producto)
- * @param discountAmount Descuento aplicado (opcional, default 0)
  * @param productDescription Descripción/nombre del producto
  * @param igvPercentage Porcentaje de IGV: 10 o 18
  * @returns InvoiceLine completo
@@ -462,7 +461,6 @@ export const buildInvoiceLine = (
   quantity: number,
   unitValue: number,
   igv: number,
-  discountAmount: number,
   productDescription: string,
   igvPercentage: 10 | 18
 ): InvoiceLine => {
@@ -479,9 +477,6 @@ export const buildInvoiceLine = (
   if (igv < 0) {
     throw new Error("El IGV no puede ser negativo");
   }
-  if (discountAmount < 0) {
-    throw new Error("El descuento no puede ser negativo");
-  }
   if (!productDescription || !productDescription.trim()) {
     throw new Error("La descripción del producto es requerida");
   }
@@ -489,19 +484,11 @@ export const buildInvoiceLine = (
     throw new Error('El porcentaje de IGV debe ser 10 o 18');
   }
 
-  // Calcular subtotal de la línea (sin IGV, después de descuentos)
-  // Los descuentos se aplican ANTES del IGV
-  const lineExtensionAmount = roundToCents(
-    Math.max(0, quantity * unitValue - discountAmount)
-  );
+  // Calcular subtotal de la línea (sin IGV)
+  const lineExtensionAmount = roundToCents(quantity * unitValue);
 
-  // Calcular IGV de la línea (usando el igv del producto * cantidad, después de descuentos)
-  // Si hay descuento, se aplica proporcionalmente al IGV
-  // El descuento se aplica primero al precio sin IGV, luego se calcula el IGV sobre el monto resultante
-  const discountRatio = unitValue > 0 ? discountAmount / (quantity * unitValue) : 0;
-  const lineIGVAmount = roundToCents(
-    Math.max(0, (quantity * igv) * (1 - discountRatio))
-  );
+  // Calcular IGV de la línea (usando el igv del producto * cantidad)
+  const lineIGVAmount = roundToCents(quantity * igv);
 
   // Precio unitario con IGV (para PricingReference)
   const unitPriceWithIGV = roundToCents(unitValue + igv);
@@ -563,7 +550,6 @@ type SaleItemWithProduct = {
   quantity: number;
   unitValue: number; // Precio SIN IGV (unitValue del producto)
   igv: number; // Monto de IGV por unidad (igv del producto)
-  discountAmount?: number;
   productName: string;
 };
 
@@ -591,18 +577,10 @@ export const buildInvoiceLines = (
 
   const invoiceLines = items.map((item, index) => {
     // Calcular valores de la línea
-    const lineExtensionAmount = roundToCents(
-      Math.max(0, item.quantity * item.unitValue - (item.discountAmount ?? 0))
-    );
+    const lineExtensionAmount = roundToCents(item.quantity * item.unitValue);
     
-    // Calcular IGV de la línea (usando el igv del producto * cantidad, después de descuentos)
-    // El descuento se aplica primero al precio sin IGV, luego se calcula el IGV sobre el monto resultante
-    const discountRatio = (item.quantity * item.unitValue) > 0 
-      ? (item.discountAmount ?? 0) / (item.quantity * item.unitValue) 
-      : 0;
-    const lineIGVAmount = roundToCents(
-      Math.max(0, (item.quantity * item.igv) * (1 - discountRatio))
-    );
+    // Calcular IGV de la línea (usando el igv del producto * cantidad)
+    const lineIGVAmount = roundToCents(item.quantity * item.igv);
 
     // Acumular totales
     totalTaxableAmount += lineExtensionAmount;
@@ -613,7 +591,6 @@ export const buildInvoiceLines = (
       item.quantity,
       item.unitValue,
       item.igv,
-      item.discountAmount ?? 0,
       item.productName,
       igvPercentage
     );
@@ -638,7 +615,6 @@ type SaleDataForDocumentBody = {
     productName?: string; // Nombre personalizado (opcional, solo para esta venta)
     quantity: number;
     unitPrice: number; // Precio CON IGV (puede ser editado)
-    discountAmount?: number;
   }>;
 };
 
@@ -781,7 +757,6 @@ export const buildDocumentBody = (params: {
         quantity: item.quantity,
         unitValue,
         igv,
-        discountAmount: item.discountAmount,
         productName,
       };
     }

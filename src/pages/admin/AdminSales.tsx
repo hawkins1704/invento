@@ -17,6 +17,7 @@ import TableRow from "../../components/table/TableRow";
 import Pagination from "../../components/pagination/Pagination";
 import DateRangePicker from "../../components/date-range-picker/DateRangePicker";
 import CloseButton from "../../components/CloseButton";
+import InfoCard from "../../components/InfoCard";
 import { useAPISUNAT } from "../../hooks/useAPISUNAT";
 import type { PDFFormat } from "../../types/apisunat";
 
@@ -956,18 +957,18 @@ const HistoryView = ({
             </section>
 
             <section className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <SummaryCard
-                    title="Total vendido"
+                <InfoCard
+                    label="Total vendido"
                     value={formatCurrency(summary.totalAmount)}
-                    subtitle="Suma de ventas cerradas en el periodo seleccionado."
+                    description="Suma de ventas cerradas en el periodo seleccionado."
                 />
-                <SummaryCard
-                    title="Tickets cerrados"
+                <InfoCard
+                    label="Tickets cerrados"
                     value={summary.totalSales.toString()}
-                    subtitle="Cantidad de ventas finalizadas."
+                    description="Cantidad de ventas finalizadas."
                 />
-                <SummaryCard
-                    title="Ticket promedio"
+                <InfoCard
+                    label="Ticket promedio"
                     value={
                         summary.totalSales === 0
                             ? "S/ 0.00"
@@ -975,16 +976,16 @@ const HistoryView = ({
                                   summary.totalAmount / summary.totalSales
                               )
                     }
-                    subtitle="Promedio del valor de cada ticket."
+                    description="Promedio del valor de cada ticket."
                 />
-                <SummaryCard
-                    title="Métodos registrados"
+                <InfoCard
+                    label="Métodos registrados"
                     value={
                         paymentBreakdownData
                             ? paymentBreakdownData.length.toString()
                             : "0"
                     }
-                    subtitle="Variantes de pago utilizadas en el periodo."
+                    description="Variantes de pago utilizadas en el periodo."
                 />
             </section>
 
@@ -1550,15 +1551,15 @@ const LiveView = ({
             </section>
 
             <section className="grid gap-4 lg:grid-cols-3">
-                <SummaryCard
-                    title="Ventas abiertas"
+                <InfoCard
+                    label="Ventas abiertas"
                     value={summary.totalSales.toString()}
-                    subtitle="Tickets activos en la sucursal seleccionada."
+                    description="Tickets activos en la sucursal seleccionada."
                 />
-                <SummaryCard
-                    title="Total en curso"
+                <InfoCard
+                    label="Total en curso"
                     value={formatCurrency(summary.totalAmount)}
-                    subtitle="Suma de los tickets abiertos."
+                    description="Suma de los tickets abiertos."
                 />
             </section>
 
@@ -1679,26 +1680,6 @@ const LiveView = ({
                     </div>
                 )}
             </section>
-        </div>
-    );
-};
-
-const SummaryCard = ({
-    title,
-    value,
-    subtitle,
-}: {
-    title: string;
-    value: string;
-    subtitle: string;
-}) => {
-    return (
-        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 sm:p-6 text-white shadow-inner shadow-black/20">
-            <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
-                {title}
-            </p>
-            <p className="mt-3 text-2xl font-semibold text-white">{value}</p>
-            <p className="mt-2 text-xs text-slate-400">{subtitle}</p>
         </div>
     );
 };

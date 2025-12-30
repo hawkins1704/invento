@@ -18,6 +18,7 @@ import SalesShiftGuard from "../../components/SalesShiftGuard";
 import NewSaleModal from "../../components/NewSaleModal";
 import SaleEditorDrawer from "../../components/SaleEditorDrawer";
 import SalesPageHeader from "../../components/sales-page-header/SalesPageHeader";
+import InfoCard from "../../components/InfoCard";
 import type { ShiftSummary } from "../../hooks/useSalesShift";
 import { MdOutlineDinnerDining } from "react-icons/md";
 import { BiDish } from "react-icons/bi";
@@ -191,20 +192,20 @@ const SalesTablesContent = ({
             <SalesPageHeader title="Mesas y pedidos" />
 
             <section className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-                <SummaryCard
-                    title="Mesas registradas"
+                <InfoCard
+                    label="Mesas registradas"
                     value={branchTables.length.toString()}
-                    subtitle="Total de mesas configuradas en la sucursal."
+                    description="Total de mesas configuradas en la sucursal."
                 />
-                <SummaryCard
-                    title="Ventas abiertas"
+                <InfoCard
+                    label="Ventas abiertas"
                     value={summary.totalSales.toString()}
-                    subtitle="Tickets activos esperando cierre."
+                    description="Tickets activos esperando cierre."
                 />
-                <SummaryCard
-                    title="Total en curso"
+                <InfoCard
+                    label="Total en curso"
                     value={formatCurrency(summary.totalAmount)}
-                    subtitle="Suma de los pedidos abiertos."
+                    description="Suma de los pedidos abiertos."
                 />
             </section>
 
@@ -726,7 +727,6 @@ const SalesTablesContent = ({
                                         productName: item.productName,
                                         quantity: item.quantity,
                                         unitPrice: item.unitPrice,
-                                        discountAmount: item.discountAmount,
                                     })
                                 ),
                             },
@@ -942,7 +942,6 @@ const SalesTablesContent = ({
                                         productName: item.productName,
                                         quantity: item.quantity,
                                         unitPrice: item.unitPrice,
-                                        discountAmount: item.discountAmount,
                                     })
                                 ),
                             },
@@ -1157,26 +1156,6 @@ const SalesTablesContent = ({
                     }
                 }}
             />
-        </div>
-    );
-};
-
-const SummaryCard = ({
-    title,
-    value,
-    subtitle,
-}: {
-    title: string;
-    value: string;
-    subtitle: string;
-}) => {
-    return (
-        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-            <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
-                {title}
-            </p>
-            <p className="mt-3 text-2xl font-semibold text-white">{value}</p>
-            <p className="mt-2 text-xs text-slate-400">{subtitle}</p>
         </div>
     );
 };

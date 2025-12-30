@@ -31,7 +31,6 @@ type SaleEditorDrawerProps = {
             productName?: string;
             quantity: number;
             unitPrice: number;
-            discountAmount?: number;
         }>
     ) => Promise<void>;
     onUpdateDetails: (payload: {
@@ -82,7 +81,6 @@ const SaleEditorDrawer = ({
                 imageUrl: product?.imageUrl ?? null,
                 unitPrice: item.unitPrice,
                 quantity: item.quantity,
-                discountAmount: item.discountAmount ?? 0,
             };
         })
     );
@@ -119,7 +117,6 @@ const SaleEditorDrawer = ({
                 imageUrl: product?.imageUrl ?? null,
                 unitPrice: item.unitPrice,
                 quantity: item.quantity,
-                discountAmount: item.discountAmount ?? 0,
             };
         });
 
@@ -178,10 +175,6 @@ const SaleEditorDrawer = ({
                         productName: item.productName,
                         quantity: item.quantity,
                         unitPrice: item.unitPrice,
-                        discountAmount:
-                            item.discountAmount > 0
-                                ? item.discountAmount
-                                : undefined,
                     }))
                 );
                 // Actualizar la referencia solo después de guardar exitosamente
@@ -201,8 +194,7 @@ const SaleEditorDrawer = ({
 
     const total = useMemo(() => {
         return items.reduce((accumulator, item) => {
-            const line = item.quantity * item.unitPrice - item.discountAmount;
-            return accumulator + Math.max(0, line);
+            return accumulator + item.quantity * item.unitPrice;
         }, 0);
     }, [items]);
 
@@ -215,7 +207,6 @@ const SaleEditorDrawer = ({
         addProduct: addProductBase,
         updateItemQuantity: updateItemQuantityBase,
         removeItem: removeItemBase,
-        updateItemDiscount: updateItemDiscountBase,
         updateItemName: updateItemNameBase,
         updateItemPrice: updateItemPriceBase,
     } = useOrderItems({
@@ -250,14 +241,6 @@ const SaleEditorDrawer = ({
             removeItemBase(productId);
         },
         [removeItemBase]
-    );
-
-    const updateItemDiscount = useCallback(
-        (productId: Id<"products">, discountAmount: number) => {
-            isInitialMountRef.current = false; // Permitir guardado inmediatamente
-            updateItemDiscountBase(productId, discountAmount);
-        },
-        [updateItemDiscountBase]
     );
 
     const updateItemName = useCallback(
@@ -712,7 +695,6 @@ const SaleEditorDrawer = ({
                     <EditItemModal
                         item={editingItem}
                         onUpdateQuantity={updateItemQuantity}
-                        onUpdateDiscount={updateItemDiscount}
                         onUpdateName={updateItemName}
                         onUpdatePrice={updateItemPrice}
                         onClose={() => setEditingItemId(null)}

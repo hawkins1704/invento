@@ -9,13 +9,11 @@ type EditableItem = {
     imageUrl: string | null;
     unitPrice: number;
     quantity: number;
-    discountAmount: number;
 };
 
 type EditItemModalProps = {
     item: EditableItem;
     onUpdateQuantity: (productId: Id<"products">, quantity: number) => void;
-    onUpdateDiscount: (productId: Id<"products">, discountAmount: number) => void;
     onUpdateName: (productId: Id<"products">, productName: string) => void;
     onUpdatePrice: (productId: Id<"products">, unitPrice: number) => void;
     onClose: () => void;
@@ -24,7 +22,6 @@ type EditItemModalProps = {
 const EditItemModal = ({
     item,
     onUpdateQuantity,
-    onUpdateDiscount,
     onUpdateName,
     onUpdatePrice,
     onClose,
@@ -73,8 +70,10 @@ const EditItemModal = ({
                             placeholder="0.00"
                         />
                     </label>
-                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                        Cantidad
+                    <div className="flex flex-col gap-2">
+                        <label htmlFor="quantity-input" className="text-sm font-semibold text-slate-200">
+                            Cantidad
+                        </label>
                         <div className="flex items-center justify-center gap-3">
                             <button
                                 type="button"
@@ -87,6 +86,7 @@ const EditItemModal = ({
                                 <IoMdRemove className="w-4 h-4" />
                             </button>
                             <input
+                                id="quantity-input"
                                 type="number"
                                 min={1}
                                 value={item.quantity}
@@ -96,7 +96,7 @@ const EditItemModal = ({
                                         Number(event.target.value)
                                     )
                                 }
-                                className="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-center text-sm font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-1 focus:ring-[#fa7316]/30 cursor-pointer"
+                                className="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-center text-sm font-semibold text-white outline-none transition hover:border-slate-600 focus:border-[#fa7316] focus:ring-1 focus:ring-[#fa7316]/30 cursor-pointer"
                             />
                             <button
                                 type="button"
@@ -109,45 +109,7 @@ const EditItemModal = ({
                                 <IoMdAdd className="w-4 h-4" />
                             </button>
                         </div>
-                    </label>
-                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                        Descuento (S/.)
-                        <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={item.discountAmount}
-                            onChange={(event) =>
-                                onUpdateDiscount(
-                                    item.productId,
-                                    Math.max(0, Number(event.target.value) || 0)
-                                )
-                            }
-                            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
-                            placeholder="0.00"
-                        />
-                    </label>
-                    {item.discountAmount > 0 && (
-                        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm">
-                            <div className="flex items-center justify-between text-slate-200">
-                                <span>Subtotal:</span>
-                                <span className="line-through text-slate-400">
-                                    {formatCurrency(
-                                        item.quantity * item.unitPrice
-                                    )}
-                                </span>
-                            </div>
-                            <div className="mt-1 flex items-center justify-between font-semibold text-white">
-                                <span>Total con descuento:</span>
-                                <span className="text-emerald-300">
-                                    {formatCurrency(
-                                        item.quantity * item.unitPrice -
-                                            item.discountAmount
-                                    )}
-                                </span>
-                            </div>
-                        </div>
-                    )}
+                    </div>
                 </div>
                 <div className="mt-6 flex justify-end gap-3">
                     <button

@@ -8,7 +8,6 @@ const itemInputSchema = v.object({
   productName: v.optional(v.string()),
   quantity: v.number(),
   unitPrice: v.number(),
-  discountAmount: v.optional(v.number()),
   notes: v.optional(v.string()),
 })
 
@@ -21,13 +20,11 @@ type ItemInput = {
   productName?: string
   quantity: number
   unitPrice: number
-  discountAmount?: number
   notes?: string
 }
 
 type Totals = {
   subtotal: number
-  discounts: number
   total: number
 }
 
@@ -36,14 +33,12 @@ const now = () => Date.now()
 const calculateTotals = (items: ItemInput[]): Totals => {
   return items.reduce<Totals>(
     (acc, item) => {
-      const discount = Math.max(0, item.discountAmount ?? 0)
       const lineSubtotal = item.quantity * item.unitPrice
       acc.subtotal += lineSubtotal
-      acc.discounts += discount
-      acc.total += Math.max(0, lineSubtotal - discount)
+      acc.total += lineSubtotal
       return acc
     },
-    { subtotal: 0, discounts: 0, total: 0 }
+    { subtotal: 0, total: 0 }
   )
 }
 
@@ -51,7 +46,7 @@ const normalizeNotes = (notes?: string) => notes?.trim() || undefined
 
 const validateItems = async (ctx: any, items: ItemInput[]): Promise<ItemInput[]> => {
   if (
-    items.some((item) => item.quantity <= 0 || item.unitPrice < 0 || (item.discountAmount ?? 0) < 0)
+    items.some((item) => item.quantity <= 0 || item.unitPrice < 0)
   ) {
     throw new ConvexError("Los productos deben tener cantidades y precios válidos.")
   }
@@ -67,7 +62,6 @@ const validateItems = async (ctx: any, items: ItemInput[]): Promise<ItemInput[]>
 
   return items.map((item) => ({
     ...item,
-    discountAmount: item.discountAmount ?? 0,
     notes: normalizeNotes(item.notes),
   }))
 }
@@ -149,13 +143,11 @@ const recalcTotals = async (ctx: any, saleId: string) => {
       productId: item.productId as string,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
-      discountAmount: item.discountAmount ?? 0,
       notes: item.notes ?? undefined,
     }))
   )
   await ctx.db.patch(saleId, {
     subtotal: totals.subtotal,
-    discounts: totals.discounts > 0 ? totals.discounts : undefined,
     total: totals.total,
     updatedAt: now(),
   })
@@ -418,7 +410,6 @@ export const create = mutation({
       openedAt: timestamp,
       closedAt: undefined,
       subtotal: totals.subtotal,
-      discounts: totals.discounts > 0 ? totals.discounts : undefined,
       total: totals.total,
       paymentMethod: undefined,
       notes: normalizeNotes(args.notes),
@@ -438,8 +429,7 @@ export const create = mutation({
           productName: item.productName,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          discountAmount: item.discountAmount ?? 0,
-          totalPrice: Math.max(0, item.quantity * item.unitPrice - (item.discountAmount ?? 0)),
+          totalPrice: item.quantity * item.unitPrice,
           notes: item.notes,
           createdAt: timestamp,
         })
@@ -492,8 +482,7 @@ export const setItems = mutation({
           productName: item.productName,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          discountAmount: item.discountAmount ?? 0,
-          totalPrice: Math.max(0, item.quantity * item.unitPrice - (item.discountAmount ?? 0)),
+          totalPrice: item.quantity * item.unitPrice,
           notes: item.notes,
           createdAt: timestamp,
         })
@@ -597,7 +586,6 @@ export const close = mutation({
       paymentMethod: args.paymentMethod ?? undefined,
       closedAt: now(),
       notes: args.notes !== undefined ? normalizeNotes(args.notes) : sale.notes,
-      discounts: totals.discounts > 0 ? totals.discounts : undefined,
       subtotal: totals.subtotal,
       total: totals.total,
       customerId: args.customerId,

@@ -97,7 +97,6 @@ export default defineSchema({
     openedAt: v.number(),
     closedAt: v.optional(v.number()),
     subtotal: v.number(),
-    discounts: v.optional(v.number()),
     total: v.number(),
     paymentMethod: v.optional(
       v.union(
@@ -121,7 +120,6 @@ export default defineSchema({
     productName: v.optional(v.string()),
     quantity: v.number(),
     unitPrice: v.number(),
-    discountAmount: v.optional(v.number()),
     totalPrice: v.number(),
     notes: v.optional(v.string()),
     createdAt: v.number(),
