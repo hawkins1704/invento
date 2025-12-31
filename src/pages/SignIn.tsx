@@ -109,15 +109,15 @@ export function SignIn() {
                     </p>
                 </div>
             </aside>
-            <main className="flex flex-1 items-center justify-center bg-slate-950 px-6 py-16 sm:px-10">
+            <main className="flex flex-1 items-center justify-center bg-white dark:bg-slate-950 px-6 py-16 sm:px-10">
                 <div className="w-full max-w-md">
                     <header className="mb-10 flex flex-col gap-3 text-center">
                         <img src="/logo-main.svg" alt="Logo" className="w-full h-10 object-contain" />
                         <div className="space-y-1">
-                            <h1 className="text-3xl font-semibold text-white">
+                            <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
                                 {heading}
                             </h1>
-                            <p className="text-sm text-slate-400">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                 {subheading}
                             </p>
                         </div>
@@ -129,7 +129,7 @@ export function SignIn() {
                         {step === "signUp" && (
                             <div className="space-y-2">
                                 <label
-                                    className="block text-sm font-medium text-slate-200"
+                                    className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                                     htmlFor="name"
                                 >
                                     Nombre completo
@@ -139,7 +139,7 @@ export function SignIn() {
                                     name="name"
                                     type="text"
                                     placeholder="María López"
-                                    className="w-full rounded-lg border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                     autoComplete="name"
                                     required
                                 />
@@ -148,7 +148,7 @@ export function SignIn() {
 
                         <div className="space-y-2">
                             <label
-                                className="block text-sm font-medium text-slate-200"
+                                className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                                 htmlFor="email"
                             >
                                 Correo electrónico
@@ -158,7 +158,7 @@ export function SignIn() {
                                 name="email"
                                 type="email"
                                 placeholder="correo@ejemplo.com"
-                                className="w-full rounded-lg border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                 autoComplete="email"
                                 required
                             />
@@ -167,12 +167,12 @@ export function SignIn() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label
-                                    className="text-sm font-medium text-slate-200"
+                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                     htmlFor="password"
                                 >
                                     Contraseña
                                 </label>
-                                <span className="text-xs text-slate-500">
+                                <span className="text-xs text-slate-500 dark:text-slate-500">
                                     Mínimo 8 caracteres
                                 </span>
                             </div>
@@ -181,7 +181,7 @@ export function SignIn() {
                                 name="password"
                                 type="password"
                                 placeholder="••••••••"
-                                className="w-full rounded-lg border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                 autoComplete={
                                     step === "signIn"
                                         ? "current-password"
@@ -192,11 +192,11 @@ export function SignIn() {
                         </div>
 
                         {step === "signUp" && (
-                            <div className="space-y-6 rounded-lg border border-slate-800 bg-slate-900/50 p-5">
-                                <p className="text-sm font-semibold text-slate-200">
+                            <div className="space-y-6 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50 p-5">
+                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                                     Códigos de acceso
                                 </p>
-                                <p className="text-xs text-slate-400">
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
                                     Define los códigos de 4 dígitos para acceder
                                     a cada área. Podrás compartirlos con tu
                                     equipo después.
@@ -242,14 +242,14 @@ export function SignIn() {
                         </button>
                     </form>
 
-                    <footer className="mt-8 text-center text-sm text-slate-400">
+                    <footer className="mt-8 text-center text-sm text-slate-600 dark:text-slate-400">
                         <span>{toggleMessage} </span>
                         <button
                             type="button"
                             onClick={() =>
                                 setStep(step === "signIn" ? "signUp" : "signIn")
                             }
-                            className="font-semibold text-white transition hover:text-[#fa7316]"
+                            className="font-semibold text-slate-900 dark:text-white transition hover:text-[#fa7316]"
                         >
                             {toggleAction}
                         </button>

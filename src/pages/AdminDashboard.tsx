@@ -153,17 +153,17 @@ const AdminDashboard = () => {
     return (
         <div className="space-y-10">
             <header className="space-y-4">
-                <div className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/40 p-6 sm:p-8">
+                <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/40 p-6 sm:p-8">
                     <div className="flex flex-col sm:flex-row gap-6 sm:gap-0 items-start justify-between">
                         <div className="flex-1 space-y-3">
-                            <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
+                            <span className="inline-flex items-center gap-2 rounded-full bg-slate-200 dark:bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-700 dark:text-white">
                                 Panel administrador
                             </span>
                             <div>
-                                <h1 className="text-3xl font-semibold text-white">
+                                <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
                                     Resumen general
                                 </h1>
-                                <p className="max-w-2xl text-sm text-slate-400 mt-2 hidden sm:block">
+                                <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-400 mt-2 hidden sm:block">
                                     Aquí verás tus métricas clave, alertas de
                                     inventario y un resumen rápido de lo que
                                     ocurre en tus sucursales.
@@ -176,16 +176,16 @@ const AdminDashboard = () => {
                                 onChange={(e) =>
                                     setSelectedPeriod(e.target.value as Period)
                                 }
-                                className="appearance-none rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-2 pr-10 text-sm font-semibold text-white transition hover:border-[#fa7316] focus:border-[#fa7316] focus:outline-none cursor-pointer"
+                                className="appearance-none rounded-lg border border-slate-300 bg-white px-4 py-2 pr-10 text-sm font-semibold text-slate-900 transition hover:border-[#fa7316] focus:border-[#fa7316] focus:outline-none cursor-pointer dark:border-slate-700 dark:bg-slate-900/60 dark:text-white"
                             >
                                 <option value="today">Hoy</option>
                                 <option value="lastWeek">Última semana</option>
                                 <option value="lastMonth">Último mes</option>
                             </select>
-                            <IoChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            <IoChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-400 pointer-events-none" />
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                         <span>
                             {periodLabel} - {dateRangeLabel}
                         </span>
@@ -240,13 +240,13 @@ const AdminDashboard = () => {
             </section>
 
             {/* Sección 2: Resumen por sucursal */}
-            <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
+            <section className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/40 p-6">
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-0 items-start justify-between mb-6">
                     <div>
-                        <h2 className="text-xl font-semibold text-white">
+                        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
                             Resumen por sucursal
                         </h2>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                             Vista rápida del rendimiento de cada sucursal en el
                             período
                         </p>
@@ -254,16 +254,16 @@ const AdminDashboard = () => {
                     <button
                         type="button"
                         onClick={() => navigate("/admin/branches")}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                     >
                         Ver todas
                     </button>
                 </div>
 
                 {!summaryByBranch || summaryByBranch.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-700 bg-slate-950/80 p-10 text-center">
-                        <LuStore className="w-10 h-10 text-slate-600" />
-                        <p className="max-w-xs text-sm text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-950/80 p-10 text-center">
+                        <LuStore className="w-10 h-10 text-slate-500 dark:text-slate-600" />
+                        <p className="max-w-xs text-sm text-slate-600 dark:text-slate-400">
                             Aún no tienes sucursales configuradas. Crea una
                             sucursal para comenzar.
                         </p>
@@ -279,11 +279,11 @@ const AdminDashboard = () => {
                                         `/admin/branches/${branch.branchId}`
                                     )
                                 }
-                                className="group text-left rounded-lg border border-slate-800 bg-slate-900/60 p-5 transition hover:border-[#fa7316] hover:bg-slate-900/80 flex flex-col justify-start"
+                                className="group text-left rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/60 p-5 transition hover:border-[#fa7316] hover:bg-slate-100 dark:hover:bg-slate-900/80 flex flex-col justify-start"
                             >
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-semibold text-white group-hover:text-[#fa7316] transition">
+                                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-[#fa7316] transition">
                                             {branch.branchName}
                                         </h3>
                                         <div className="flex items-center gap-2 mt-1">
@@ -292,35 +292,35 @@ const AdminDashboard = () => {
                                                     Turno abierto
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-800/50 px-2 py-0.5 text-xs font-semibold text-slate-400">
+                                                <span className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 px-2 py-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
                                                     Sin turno
                                                 </span>
                                             )}
                                         </div>
                                     </div>
-                                    <LuStore className="w-5 h-5 text-slate-600 group-hover:text-[#fa7316] transition" />
+                                    <LuStore className="w-5 h-5 text-slate-500 dark:text-slate-600 group-hover:text-[#fa7316] transition" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 mt-4">
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">
                                             Ventas
                                         </p>
-                                        <p className="text-lg font-semibold text-white">
+                                        <p className="text-lg font-semibold text-slate-900 dark:text-white">
                                             {formatCurrency(branch.totalAmount)}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">
                                             Tickets
                                         </p>
-                                        <p className="text-lg font-semibold text-white">
+                                        <p className="text-lg font-semibold text-slate-900 dark:text-white">
                                             {branch.totalTickets} cerrados
                                         </p>
                                     </div>
                                 </div>
                                 {branch.openTickets > 0 && (
-                                    <div className="mt-3 pt-3 border-t border-slate-800">
-                                        <p className="text-xs text-slate-400">
+                                    <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                                        <p className="text-xs text-slate-600 dark:text-slate-400">
                                             <span className="font-semibold text-[#fa7316]">
                                                 {branch.openTickets}
                                             </span>{" "}
@@ -336,13 +336,13 @@ const AdminDashboard = () => {
 
             {/* Sección 3: Métodos de pago */}
             <section className="grid gap-6 lg:grid-cols-2">
-                <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
-                    <h2 className="text-xl font-semibold text-white mb-6">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/40 p-6">
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
                         Métodos de pago
                     </h2>
                     {!paymentBreakdown || paymentBreakdown.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-400">
-                            <HiOutlineReceiptTax className="w-8 h-8 text-slate-600" />
+                        <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-600 dark:text-slate-400">
+                            <HiOutlineReceiptTax className="w-8 h-8 text-slate-500 dark:text-slate-600" />
                             <p className="text-sm">
                                 Aún no hay ventas registradas en el período
                             </p>
@@ -352,19 +352,19 @@ const AdminDashboard = () => {
                             {paymentBreakdown.map((item) => (
                                 <div
                                     key={item.method}
-                                    className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/60 p-4"
+                                    className="flex items-center justify-between rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/60 p-4"
                                 >
                                     <div className="flex-1">
-                                        <p className="text-sm font-semibold text-white">
+                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                             {getPaymentMethodLabel(item.method)}
                                         </p>
-                                        <p className="text-xs text-slate-400 mt-1">
+                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                                             {item.percentage.toFixed(1)}% del
                                             total
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-lg font-semibold text-white">
+                                        <p className="text-lg font-semibold text-slate-900 dark:text-white">
                                             {formatCurrency(item.amount)}
                                         </p>
                                     </div>
@@ -375,13 +375,13 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Sección 5: Top sucursales */}
-                <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
-                    <h2 className="text-xl font-semibold text-white mb-6">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/40 p-6">
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
                         Top sucursales
                     </h2>
                     {!topBranches || topBranches.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-400">
-                            <LuStore className="w-8 h-8 text-slate-600" />
+                        <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-600 dark:text-slate-400">
+                            <LuStore className="w-8 h-8 text-slate-500 dark:text-slate-600" />
                             <p className="text-sm">
                                 Aún no hay ventas registradas en el período
                             </p>
@@ -397,19 +397,19 @@ const AdminDashboard = () => {
                                             `/admin/branches/${branch.branchId}`
                                         )
                                     }
-                                    className="w-full flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/60 p-4 transition hover:border-[#fa7316] hover:bg-slate-900/80"
+                                    className="w-full flex items-center justify-between rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/60 p-4 transition hover:border-[#fa7316] hover:bg-slate-100 dark:hover:bg-slate-900/80"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 text-sm font-semibold text-[#fa7316]">
                                             {index + 1}
                                         </div>
                                         <div>
-                                            <p className="text-sm font-semibold text-white">
+                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                                 {branch.branchName}
                                             </p>
                                         </div>
                                     </div>
-                                    <p className="text-lg font-semibold text-white">
+                                    <p className="text-lg font-semibold text-slate-900 dark:text-white">
                                         {formatCurrency(branch.totalAmount)}
                                     </p>
                                 </button>
@@ -420,13 +420,13 @@ const AdminDashboard = () => {
             </section>
 
             {/* Sección 6: Productos más vendidos */}
-            <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
-                <h2 className="text-xl font-semibold text-white mb-6">
+            <section className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/40 p-6">
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
                     Productos más vendidos
                 </h2>
                 {!topProducts || topProducts.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-400">
-                        <BiDish className="w-8 h-8 text-slate-600" />
+                    <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-600 dark:text-slate-400">
+                        <BiDish className="w-8 h-8 text-slate-500 dark:text-slate-600" />
                         <p className="text-sm">
                             Aún no hay productos vendidos en el período
                         </p>
@@ -435,14 +435,14 @@ const AdminDashboard = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b border-slate-800">
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                                <tr className="border-b border-slate-200 dark:border-slate-800">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                         Producto
                                     </th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                         Cantidad
                                     </th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                         Ingresos
                                     </th>
                                 </tr>
@@ -451,20 +451,20 @@ const AdminDashboard = () => {
                                 {topProducts.map((product) => (
                                     <tr
                                         key={product.productId as string}
-                                        className="border-b border-slate-800/50 hover:bg-slate-900/60 transition"
+                                        className="border-b border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-900/60 transition"
                                     >
                                         <td className="px-4 py-3">
-                                            <p className="text-sm font-semibold text-white">
+                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                                 {product.productName}
                                             </p>
                                         </td>
                                         <td className="px-4 py-3 text-right">
-                                            <p className="text-sm text-slate-300">
+                                            <p className="text-sm text-slate-600 dark:text-slate-300">
                                                 {product.quantity}
                                             </p>
                                         </td>
                                         <td className="px-4 py-3 text-right">
-                                            <p className="text-sm font-semibold text-white">
+                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                                 {formatCurrency(
                                                     product.revenue
                                                 )}
@@ -479,28 +479,28 @@ const AdminDashboard = () => {
             </section>
 
             {/* Sección 10: Alertas de inventario */}
-            <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
+            <section className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/40 p-6">
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-0 items-start justify-between mb-6">
                     <div>
-                        <h2 className="text-xl font-semibold text-white">
+                        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
                             Alertas de inventario
                         </h2>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                             Productos con stock bajo o sin stock
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={() => navigate("/admin/inventory")}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                     >
                         Ver inventario
                     </button>
                 </div>
 
                 {!lowStockAlerts || lowStockAlerts.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-700 bg-slate-950/80 p-8 text-center text-slate-400">
-                        <BiDish className="w-8 h-8 text-slate-600" />
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-950/80 p-8 text-center text-slate-600 dark:text-slate-400">
+                        <BiDish className="w-8 h-8 text-slate-500 dark:text-slate-600" />
                         <p className="text-sm">
                             No hay alertas de inventario. Todo está en orden.
                         </p>
@@ -527,10 +527,10 @@ const AdminDashboard = () => {
                                         <FaExclamationTriangle className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-white">
+                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                             {alert.productName}
                                         </p>
-                                        <p className="text-xs text-slate-400">
+                                        <p className="text-xs text-slate-600 dark:text-slate-400">
                                             {alert.branchName}
                                         </p>
                                     </div>
@@ -553,7 +553,7 @@ const AdminDashboard = () => {
                                 <button
                                     type="button"
                                     onClick={() => navigate("/admin/inventory")}
-                                    className="text-sm text-slate-400 hover:text-[#fa7316] transition"
+                                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-[#fa7316] transition"
                                 >
                                     Ver {lowStockAlerts.length - 10} alertas más
                                     →

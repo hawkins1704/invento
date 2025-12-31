@@ -34,12 +34,12 @@ const ConfirmDialog = ({
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center px-4 py-8">
-      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
-      <div className="relative w-full max-w-md overflow-hidden rounded-lg border border-slate-800 bg-slate-900/90 p-6 text-white shadow-2xl shadow-black/60">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur dark:bg-slate-950/70" />
+      <div className="relative w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/90 p-6 text-slate-900 dark:text-white shadow-2xl shadow-black/60">
         <div className="space-y-3">
-          <h2 className="text-xl font-semibold">{title}</h2>
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{title}</h2>
           {description && (
-            <div className="text-sm text-slate-300">{description}</div>
+            <div className="text-sm text-slate-700 dark:text-slate-300">{description}</div>
           )}
         </div>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -47,7 +47,7 @@ const ConfirmDialog = ({
             <button
               type="button"
               onClick={onCancel}
-              className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white cursor-pointer"
               disabled={isConfirming}
             >
               {cancelLabel}

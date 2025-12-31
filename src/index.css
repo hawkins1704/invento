@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Configuración de dark mode para Tailwind CSS v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Transiciones suaves para el cambio de tema */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Evitar transiciones en elementos que no las necesitan */
+button,
+input,
+select,
+textarea {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

@@ -22,6 +22,7 @@ import { LuStore } from "react-icons/lu";
 import { FaCheck } from "react-icons/fa";
 import CloseButton from "./CloseButton";
 import ConfirmDialog from "./ConfirmDialog";
+import ThemeToggle from "./ThemeToggle";
 import { FiUser } from "react-icons/fi";
 import { FaBars } from "react-icons/fa";
 const PRIMARY_COLOR = "#fa7316";
@@ -473,20 +474,20 @@ const Layout = () => {
 
     return (
         <>
-            <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
+            <div className="flex h-screen overflow-hidden bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
                 <aside
-                    className={`fixed inset-y-0 left-0 z-40 flex h-full flex-col border-r border-slate-800 bg-slate-900/95 backdrop-blur transition-all duration-300 md:static md:h-full md:translate-x-0 ${
+                    className={`fixed inset-y-0 left-0 z-40 flex h-full flex-col border-r border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 transition-all duration-300 md:static md:h-full md:translate-x-0 ${
                         isMobileOpen
                             ? "translate-x-0"
                             : "-translate-x-full md:translate-x-0"
                     } ${isCollapsed ? "w-20 md:w-20" : "w-64 md:w-72"}`}
                 >
-                    <div className="flex h-16 items-center justify-between border-b border-slate-800 px-5">
+                    <div className="flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 px-5">
                         {isCollapsed ? (
                             <button
                                 type="button"
                                 onClick={toggleSidebar}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-sm font-semibold text-white transition hover:border-[#fa7316] hover:text-[#fa7316]"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-slate-100 text-sm font-semibold text-slate-900 transition hover:border-[#fa7316] hover:text-[#fa7316] dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:border-[#fa7316] dark:hover:text-[#fa7316]"
                                 aria-label="Expandir sidebar"
                             >
                                 <FaChevronRight />
@@ -510,7 +511,7 @@ const Layout = () => {
                                 <button
                                     type="button"
                                     onClick={toggleSidebar}
-                                    className="hidden h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-sm font-semibold text-white hover:border-[#fa7316] hover:text-[#fa7316] md:flex"
+                                    className="hidden h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-slate-100 text-sm font-semibold text-slate-900 hover:border-[#fa7316] hover:text-[#fa7316] dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:border-[#fa7316] dark:hover:text-[#fa7316] md:flex"
                                     aria-label="Colapsar sidebar"
                                 >
                                     <FaChevronLeft />
@@ -530,10 +531,10 @@ const Layout = () => {
                                                 to={item.path}
                                                 end={item.exact}
                                                 className={({ isActive }) =>
-                                                    `group flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 text-sm transition hover:border-slate-700 hover:bg-slate-800/50 ${
+                                                    `group flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 text-sm transition hover:border-slate-300 hover:bg-slate-100 dark:hover:border-slate-700 dark:hover:bg-slate-800/50 ${
                                                         isActive
-                                                            ? "border-[#fa7316]/60 bg-[#fa7316]/10 text-white"
-                                                            : "text-slate-300"
+                                                            ? "border-[#fa7316]/60 bg-[#fa7316]/10 text-slate-900 dark:text-white"
+                                                            : "text-slate-600 dark:text-slate-300"
                                                     }`
                                                 }
                                                 onClick={closeMobileSidebar}
@@ -546,12 +547,12 @@ const Layout = () => {
                                                 </span>
                                                 {!isCollapsed && (
                                                     <span className="flex flex-col">
-                                                        <span className="font-semibold text-white">
+                                                        <span                                                         className="font-semibold text-slate-900 dark:text-white">
                                                             {isAreaLink
                                                                 ? areaNavLabel
                                                                 : item.label}
                                                         </span>
-                                                        <span className="text-xs text-slate-400">
+                                                        <span className="text-xs text-slate-500 dark:text-slate-400">
                                                             {isAreaLink
                                                                 ? areaNavDescription
                                                                 : item.description}
@@ -574,7 +575,7 @@ const Layout = () => {
                                                         className={`group flex w-full items-center gap-4 rounded-lg border px-4 py-3 text-sm transition ${
                                                             shiftButtonDisabled
                                                                 ? "cursor-not-allowed opacity-50"
-                                                                : "hover:border-slate-700 hover:bg-slate-800/50"
+                                                                : "hover:border-slate-300 hover:bg-slate-100 dark:hover:border-slate-700 dark:hover:bg-slate-800/50"
                                                         } ${shiftButtonClasses}`}
                                                     >
                                                         <FaRegClock
@@ -584,12 +585,12 @@ const Layout = () => {
                                                         />
                                                         {!isCollapsed && (
                                                             <span className="flex flex-col text-left">
-                                                                <span className="font-semibold text-white">
+                                                                <span className="font-semibold text-slate-900 dark:text-white">
                                                                     {
                                                                         shiftButtonLabel
                                                                     }
                                                                 </span>
-                                                                <span className="text-xs text-slate-300">
+                                                                <span className="text-xs text-slate-600 dark:text-slate-300">
                                                                     {
                                                                         shiftButtonDescription
                                                                     }
@@ -605,7 +606,7 @@ const Layout = () => {
                         </ul>
                     </nav>
 
-                    <div className="relative mt-auto border-t border-slate-800 px-4 py-5">
+                    <div className="relative mt-auto border-t border-slate-200 dark:border-slate-800 px-4 py-5">
                         <button
                             type="button"
                             ref={profileButtonRef}
@@ -623,7 +624,7 @@ const Layout = () => {
                             className={`flex w-full items-center gap-3 rounded-lg border border-transparent px-2 py-2 transition  ${
                                 isCollapsed
                                     ? "justify-center"
-                                    : "hover:border-slate-700 hover:bg-slate-800/50 cursor-pointer"
+                                    : "hover:border-slate-300 hover:bg-slate-100 dark:hover:border-slate-700 dark:hover:bg-slate-800/50 cursor-pointer"
                             }
             }`}
                         >
@@ -640,10 +641,10 @@ const Layout = () => {
                             </div>
                             {!isCollapsed && (
                                 <div className="flex flex-col text-left">
-                                    <span className="text-sm font-semibold text-white">
+                                    <span className="text-sm font-semibold text-slate-900 dark:text-white">
                                         {currentUser?.name}
                                     </span>
-                                    <span className="text-xs text-slate-400">
+                                    <span className="text-xs text-slate-500 dark:text-slate-400">
                                         {currentUser?.companyCommercialName}
                                     </span>
                                 </div>
@@ -657,13 +658,13 @@ const Layout = () => {
                                     isCollapsed
                                         ? "fixed bottom-5 left-20"
                                         : "absolute bottom-20 left-4"
-                                } z-50 w-50 rounded-lg border border-slate-800 bg-slate-900 p-2 shadow-xl ${isProfileMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+                                } z-50 w-50 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-2 shadow-xl ${isProfileMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
                             >
                                 {currentArea === "admin" && (
                                     <>
                                         <button
                                             type="button"
-                                            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800/80 cursor-pointer"
+                                            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/80 cursor-pointer"
                                             onClick={() => {
                                                 handleCloseProfileMenu();
                                                 setTimeout(() => {
@@ -671,14 +672,14 @@ const Layout = () => {
                                                 }, 300);
                                             }}
                                         >
-                                            <span className="text-sm font-semibold text-white text-left">
-                                                Editar perfil
-                                            </span>
+                                    <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
+                                        Editar perfil
+                                    </span>
                                             <FaRegUser color={PRIMARY_COLOR} />
                                         </button>
                                         <button
                                             type="button"
-                                            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800/80 cursor-pointer"
+                                            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/80 cursor-pointer"
                                             onClick={() => {
                                                 handleCloseProfileMenu();
                                                 setTimeout(() => {
@@ -688,9 +689,9 @@ const Layout = () => {
                                                 }, 300);
                                             }}
                                         >
-                                            <span className="text-sm font-semibold text-white text-left">
-                                                Mi suscripción
-                                            </span>
+                                    <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
+                                        Mi suscripción
+                                    </span>
                                             <FaCreditCard
                                                 color={PRIMARY_COLOR}
                                             />
@@ -704,7 +705,7 @@ const Layout = () => {
                                     }`}
                                     onClick={handleSignOut}
                                 >
-                                    <span className="text-sm font-semibold text-white text-left">
+                                    <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
                                         Cerrar sesión
                                     </span>
                                     <IoLogInOutline color={PRIMARY_COLOR} />
@@ -719,10 +720,10 @@ const Layout = () => {
                         className={`fixed inset-0 z-[70] flex items-center justify-center px-4 py-10 ${isShiftModalClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
                     >
                         <div
-                            className={`absolute inset-0 bg-slate-950/70 backdrop-blur ${isShiftModalClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
+                            className={`absolute inset-0 bg-black/40 backdrop-blur dark:bg-slate-950/70 ${isShiftModalClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
                         />
                         <div
-                            className={`relative w-full max-w-xl rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 ${isShiftModalClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+                            className={`relative w-full max-w-xl rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/95 p-6 text-slate-900 dark:text-white shadow-2xl shadow-black/60 ${isShiftModalClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
                         >
                             <CloseButton onClick={handleCloseShiftModal} />
 
@@ -736,10 +737,10 @@ const Layout = () => {
                                             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
                                                 Abrir turno
                                             </span>
-                                            <h2 className="text-2xl font-semibold text-white">
+                                            <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                                                 Registrar inicio de turno
                                             </h2>
-                                            <p className="text-sm text-slate-400">
+                                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                                 Confirma la sucursal y el
                                                 efectivo inicial con el que
                                                 arranca el turno.
@@ -754,14 +755,14 @@ const Layout = () => {
                                                 {selectedShiftBranch?.name ??
                                                     "Sin sucursal"}
                                             </p>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="text-xs text-slate-500 dark:text-slate-500">
                                                 {selectedShiftBranch?.address}
                                             </p>
                                         </div>
 
                                         <div className="space-y-2">
                                             <label
-                                                className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500"
+                                                className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500"
                                                 htmlFor="shift-staff"
                                             >
                                                 Responsable (opcional)
@@ -774,7 +775,7 @@ const Layout = () => {
                                                         event.target.value
                                                     )
                                                 }
-                                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                             >
                                                 <option value="">
                                                     Sin asignar
@@ -796,7 +797,7 @@ const Layout = () => {
 
                                         <div className="space-y-2">
                                             <label
-                                                className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500"
+                                                className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500"
                                                 htmlFor="shift-opening-cash"
                                             >
                                                 Caja inicial (efectivo)
@@ -812,7 +813,7 @@ const Layout = () => {
                                                         event.target.value
                                                     )
                                                 }
-                                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                                 placeholder="0.00"
                                             />
                                         </div>
@@ -827,7 +828,7 @@ const Layout = () => {
                                             <button
                                                 type="button"
                                                 onClick={handleCloseShiftModal}
-                                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
+                                                className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white cursor-pointer"
                                                 disabled={isProcessingShift}
                                             >
                                                 Cancelar
@@ -852,10 +853,10 @@ const Layout = () => {
                                             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
                                                 Cerrar turno
                                             </span>
-                                            <h2 className="text-2xl font-semibold text-white">
+                                            <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                                                 Finalizar turno
                                             </h2>
-                                            <p className="text-sm text-slate-400">
+                                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                                 Revisa los importes y registra
                                                 la caja real al finalizar el
                                                 día.
@@ -870,7 +871,7 @@ const Layout = () => {
                                                 {selectedShiftBranch?.name ??
                                                     "Sin sucursal"}
                                             </p>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="text-xs text-slate-500 dark:text-slate-500">
                                                 {selectedShiftBranch?.address}
                                             </p>
                                         </div>
@@ -878,11 +879,11 @@ const Layout = () => {
                                         {activeShiftSummary ? (
                                             <>
                                                 <div className="grid gap-3 sm:grid-cols-2">
-                                                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-                                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                                                    <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4">
+                                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                                             Caja inicial
                                                         </p>
-                                                        <p className="mt-2 text-lg font-semibold text-white">
+                                                        <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
                                                             {formatCurrency(
                                                                 activeShiftSummary
                                                                     .shift
@@ -890,11 +891,11 @@ const Layout = () => {
                                                             )}
                                                         </p>
                                                     </div>
-                                                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-                                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                                                    <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4">
+                                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                                             Ventas en efectivo
                                                         </p>
-                                                        <p className="mt-2 text-lg font-semibold text-white">
+                                                        <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
                                                             {formatCurrency(
                                                                 shiftCashSalesTotal
                                                             )}
@@ -915,7 +916,7 @@ const Layout = () => {
 
                                                 <div className="space-y-2">
                                                     <label
-                                                        className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500"
+                                                        className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500"
                                                         htmlFor="shift-closing-cash"
                                                     >
                                                         Efectivo contado
@@ -931,7 +932,7 @@ const Layout = () => {
                                                                     .value
                                                             )
                                                         }
-                                                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                                         placeholder="0.00"
                                                     />
                                                 </div>
@@ -978,7 +979,7 @@ const Layout = () => {
 
                                                 <div className="space-y-2">
                                                     <label
-                                                        className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500"
+                                                        className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500"
                                                         htmlFor="shift-notes"
                                                     >
                                                         Notas
@@ -993,13 +994,13 @@ const Layout = () => {
                                                                     .value
                                                             )
                                                         }
-                                                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                                         placeholder="Observaciones sobre la diferencia detectada"
                                                     />
                                                 </div>
                                             </>
                                         ) : (
-                                            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6 text-sm text-slate-300">
+                                            <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50 p-6 text-sm text-slate-700 dark:text-slate-300">
                                                 No hay un turno abierto en esta
                                                 sucursal. Selecciona otra
                                                 sucursal o abre un turno para
@@ -1017,7 +1018,7 @@ const Layout = () => {
                                             <button
                                                 type="button"
                                                 onClick={handleCloseShiftModal}
-                                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
+                                                className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white cursor-pointer"
                                                 disabled={isProcessingShift}
                                             >
                                                 Cancelar
@@ -1045,25 +1046,25 @@ const Layout = () => {
                 {isMobileOpen && (
                     <div
                         role="presentation"
-                        className="fixed inset-0 z-30 bg-slate-950/60 backdrop-blur-sm md:hidden"
+                        className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm dark:bg-slate-950/60 md:hidden"
                         onClick={closeMobileSidebar}
                     />
                 )}
 
                
                 <div className="flex flex-1 flex-col overflow-x-scroll">
-                    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-800 bg-slate-950/90 px-5 backdrop-blur">
+                    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 dark:border-slate-800 dark:bg-slate-950/90 px-5 backdrop-blur">
                         <div className="flex items-center gap-3">
                             <button
                                 type="button"
-                                className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 text-white hover:border-[#fa7316] hover:text-[#fa7316] md:hidden cursor-pointer"
+                                className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-slate-100 text-slate-900 hover:border-[#fa7316] hover:text-[#fa7316] dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:border-[#fa7316] dark:hover:text-[#fa7316] md:hidden cursor-pointer"
                                 onClick={() => setIsMobileOpen(true)}
                                 aria-label="Abrir menú"
                             >
                                 <FaBars />
                             </button>
                             <div>
-                                <h1 className="text-lg font-semibold text-white">
+                                <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
                                     {menuItems.find(
                                         (item) =>
                                             item.path === location.pathname
@@ -1071,8 +1072,10 @@ const Layout = () => {
                                 </h1>
                             </div>
                         </div>
-                        {currentArea === "sales" && selectedShiftBranch && (
-                            <div className="relative">
+                        <div className="flex items-center gap-3">
+                            <ThemeToggle />
+                            {currentArea === "sales" && selectedShiftBranch && (
+                                <div className="relative">
                                 <button
                                     type="button"
                                     ref={branchButtonRef}
@@ -1083,7 +1086,7 @@ const Layout = () => {
                                             setIsBranchMenuOpen(true);
                                         }
                                     }}
-                                    className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm font-semibold text-white transition hover:border-[#fa7316] hover:bg-slate-800/80 cursor-pointer"
+                                    className="flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-100/60 dark:border-slate-700 dark:bg-slate-900/60 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white transition hover:border-[#fa7316] hover:bg-slate-200/80 dark:hover:bg-slate-800/80 cursor-pointer"
                                 >
                                     <LuStore color={PRIMARY_COLOR} />
                                     <span>{selectedShiftBranch.name}</span>
@@ -1108,9 +1111,9 @@ const Layout = () => {
                                     branches.length > 0 && (
                                         <div
                                             ref={branchMenuRef}
-                                            className={`absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-slate-800 bg-slate-900 p-3 shadow-xl ${isBranchMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+                                            className={`absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-3 shadow-xl ${isBranchMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
                                         >
-                                            <div className="mb-2 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                                            <div className="mb-2 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                                 Seleccionar sucursal
                                             </div>
                                             {branches
@@ -1136,7 +1139,7 @@ const Layout = () => {
                                                             className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition ${
                                                                 isSelected
                                                                     ? "bg-[#fa7316]/10 text-[#fa7316] border border-[#fa7316]/30"
-                                                                    : "text-slate-200 hover:bg-slate-800/80"
+                                                                    : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
                                                             }`}
                                                         >
                                                             <LuStore
@@ -1155,7 +1158,7 @@ const Layout = () => {
                                                                 </div>
                                                                 {branch.address && (
                                                                     <div
-                                                                        className={`mt-0.5 text-xs ${isSelected ? "text-[#fa7316]/80" : "text-slate-400"}`}
+                                                                        className={`mt-0.5 text-xs ${isSelected ? "text-[#fa7316]/80" : "text-slate-500 dark:text-slate-400"}`}
                                                                     >
                                                                         {
                                                                             branch.address
@@ -1171,11 +1174,12 @@ const Layout = () => {
                                                 })}
                                         </div>
                                     )}
-                            </div>
-                        )}
+                                </div>
+                            )}
+                        </div>
                     </header>
 
-                    <main className="flex-1 overflow-y-auto bg-slate-950">
+                    <main className="flex-1 overflow-y-auto bg-white dark:bg-slate-950">
                         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-6 sm:py-10">
                             <Outlet />
                         </div>
@@ -1189,15 +1193,15 @@ const Layout = () => {
                 tone="danger"
                 description={
                     <div className="space-y-3">
-                        <p className="text-sm text-slate-200">
+                        <p className="text-sm text-slate-700 dark:text-slate-200">
                             No se puede cerrar el turno mientras haya ventas
                             abiertas. Por favor, cierra o cancela todas las
                             ventas antes de cerrar el turno.
                         </p>
                         {openSales && openSales.length > 0 && (
-                            <p className="text-sm text-slate-300">
+                            <p className="text-sm text-slate-600 dark:text-slate-300">
                                 Ventas abiertas:{" "}
-                                <span className="font-semibold text-white">
+                                <span className="font-semibold text-slate-900 dark:text-white">
                                     {openSales.length}
                                 </span>
                             </p>

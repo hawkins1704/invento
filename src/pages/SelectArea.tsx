@@ -38,7 +38,7 @@ const SelectArea = () => {
       return null;
     }
     const stored = window.localStorage.getItem(AREA_STORAGE_KEY) as AreaKey | null;
-    return stored ?? null;
+    return stored ?? "admin";
   });
   const [code, setCode] = useState<string[]>(() => Array(4).fill(""));
   const [error, setError] = useState<string | null>(null);
@@ -117,10 +117,10 @@ const SelectArea = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-16 text-white">
+    <div className="min-h-screen bg-white dark:bg-slate-950">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-16 text-slate-900 dark:text-white">
         <header className="space-y-4">
-          <h1 className="text-4xl font-semibold text-white">¿Dónde vas a trabajar hoy?</h1>
+          <h1 className="text-4xl font-semibold text-slate-900 dark:text-white">¿Dónde vas a trabajar hoy?</h1>
         </header>
 
         <div className="grid gap-6 grid-cols-2 sm:grid-cols-2 ">
@@ -131,8 +131,8 @@ const SelectArea = () => {
                 type="button"
                 key={area.key}
                 onClick={() => handleAreaSelect(area.key)}
-                className={`group relative overflow-hidden rounded-lg border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 focus-visible:ring-[#fa7316] ${
-                  isSelected ? "border-[#fa7316] bg-[#fa7316]/10" : "border-slate-800 bg-slate-900"
+                className={`group relative overflow-hidden rounded-lg border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 focus-visible:ring-[#fa7316] ${
+                  isSelected ? "border-[#fa7316] bg-[#fa7316]/10" : "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900"
                 }`}
               >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(250,115,22,0.18),_transparent_60%)] opacity-0 transition group-hover:opacity-100" />
@@ -140,7 +140,7 @@ const SelectArea = () => {
                   <div className="flex flex-col-reverse sm:flex-row items-start gap-2 sm:gap-0 sm:items-center justify-between">
                     <span
                       className={`rounded-full sm:px-3 sm:py-1 text-xs font-semibold uppercase tracking-wider ${
-                        isSelected ? "sm:bg-[#fa7316] text-[#fa7316] sm:text-white" : "sm:bg-white/5 text-slate-300"
+                        isSelected ? "sm:bg-[#fa7316] text-[#fa7316] sm:text-white" : "sm:bg-slate-200 sm:dark:bg-white/5 text-slate-600 dark:text-slate-300"
                       }`}
                     >
                       {area.badge}
@@ -150,7 +150,7 @@ const SelectArea = () => {
                     </span>
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-lg sm:text-2xl font-semibold text-white">{area.title}</h2>
+                    <h2 className="text-lg sm:text-2xl font-semibold text-slate-900 dark:text-white">{area.title}</h2>
                   </div>
                   
                 </div>
@@ -161,14 +161,14 @@ const SelectArea = () => {
 
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-8"
+          className="flex flex-col gap-6 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-8"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                 {selectedArea ? "Verificación de acceso" : "Selecciona un área para continuar"}
               </h3>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 {selectedArea
                   ? "Ingresa el código asignado para esta área. Si no lo recuerdas, contacta a un administrador."
                   : "Cada módulo requiere un código único. Selecciona una tarjeta para habilitar el ingreso."}
