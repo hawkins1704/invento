@@ -47,11 +47,11 @@ const AdminCategoryDetail = () => {
   if (!categoryId) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold text-white">Categoría no encontrada</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Categoría no encontrada</h1>
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+          className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-1 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
         >
           <FaArrowLeft />
           <span>Volver</span>
@@ -62,7 +62,7 @@ const AdminCategoryDetail = () => {
 
   if (categoryId && categoryFromQuery === undefined) {
     return (
-      <div className="flex flex-1 items-center justify-center text-slate-400">
+      <div className="flex flex-1 items-center justify-center text-slate-600 dark:text-slate-400">
         Cargando información de la categoría...
       </div>
     );
@@ -70,14 +70,14 @@ const AdminCategoryDetail = () => {
 
   if (!category) {
     return (
-      <div className="space-y-6 text-white">
+      <div className="space-y-6 text-slate-900 dark:text-white">
         <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-200">
           La categoría solicitada no existe o fue eliminada.
         </div>
         <button
           type="button"
           onClick={() => navigate("/admin/categories")}
-          className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+          className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-1 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
         >
           <FaArrowLeft />
           <span>Volver a categorías</span>
@@ -140,19 +140,19 @@ const AdminCategoryDetail = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+      <header className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-8 text-slate-900 dark:text-white md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
           <button
             type="button"
             onClick={() => navigate("/admin/categories")}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-1 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
           >
             <FaArrowLeft />
             <span>Volver</span>
           </button>
           <div>
-            <h1 className="text-3xl font-semibold">{category.name}</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400">
+            <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">{category.name}</h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
               Actualiza el nombre de la categoría o elimínala si ya no la necesitas.
             </p>
           </div>
@@ -160,7 +160,7 @@ const AdminCategoryDetail = () => {
         <button
           type="button"
           onClick={requestDeleteCategory}
-          className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-200 transition hover:border-red-500/60 hover:text-red-100"
+          className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-50 dark:bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-500/60 hover:bg-red-100 hover:text-red-700 dark:text-red-200 dark:hover:text-red-100 dark:hover:bg-red-500/20"
           disabled={isDeleting || isSubmitting}
         >
           <MdDeleteOutline />
@@ -168,10 +168,10 @@ const AdminCategoryDetail = () => {
         </button>
       </header>
 
-      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+      <section className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-8 text-slate-900 dark:text-white">
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-slate-200">
+            <label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-200">
               Nombre de categoría
             </label>
             <input
@@ -181,7 +181,7 @@ const AdminCategoryDetail = () => {
               required
               value={name}
               onChange={(event: ChangeEvent<HTMLInputElement>) => setName(event.target.value)}
-              className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
             />
           </div>
 
@@ -200,14 +200,14 @@ const AdminCategoryDetail = () => {
             <button
               type="button"
               onClick={() => navigate("/admin/categories")}
-              className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+              className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
               disabled={isSubmitting}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Guardando..." : "Guardar cambios"}

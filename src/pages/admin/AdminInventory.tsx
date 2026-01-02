@@ -14,6 +14,7 @@ import TableRow from "../../components/table/TableRow";
 import Pagination from "../../components/pagination/Pagination";
 import EmptyState from "../../components/empty-state/EmptyState";
 import PageHeader from "../../components/page-header/PageHeader";
+import CloseButton from "../../components/CloseButton";
 
 type ProductFormState = {
   name: string;
@@ -379,22 +380,15 @@ const updateStockField = (branchId: string, value: string) => {
 
       {isFormOpen && (
         <div className={`fixed inset-0 z-50 flex items-center justify-center px-4 py-10 backdrop-blur ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`}>
-          <div className={`absolute inset-0 bg-slate-950/70 ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`} />
-          <div className={`relative flex flex-col w-full max-w-2xl max-h-[90vh] rounded-lg border border-slate-800 bg-slate-900 text-white shadow-2xl shadow-black/60 ${isClosing ? 'animate-[fadeOutScale_0.3s_ease-out]' : 'animate-[fadeInScale_0.3s_ease-out]'}`}>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 text-slate-300 transition hover:text-white"
-              aria-label="Cerrar"
-            >
-              ✕
-            </button>
+          <div className={`absolute inset-0 bg-black/40 dark:bg-slate-950/70 ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`} />
+          <div className={`relative flex flex-col w-full max-w-2xl max-h-[90vh] rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xl shadow-black/60 ${isClosing ? 'animate-[fadeOutScale_0.3s_ease-out]' : 'animate-[fadeInScale_0.3s_ease-out]'}`}>
+            <CloseButton onClick={handleClose} />
             <header className="px-8 pt-8 pb-6 space-y-2 flex-shrink-0">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
+              <span className="inline-flex items-center gap-2 rounded-full bg-slate-200 dark:bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-700 dark:text-white">
                 Nuevo producto
               </span>
-              <h2 className="text-2xl font-semibold text-white">Crear producto</h2>
-              <p className="text-sm text-slate-400">
+              <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Crear producto</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 Completa los detalles del producto y asigna el stock inicial para cada sucursal.
               </p>
             </header>
@@ -402,7 +396,7 @@ const updateStockField = (branchId: string, value: string) => {
               <form id="product-form" className="space-y-5 pb-5" onSubmit={handleCreateProduct}>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium text-slate-200">
+                  <label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     Nombre
                   </label>
                   <input
@@ -412,12 +406,12 @@ const updateStockField = (branchId: string, value: string) => {
                     required
                     value={formState.name}
                     onChange={updateField}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                   />
                 </div>
                 {categories && categories.length > 0 ? (
                   <div className="space-y-2">
-                    <label htmlFor="categoryId" className="text-sm font-medium text-slate-200">
+                    <label htmlFor="categoryId" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                       Categoría
                     </label>
                     <select
@@ -425,7 +419,7 @@ const updateStockField = (branchId: string, value: string) => {
                       name="categoryId"
                       value={formState.categoryId}
                       onChange={updateField}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                     >
                       {categories.map((category) => {
                         const categoryKey = category._id as unknown as string;
@@ -439,7 +433,7 @@ const updateStockField = (branchId: string, value: string) => {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-200">Categoría</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Categoría</label>
                     <div className="rounded-lg border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
                       Crea una categoría antes de agregar productos.
                     </div>
@@ -447,7 +441,7 @@ const updateStockField = (branchId: string, value: string) => {
                 )}
               </div>
               <div className="space-y-2">
-                <label htmlFor="description" className="text-sm font-medium text-slate-200">
+                <label htmlFor="description" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                   Descripción
                 </label>
                 <textarea
@@ -456,12 +450,12 @@ const updateStockField = (branchId: string, value: string) => {
                   rows={3}
                   value={formState.description}
                   onChange={updateField}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                 />
               </div>
               <div className="grid gap-5 md:grid-cols-3">
                 <div className="space-y-2">
-                  <label htmlFor="unitValue" className="text-sm font-medium text-slate-200">
+                  <label htmlFor="unitValue" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     Valor Unitario
                   </label>
                   <input
@@ -473,11 +467,11 @@ const updateStockField = (branchId: string, value: string) => {
                     required
                     value={formState.unitValue}
                     onChange={updateField}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="igv" className="text-sm font-medium text-slate-200">
+                  <label htmlFor="igv" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     IGV ({IGVPercentage}%)
                   </label>
                   <input
@@ -486,11 +480,11 @@ const updateStockField = (branchId: string, value: string) => {
                     type="number"
                     disabled
                     value={igv.toFixed(2)}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-400 cursor-not-allowed"
+                    className="w-full rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 text-sm text-slate-500 cursor-not-allowed dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="price" className="text-sm font-medium text-slate-200">
+                  <label htmlFor="price" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     Precio Unitario
                   </label>
                   <input
@@ -502,12 +496,12 @@ const updateStockField = (branchId: string, value: string) => {
                     required
                     value={formState.price}
                     onChange={updateField}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label htmlFor="image" className="text-sm font-medium text-slate-200">
+                <label htmlFor="image" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                   Imagen del producto
                 </label>
                 <input
@@ -516,21 +510,21 @@ const updateStockField = (branchId: string, value: string) => {
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
-                  className="w-full cursor-pointer rounded-lg border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
+                  className="w-full cursor-pointer rounded-lg border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-600 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-500">
                   Se optimizará automáticamente antes de subirla. Tamaño recomendado máx. 1280px.
                   Este campo es opcional.
                 </p>
               </div>
 
-              <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900/60 p-6">
+              <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <label className="text-sm font-semibold text-white">
+                    <label className="text-sm font-semibold text-slate-900 dark:text-white">
                       Control de inventario
                     </label>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
                       Activa el control de stock para este producto
                     </p>
                   </div>
@@ -547,7 +541,7 @@ const updateStockField = (branchId: string, value: string) => {
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
                       formState.inventoryActivated
                         ? "bg-[#fa7316]"
-                        : "bg-slate-700"
+                        : "bg-slate-300 dark:bg-slate-700"
                     }`}
                     role="switch"
                     aria-checked={formState.inventoryActivated}
@@ -565,13 +559,13 @@ const updateStockField = (branchId: string, value: string) => {
                 </div>
 
                 {formState.inventoryActivated && (
-                  <div className="space-y-4 border-t border-slate-800 pt-4">
+                  <div className="space-y-4 border-t border-slate-200 dark:border-slate-800 pt-4">
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
-                        <label className="text-sm font-semibold text-white">
+                        <label className="text-sm font-semibold text-slate-900 dark:text-white">
                           Permitir ventas en negativo
                         </label>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
                           Permite vender aunque el stock sea 0 o negativo
                         </p>
                       </div>
@@ -586,7 +580,7 @@ const updateStockField = (branchId: string, value: string) => {
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
                           formState.allowNegativeSale
                             ? "bg-[#fa7316]"
-                            : "bg-slate-700"
+                            : "bg-slate-300 dark:bg-slate-700"
                         }`}
                         role="switch"
                         aria-checked={formState.allowNegativeSale}
@@ -604,7 +598,7 @@ const updateStockField = (branchId: string, value: string) => {
                     </div>
 
                     <div className="space-y-3">
-                      <p className="text-sm font-semibold text-white">Stock inicial por sucursal</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Stock inicial por sucursal</p>
                       {branches && branches.length > 0 ? (
                         <div className="grid gap-4 md:grid-cols-2">
                           {branches.map((branch) => {
@@ -612,10 +606,10 @@ const updateStockField = (branchId: string, value: string) => {
                             return (
                               <div
                                 key={branchKey}
-                                className="space-y-1 rounded-lg border border-slate-800 bg-slate-900/70 p-4"
+                                className="space-y-1 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/70 p-4"
                               >
-                                <p className="text-sm font-semibold text-white">{branch.name}</p>
-                                <p className="text-xs text-slate-500">
+                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{branch.name}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-500">
                                   {branch.address}
                                 </p>
                                 <input
@@ -624,7 +618,7 @@ const updateStockField = (branchId: string, value: string) => {
                                   step="1"
                                   value={formState.stocks[branchKey] ?? "0"}
                                   onChange={(event) => updateStockField(branchKey, event.target.value)}
-                                  className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                  className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
                                 />
                               </div>
                             );
@@ -647,12 +641,12 @@ const updateStockField = (branchId: string, value: string) => {
               )}
               </form>
             </div>
-            <div className="px-8 pb-8 pt-4 flex-shrink-0 border-t border-slate-800 bg-slate-900">
+            <div className="px-8 pb-8 pt-4 flex-shrink-0 border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                   disabled={isSubmitting}
                 >
                   Cancelar
@@ -660,7 +654,7 @@ const updateStockField = (branchId: string, value: string) => {
                 <button
                   type="submit"
                   form="product-form"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#fa7316]/40 transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : "Guardar producto"}
@@ -683,7 +677,7 @@ const ProductCard = ({
 }) => {
   return (
     <div
-      className="cursor-pointer rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60"
+      className="cursor-pointer rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/40 p-4 transition hover:bg-slate-100 dark:hover:bg-slate-900/60 focus-visible:bg-slate-100 dark:focus-visible:bg-slate-900/60"
       role="button"
       tabIndex={0}
       onClick={() => onSelect(product)}
@@ -695,30 +689,30 @@ const ProductCard = ({
       }}
     >
       <div className="flex items-start gap-4">
-        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center">
+        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900 flex items-center justify-center">
           {product.imageUrl ? (
             <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
           ) : (
-            <BiDish className="h-8 w-8 text-slate-600" />
+            <BiDish className="h-8 w-8 text-slate-500 dark:text-slate-600" />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white">{product.name}</p>
+          <p className="text-sm font-semibold text-slate-900 dark:text-white">{product.name}</p>
           {product.description && (
-            <p className="mt-1 text-xs text-slate-400 line-clamp-2">{product.description}</p>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 line-clamp-2">{product.description}</p>
           )}
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
             <div>
-              <span className="text-xs text-slate-500">Categoría:</span>
-              <p className="text-sm font-medium text-slate-300">{product.categoryName}</p>
+              <span className="text-xs text-slate-500 dark:text-slate-500">Categoría:</span>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{product.categoryName}</p>
             </div>
             <div>
-              <span className="text-xs text-slate-500">Precio:</span>
-              <p className="text-sm font-semibold text-white">{formatCurrency(product.price)}</p>
+              <span className="text-xs text-slate-500 dark:text-slate-500">Precio:</span>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">{formatCurrency(product.price)}</p>
             </div>
             <div>
-              <span className="text-xs text-slate-500">Stock:</span>
-              <p className="text-sm font-medium text-slate-300">{product.totalStock}</p>
+              <span className="text-xs text-slate-500 dark:text-slate-500">Stock:</span>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{product.totalStock}</p>
             </div>
           </div>
         </div>
@@ -738,22 +732,22 @@ const ProductRow = ({
     <TableRow onClick={() => onSelect(product)}>
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 overflow-hidden rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center">
+          <div className="h-12 w-12 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900 flex items-center justify-center">
             {product.imageUrl ? (
               <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
             ) : (
-              <BiDish className="h-6 w-6 text-slate-600" />
+              <BiDish className="h-6 w-6 text-slate-500 dark:text-slate-600" />
             )}
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">{product.name}</p>
-            <p className="text-xs text-slate-400">{product.description}</p>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">{product.name}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">{product.description}</p>
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-slate-300">{product.categoryName}</td>
-      <td className="px-6 py-4 text-sm text-white">{formatCurrency(product.price)}</td>
-      <td className="px-6 py-4 text-sm text-slate-300">{product.totalStock}</td>
+      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{product.categoryName}</td>
+      <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">{formatCurrency(product.price)}</td>
+      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{product.totalStock}</td>
     </TableRow>
   );
 };

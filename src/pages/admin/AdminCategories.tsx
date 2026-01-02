@@ -28,7 +28,7 @@ const CategoryCard = ({
 }) => {
   return (
     <div
-      className="cursor-pointer rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60"
+      className="cursor-pointer rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/40 p-4 transition hover:bg-slate-100 dark:hover:bg-slate-900/60 focus-visible:bg-slate-100 dark:focus-visible:bg-slate-900/60"
       role="button"
       tabIndex={0}
       onClick={() => onSelect(category)}
@@ -39,7 +39,7 @@ const CategoryCard = ({
         }
       }}
     >
-      <p className="text-sm font-semibold text-white">{category.name}</p>
+      <p className="text-sm font-semibold text-slate-900 dark:text-white">{category.name}</p>
     </div>
   );
 };
@@ -189,21 +189,21 @@ const AdminCategories = () => {
 
       {isFormOpen && (
         <div className={`fixed inset-0 z-50 flex items-center justify-center px-4 py-10 backdrop-blur ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`}>
-          <div className={`absolute inset-0 bg-slate-950/70 ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`} />
-          <div className={`relative w-full max-w-lg rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60 ${isClosing ? 'animate-[fadeOutScale_0.3s_ease-out]' : 'animate-[fadeInScale_0.3s_ease-out]'}`}>
+          <div className={`absolute inset-0 bg-black/40 dark:bg-slate-950/70 ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`} />
+          <div className={`relative w-full max-w-lg rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-8 text-slate-900 dark:text-white shadow-2xl shadow-black/60 ${isClosing ? 'animate-[fadeOutScale_0.3s_ease-out]' : 'animate-[fadeInScale_0.3s_ease-out]'}`}>
             <CloseButton onClick={handleClose} />
             <header className="mb-6 space-y-2">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
+              <span className="inline-flex items-center gap-2 rounded-full bg-slate-200 dark:bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-700 dark:text-white">
                 Nueva categoría
               </span>
-              <h2 className="text-2xl font-semibold text-white">Crear categoría</h2>
-              <p className="text-sm text-slate-400">
+              <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Crear categoría</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 Asigna un nombre descriptivo para que el equipo pueda identificarla fácilmente.
               </p>
             </header>
             <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium text-slate-200">
+                <label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                   Nombre de categoría
                 </label>
                 <input
@@ -214,7 +214,7 @@ const AdminCategories = () => {
                   autoFocus
                   value={formState.name}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                 />
               </div>
 
@@ -228,7 +228,7 @@ const AdminCategories = () => {
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                   disabled={isSubmitting}
                 >
                   Cancelar
@@ -258,7 +258,7 @@ const CategoryRow = ({
 }) => {
   return (
     <TableRow onClick={() => onSelect(category)}>
-      <td className="px-6 py-4 text-sm font-semibold text-white">{category.name}</td>
+      <td className="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-white">{category.name}</td>
     </TableRow>
   );
 };

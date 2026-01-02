@@ -279,7 +279,7 @@ const AdminDashboard = () => {
                                         `/admin/branches/${branch.branchId}`
                                     )
                                 }
-                                className="group text-left rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/60 p-5 transition hover:border-[#fa7316] hover:bg-slate-100 dark:hover:bg-slate-900/80 flex flex-col justify-start"
+                                className="group text-left rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/60 p-5 transition hover:border-[#fa7316] dark:hover:bg-slate-900/80 flex flex-col justify-start"
                             >
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="flex-1">

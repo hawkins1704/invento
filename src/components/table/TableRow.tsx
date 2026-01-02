@@ -7,7 +7,7 @@ type TableRowProps = {
 };
 
 const TableRow = ({ children, onClick, className = "" }: TableRowProps) => {
-  const baseClasses = "transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60";
+  const baseClasses = "transition hover:bg-slate-100 dark:hover:bg-slate-900/60 focus-visible:bg-slate-100 dark:focus-visible:bg-slate-900/60";
   const clickableClasses = onClick ? "cursor-pointer" : "";
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>) => {

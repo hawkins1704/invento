@@ -14,9 +14,9 @@ type DataTableProps = {
 
 const DataTable = ({ columns, children, className = "" }: DataTableProps) => {
   return (
-    <div className={`overflow-x-auto rounded-lg border border-slate-800 ${className} mb-4`}>
-      <table className="min-w-full w-full divide-y divide-slate-800 text-left text-sm ">
-        <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-400">
+    <div className={`overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 ${className} mb-4`}>
+      <table className="min-w-full w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm ">
+        <thead className="bg-slate-50 dark:bg-slate-900/80 text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
           <tr>
             {columns.map((column) => {
               const alignClass = column.align === "right" ? "text-right" : column.align === "center" ? "text-center" : "text-left";
@@ -28,7 +28,7 @@ const DataTable = ({ columns, children, className = "" }: DataTableProps) => {
             })}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
+        <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-950/40 text-slate-900 dark:text-slate-200">
           {children}
         </tbody>
       </table>

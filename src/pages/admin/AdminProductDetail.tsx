@@ -290,13 +290,13 @@ const AdminProductDetail = () => {
     if (!productId) {
         return (
             <div className="space-y-6">
-                <h1 className="text-2xl font-semibold text-white">
+                <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
                     Producto no encontrado
                 </h1>
                 <button
                     type="button"
                     onClick={() => navigate(-1)}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                 >
                     Volver
                 </button>
@@ -310,7 +310,7 @@ const AdminProductDetail = () => {
         branches === undefined
     ) {
         return (
-            <div className="flex flex-1 items-center justify-center text-slate-400">
+            <div className="flex flex-1 items-center justify-center text-slate-600 dark:text-slate-400">
                 Cargando información del producto...
             </div>
         );
@@ -318,14 +318,14 @@ const AdminProductDetail = () => {
 
     if (!product) {
         return (
-            <div className="space-y-6 text-white">
+            <div className="space-y-6 text-slate-900 dark:text-white">
                 <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-200">
                     El producto solicitado no existe o fue eliminado.
                 </div>
                 <button
                     type="button"
                     onClick={() => navigate("/admin/inventory")}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                 >
                     Volver al inventario
                 </button>
@@ -513,32 +513,32 @@ const AdminProductDetail = () => {
 
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 md:flex-row md:items-center md:justify-between">
+            <header className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-8 text-slate-900 dark:text-white  md:flex-row md:items-center md:justify-between">
                 <div className="space-y-3">
                     <button
                         type="button"
                         onClick={() => navigate("/admin/inventory")}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-1 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                     >
                         <FaArrowLeft />
                         <span>Volver</span>
                     </button>
                     <div>
-                        <h1 className="text-3xl font-semibold">
+                        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
                             {product.name}
                         </h1>
 
-                        <p className="mt-2 max-w-2xl text-sm text-slate-400">
+                        <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
                             Actualiza los detalles del producto y ajusta el
                             stock disponible en cada sucursal.
                         </p>
                     </div>
                 </div>
-                <div className="flex flex-col items-end gap-3 text-sm text-slate-300">
+                <div className="flex flex-col items-end gap-3 text-sm text-slate-600 dark:text-slate-300">
                     <button
                         type="button"
                         onClick={requestDeleteProduct}
-                        className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-200 transition hover:border-red-500/60 hover:text-red-100"
+                        className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-50 dark:bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-500/60 hover:bg-red-100 hover:text-red-700 dark:text-red-200 dark:hover:text-red-100 dark:hover:bg-red-500/20"
                         disabled={isDeleting || isSubmitting}
                     >
                         <MdDeleteOutline />
@@ -549,14 +549,14 @@ const AdminProductDetail = () => {
 
             <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
                 <form
-                    className="space-y-5 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20"
+                    className="space-y-5 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-8 text-slate-900 dark:text-white "
                     onSubmit={handleSubmit}
                 >
                     <div className="grid gap-5 md:grid-cols-2">
                         <div className="space-y-2">
                             <label
                                 htmlFor="name"
-                                className="text-sm font-medium text-slate-200"
+                                className="text-sm font-medium text-slate-700 dark:text-slate-200"
                             >
                                 Nombre
                             </label>
@@ -567,14 +567,14 @@ const AdminProductDetail = () => {
                                 required
                                 value={formState.name}
                                 onChange={updateField}
-                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                             />
                         </div>
                         {categories.length > 0 ? (
                             <div className="space-y-2">
                                 <label
                                     htmlFor="categoryId"
-                                    className="text-sm font-medium text-slate-200"
+                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     Categoría
                                 </label>
@@ -583,7 +583,7 @@ const AdminProductDetail = () => {
                                     name="categoryId"
                                     value={formState.categoryId}
                                     onChange={updateField}
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                 >
                                     {categories.map((category) => {
                                         const categoryKey =
@@ -601,7 +601,7 @@ const AdminProductDetail = () => {
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-200">
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                                     Categoría
                                 </label>
                                 <div className="rounded-lg border border-dashed border-[#fa7316]/60 bg-[#fa7316]/10 px-4 py-3 text-sm text-[#fa7316]">
@@ -615,7 +615,7 @@ const AdminProductDetail = () => {
                     <div className="space-y-2">
                         <label
                             htmlFor="description"
-                            className="text-sm font-medium text-slate-200"
+                            className="text-sm font-medium text-slate-700 dark:text-slate-200"
                         >
                             Descripción
                         </label>
@@ -625,7 +625,7 @@ const AdminProductDetail = () => {
                             rows={3}
                             value={formState.description}
                             onChange={updateField}
-                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                         />
                     </div>
 
@@ -633,7 +633,7 @@ const AdminProductDetail = () => {
                         <div className="space-y-2">
                             <label
                                 htmlFor="unitValue"
-                                className="text-sm font-medium text-slate-200"
+                                className="text-sm font-medium text-slate-700 dark:text-slate-200"
                             >
                                 Valor Unitario
                             </label>
@@ -646,13 +646,13 @@ const AdminProductDetail = () => {
                                 required
                                 value={formState.unitValue}
                                 onChange={updateField}
-                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                             />
                         </div>
                         <div className="space-y-2">
                             <label
                                 htmlFor="igv"
-                                className="text-sm font-medium text-slate-200"
+                                className="text-sm font-medium text-slate-700 dark:text-slate-200"
                             >
                                 IGV ({IGVPercentage}%)
                             </label>
@@ -662,13 +662,13 @@ const AdminProductDetail = () => {
                                 type="number"
                                 disabled
                                 value={igv.toFixed(2)}
-                                className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-400 cursor-not-allowed"
+                                className="w-full rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 text-sm text-slate-500 cursor-not-allowed dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400"
                             />
                         </div>
                         <div className="space-y-2">
                             <label
                                 htmlFor="price"
-                                className="text-sm font-medium text-slate-200"
+                                className="text-sm font-medium text-slate-700 dark:text-slate-200"
                             >
                                 Precio Unitario
                             </label>
@@ -681,14 +681,14 @@ const AdminProductDetail = () => {
                                 required
                                 value={formState.price}
                                 onChange={updateField}
-                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                             />
                         </div>
                     </div>
                     <div className="space-y-2">
                         <label
                             htmlFor="image"
-                            className="text-sm font-medium text-slate-200"
+                            className="text-sm font-medium text-slate-700 dark:text-slate-200"
                         >
                             Imagen del producto
                         </label>
@@ -698,9 +698,9 @@ const AdminProductDetail = () => {
                             type="file"
                             accept="image/*"
                             onChange={handleImageChange}
-                            className="w-full cursor-pointer rounded-lg border border-dashed border-slate-700 bg-slate-900 px-4 py-4 text-sm text-slate-400 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50"
+                            className="w-full cursor-pointer rounded-lg border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-600 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#fa7316] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-[#fa7316]/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
                         />
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-500">
                             Si no seleccionas una nueva imagen, se mantendrá la
                             actual. Tamaño recomendado máx. 1280px. Este campo
                             es opcional.
@@ -709,7 +709,7 @@ const AdminProductDetail = () => {
 
                     {formState.inventoryActivated && (
                         <div className="space-y-3">
-                            <p className="text-sm font-semibold text-white">
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                 Stock por sucursal
                             </p>
                             {branches.length > 0 ? (
@@ -720,12 +720,12 @@ const AdminProductDetail = () => {
                                         return (
                                             <div
                                                 key={branchKey}
-                                                className="space-y-1 rounded-lg border border-slate-800 bg-slate-900/70 p-4"
+                                                className="space-y-1 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/70 p-4"
                                             >
-                                                <p className="text-sm font-semibold text-white">
+                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                                     {branch.name}
                                                 </p>
-                                                <p className="text-xs text-slate-500">
+                                                <p className="text-xs text-slate-500 dark:text-slate-500">
                                                     {branch.address}
                                                 </p>
                                                 <input
@@ -743,7 +743,7 @@ const AdminProductDetail = () => {
                                                             event.target.value
                                                         )
                                                     }
-                                                    className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                    className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
                                                 />
                                             </div>
                                         );
@@ -772,7 +772,7 @@ const AdminProductDetail = () => {
                         <button
                             type="button"
                             onClick={() => navigate("/admin/inventory")}
-                            className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                            className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                             disabled={isSubmitting}
                         >
                             Cancelar
@@ -790,13 +790,13 @@ const AdminProductDetail = () => {
                 </form>
 
                 <aside className="space-y-4">
-                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-                        <h2 className="text-lg font-semibold">Vista previa</h2>
-                        <p className="mt-1 text-sm text-slate-400">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-6 text-slate-900 dark:text-white ">
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Vista previa</h2>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
                             Así se muestra el producto actualmente.
                         </p>
                         <div className="mt-4 flex flex-col items-center gap-4">
-                            <div className="h-48 w-48 overflow-hidden rounded-lg border border-slate-800 bg-slate-950 flex items-center justify-center">
+                            <div className="h-48 w-48 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950 flex items-center justify-center">
                                 {formState.imageFile ? (
                                     <img
                                         src={previewImageUrl ?? ""}
@@ -810,13 +810,13 @@ const AdminProductDetail = () => {
                                         className="h-full w-full object-cover"
                                     />
                                 ) : (
-                                    <BiDish className="h-12 w-12 text-slate-600" />
+                                    <BiDish className="h-12 w-12 text-slate-500 dark:text-slate-600" />
                                 )}
                             </div>
                             <button
                                 type="button"
                                 onClick={requestRemoveImage}
-                                className="inline-flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-200 transition hover:border-red-500/60 hover:text-red-100 disabled:opacity-50"
+                                className="inline-flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-50 dark:bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-600 transition hover:border-red-500/60 hover:bg-red-100 hover:text-red-700 dark:text-red-200 dark:hover:text-red-100 dark:hover:bg-red-500/20 disabled:opacity-50"
                                 disabled={
                                     isSubmitting ||
                                     isDeleting ||
@@ -829,10 +829,10 @@ const AdminProductDetail = () => {
                                 Quitar imagen
                             </button>
                             <div className="w-full space-y-1 text-center">
-                                <p className="text-sm font-semibold text-white">
+                                <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                     {formState.name}
                                 </p>
-                                <p className="text-xs text-slate-400">
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
                                     {formState.description}
                                 </p>
                                 <p className="text-lg font-semibold text-[#fa7316]">
@@ -871,7 +871,7 @@ const AdminProductDetail = () => {
                                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
                                             formState.inventoryActivated
                                                 ? "bg-[#fa7316]"
-                                                : "bg-slate-700"
+                                                : "bg-slate-300 dark:bg-slate-700"
                                         }`}
                                         role="switch"
                                         aria-checked={formState.inventoryActivated}
@@ -886,7 +886,7 @@ const AdminProductDetail = () => {
                                             }`}
                                         />
                                     </button>
-                                    <span className="text-sm text-slate-300">
+                                    <span className="text-sm text-slate-600 dark:text-slate-300">
                                         Control de inventario
                                     </span>
                                 </div>
@@ -903,7 +903,7 @@ const AdminProductDetail = () => {
                                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
                                                 formState.allowNegativeSale
                                                     ? "bg-[#fa7316]"
-                                                    : "bg-slate-700"
+                                                    : "bg-slate-300 dark:bg-slate-700"
                                             }`}
                                             role="switch"
                                             aria-checked={formState.allowNegativeSale}
@@ -918,7 +918,7 @@ const AdminProductDetail = () => {
                                                 }`}
                                             />
                                         </button>
-                                        <span className="text-sm text-slate-300">
+                                        <span className="text-sm text-slate-600 dark:text-slate-300">
                                             Ventas en negativo
                                         </span>
                                     </div>
@@ -928,27 +928,27 @@ const AdminProductDetail = () => {
                     </div>
 
                     {formState.inventoryActivated && (
-                        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-                            <h2 className="text-lg font-semibold">
+                        <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-6 text-slate-900 dark:text-white ">
+                            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                                 Stock por sucursal
                             </h2>
-                            <div className="mt-4 space-y-3 text-sm text-slate-300">
+                            <div className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
                                 {branches.map((branch) => {
                                     const key = branch._id as unknown as string;
                                     return (
                                         <div
                                             key={key}
-                                            className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/40 px-4 py-3"
+                                            className="flex items-center justify-between rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/40 px-4 py-3"
                                         >
                                             <div>
-                                                <p className="font-semibold text-white">
+                                                <p className="font-semibold text-slate-900 dark:text-white">
                                                     {branch.name}
                                                 </p>
-                                                <p className="text-xs text-slate-500">
+                                                <p className="text-xs text-slate-500 dark:text-slate-500">
                                                     {branch.address}
                                                 </p>
                                             </div>
-                                            <span className="rounded-lg border border-white/10 px-3 py-1 font-semibold text-white">
+                                            <span className="rounded-lg border border-slate-200 dark:border-white/10 px-3 py-1 font-semibold text-slate-900 dark:text-white">
                                                 {formState.stocks[key] ?? "0"}
                                             </span>
                                         </div>
