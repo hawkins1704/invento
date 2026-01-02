@@ -1,5 +1,4 @@
 import type { Id } from "../../convex/_generated/dataModel";
-import { formatCurrency } from "../utils/format";
 import CloseButton from "./CloseButton";
 import { IoMdAdd, IoMdRemove } from "react-icons/io";
 
