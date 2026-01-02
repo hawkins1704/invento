@@ -17,25 +17,25 @@ const getStatusBadge = (status: string) => {
   const statusConfig = {
     PENDIENTE: {
       label: "Pendiente",
-      className: "border-yellow-500/40 bg-yellow-500/10 text-yellow-200",
+      className: "border-yellow-500/40 bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-200",
     },
     ACEPTADO: {
       label: "Aceptado",
-      className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
+      className: "border-emerald-500/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200",
     },
     RECHAZADO: {
       label: "Rechazado",
-      className: "border-red-500/40 bg-red-500/10 text-red-200",
+      className: "border-red-500/40 bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-200",
     },
     EXCEPCION: {
       label: "Excepción",
-      className: "border-orange-500/40 bg-orange-500/10 text-orange-200",
+      className: "border-orange-500/40 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-200",
     },
   };
 
   const config = statusConfig[status as keyof typeof statusConfig] || {
     label: status,
-    className: "border-slate-500/40 bg-slate-500/10 text-slate-200",
+    className: "border-slate-500/40 bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-200",
   };
 
   return (
@@ -162,7 +162,7 @@ const AdminDocuments = () => {
 
   if (currentUser === undefined) {
     return (
-      <div className="flex flex-1 items-center justify-center text-slate-400">
+      <div className="flex flex-1 items-center justify-center text-slate-600 dark:text-slate-400">
         Cargando información...
       </div>
     );
@@ -177,12 +177,12 @@ const AdminDocuments = () => {
           description="Visualiza todos los documentos electrónicos emitidos a través de APISUNAT."
         />
 
-        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-8 text-slate-900 dark:text-white">
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-600 dark:text-slate-400">
             <span className="text-4xl" aria-hidden>
               ⚠️
             </span>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               Para ver los documentos emitidos, necesitas configurar tu Persona ID y Persona Token en tu perfil.
             </p>
           </div>
@@ -201,11 +201,11 @@ const AdminDocuments = () => {
 
       <section className="">
         {isLoadingDocuments || isLoading ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-600 dark:text-slate-400">
             <span className="text-4xl" aria-hidden>
               <FaSpinner className="animate-spin"/>
             </span>
-            <p className="text-sm text-slate-400">Cargando documentos...</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Cargando documentos...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-red-400">
@@ -246,27 +246,27 @@ const AdminDocuments = () => {
                 {documents.map((document) => (
                   <TableRow key={document.id}>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-semibold text-white">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         {document.fileName}
                       </p>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-300">
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                       {getDocumentTypeName(document.type)}
                     </td>
                     <td className="px-6 py-4">
                       {getStatusBadge(document.status)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-300">
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                       {formatDate(document.issueTime * 1000)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-300">
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                       {document.responseTime ? formatDate(document.responseTime * 1000) : "-"}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
                         type="button"
                         onClick={() => handleDownloadClick(document)}
-                        className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900/50 p-2 text-slate-300 transition hover:border-[#fa7316] hover:text-[#fa7316] cursor-pointer"
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white p-2 text-slate-700 transition hover:border-[#fa7316] hover:text-[#fa7316] cursor-pointer dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300"
                         aria-label="Descargar PDF"
                       >
                         <FaDownload className="text-lg" />
@@ -290,26 +290,26 @@ const AdminDocuments = () => {
 
       {/* Modal de descarga */}
       {selectedDocument && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-          <div className="relative w-full max-w-md rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 dark:bg-slate-950/70 px-4 py-10 backdrop-blur">
+          <div className="relative w-full max-w-md rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/95 p-6 text-slate-900 dark:text-white shadow-2xl shadow-black/60">
            <CloseButton onClick={handleCloseModal} />
 
             <div className="space-y-5 pt-6">
               <header className="space-y-2">
-                <h2 className="text-2xl font-semibold text-white">Descargar PDF</h2>
-                <p className="text-sm text-slate-400">
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Descargar PDF</h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
                   Selecciona el formato del documento que deseas descargar.
                 </p>
               </header>
 
-              <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
-                <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Documento</p>
-                <p className="mt-2 text-lg font-semibold text-white">{selectedDocument.fileName}</p>
-                <p className="text-xs text-slate-500">{getDocumentTypeName(selectedDocument.type)}</p>
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4 text-sm text-slate-700 dark:text-slate-300">
+                <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">Documento</p>
+                <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{selectedDocument.fileName}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-500">{getDocumentTypeName(selectedDocument.type)}</p>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500" htmlFor="pdf-format">
+                <label className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500" htmlFor="pdf-format">
                   Formato
                 </label>
                 <select
@@ -317,14 +317,14 @@ const AdminDocuments = () => {
                   value={selectedFormat}
                   onChange={(e) => setSelectedFormat(e.target.value as PDFFormat)}
                   disabled={isDownloading}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                 >
                   <option value="A4">A4</option>
                   <option value="A5">A5</option>
                   <option value="ticket58mm">Ticket 58mm</option>
                   <option value="ticket80mm">Ticket 80mm</option>
                 </select>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-500">
                   Selecciona el formato de impresión del documento.
                 </p>
               </div>
@@ -340,7 +340,7 @@ const AdminDocuments = () => {
                   type="button"
                   onClick={handleCloseModal}
                   disabled={isDownloading}
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                 >
                   Cancelar
                 </button>
@@ -379,13 +379,13 @@ const DocumentCard = ({
   onDownloadClick: (document: APISUNATDocument) => void;
 }) => {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60">
+    <div className="rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/40 p-4 transition hover:bg-slate-100 dark:hover:bg-slate-900/60">
       <div className="flex items-start justify-between gap-4 mb-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white truncate">
+          <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
             {document.fileName}
           </p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
             {getDocumentTypeName(document.type)}
           </p>
         </div>
@@ -395,25 +395,25 @@ const DocumentCard = ({
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-500">Fecha Emisión:</span>
-          <p className="text-sm font-medium text-slate-200">
+          <span className="text-xs text-slate-500 dark:text-slate-500">Fecha Emisión:</span>
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
             {formatDate(document.issueTime * 1000)}
           </p>
         </div>
         {document.responseTime && (
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500">Fecha Respuesta:</span>
-            <p className="text-sm font-medium text-slate-200">
+            <span className="text-xs text-slate-500 dark:text-slate-500">Fecha Respuesta:</span>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
               {formatDate(document.responseTime * 1000)}
             </p>
           </div>
         )}
       </div>
-      <div className="mt-3 pt-3 border-t border-slate-800">
+      <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
         <button
           type="button"
           onClick={() => onDownloadClick(document)}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-[#fa7316]"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-[#fa7316] dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300"
           aria-label="Descargar PDF"
         >
           <FaDownload className="text-sm" />

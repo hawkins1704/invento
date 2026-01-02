@@ -724,18 +724,18 @@ const CloseSaleDialog = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 py-10">
-            <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
-            <div className="relative flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60 max-h-[90vh] overflow-hidden">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur dark:bg-slate-950/70" />
+            <div className="relative flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl shadow-black/60 dark:border-slate-800 dark:bg-slate-900/95 dark:text-white max-h-[90vh] overflow-hidden">
                 {emissionStatus === "idle" ? (
                     <>
                         <header className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-2xl font-semibold">
+                                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                                     Cerrar venta
                                 </h2>
                                 <CloseButton onClick={handleClose} />
                             </div>
-                            <p className="text-sm text-slate-400">
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
                                 Completa la información del cliente (opcional) y
                                 selecciona cómo deseas proceder.
                             </p>
@@ -757,7 +757,7 @@ const CloseSaleDialog = ({
                                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none  disabled:opacity-50 disabled:cursor-not-allowed ${
                                                 showCustomerForm
                                                     ? "bg-[#fa7316]"
-                                                    : "bg-slate-700"
+                                                    : "bg-slate-300 dark:bg-slate-700"
                                             }`}
                                             role="switch"
                                             aria-checked={showCustomerForm}
@@ -772,23 +772,23 @@ const CloseSaleDialog = ({
                                             />
                                         </button>
                                         <div className="flex flex-col">
-                                            <span className="text-sm text-slate-200">
+                                            <span className="text-sm text-slate-700 dark:text-slate-200">
                                                 Registrar información del
                                                 cliente
                                             </span>
-                                            <p className="text-xs text-slate-400">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">
                                                 Obligatorio para emitir factura
                                             </p>
                                         </div>
                                     </div>
 
                                     {showCustomerForm && (
-                                        <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900/70 p-4">
+                                        <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/70">
                                             <div className="grid gap-4 md:grid-cols-2">
                                                 <div className="space-y-2">
                                                     <label
                                                         htmlFor="documentType"
-                                                        className="text-sm font-medium text-slate-200"
+                                                        className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                                     >
                                                         Tipo de documento
                                                     </label>
@@ -801,7 +801,7 @@ const CloseSaleDialog = ({
                                                         onChange={
                                                             handleCustomerFormChange
                                                         }
-                                                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                                         disabled={isProcessing}
                                                     >
                                                         <option value="">
@@ -819,11 +819,11 @@ const CloseSaleDialog = ({
                                                 <div className="space-y-2">
                                                     <label
                                                         htmlFor="documentNumber"
-                                                        className="text-sm font-medium text-slate-200"
+                                                        className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                                     >
                                                         Número de documento
                                                         {isLoadingCustomerData && (
-                                                            <span className="ml-2 text-xs text-slate-400">
+                                                            <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
                                                                 Consultando...
                                                             </span>
                                                         )}
@@ -839,10 +839,10 @@ const CloseSaleDialog = ({
                                                             onChange={
                                                                 handleCustomerFormChange
                                                             }
-                                                            className={`w-full rounded-lg border px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
+                                                            className={`w-full rounded-lg border px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 dark:text-white dark:placeholder:text-slate-500 ${
                                                                 showDocumentNumberError
                                                                     ? "border-red-500 focus:border-red-500 focus:ring-red-500/30"
-                                                                    : "border-slate-700 bg-slate-900 focus:border-[#fa7316] focus:ring-[#fa7316]/30"
+                                                                    : "border-slate-300 bg-white focus:border-[#fa7316] focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900"
                                                             }`}
                                                             placeholder="Número de DNI o RUC"
                                                             disabled={
@@ -851,12 +851,12 @@ const CloseSaleDialog = ({
                                                         />
                                                         {isLoadingCustomerData && (
                                                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-[#fa7316]"></div>
+                                                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-[#fa7316] dark:border-slate-600"></div>
                                                             </div>
                                                         )}
                                                     </div>
                                                     {showDocumentNumberError && (
-                                                        <p className="text-xs text-red-400 mt-1">
+                                                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                                                             Número de documento
                                                             inválido
                                                         </p>
@@ -867,7 +867,7 @@ const CloseSaleDialog = ({
                                             <div className="space-y-2">
                                                 <label
                                                     htmlFor="customerName"
-                                                    className="text-sm font-medium text-slate-200"
+                                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                                 >
                                                     Nombre completo / Razón
                                                     social
@@ -880,7 +880,7 @@ const CloseSaleDialog = ({
                                                     onChange={
                                                         handleCustomerFormChange
                                                     }
-                                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                                     placeholder="Nombre del cliente"
                                                     disabled={isProcessing}
                                                 />
@@ -889,7 +889,7 @@ const CloseSaleDialog = ({
                                             <div className="space-y-2">
                                                 <label
                                                     htmlFor="customerAddress"
-                                                    className="text-sm font-medium text-slate-200"
+                                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                                 >
                                                     Dirección
                                                 </label>
@@ -901,7 +901,7 @@ const CloseSaleDialog = ({
                                                     onChange={
                                                         handleCustomerFormChange
                                                     }
-                                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                                     placeholder="Dirección del cliente"
                                                     disabled={isProcessing}
                                                 />
@@ -911,7 +911,7 @@ const CloseSaleDialog = ({
                                                 <div className="space-y-2">
                                                     <label
                                                         htmlFor="customerEmail"
-                                                        className="text-sm font-medium text-slate-200"
+                                                        className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                                     >
                                                         Email
                                                     </label>
@@ -925,7 +925,7 @@ const CloseSaleDialog = ({
                                                         onChange={
                                                             handleCustomerFormChange
                                                         }
-                                                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                                         placeholder="email@ejemplo.com"
                                                         disabled={isProcessing}
                                                     />
@@ -934,7 +934,7 @@ const CloseSaleDialog = ({
                                                 <div className="space-y-2">
                                                     <label
                                                         htmlFor="customerPhone"
-                                                        className="text-sm font-medium text-slate-200"
+                                                        className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                                     >
                                                         Teléfono
                                                     </label>
@@ -948,7 +948,7 @@ const CloseSaleDialog = ({
                                                         onChange={
                                                             handleCustomerFormChange
                                                         }
-                                                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                                         placeholder="Teléfono"
                                                         disabled={isProcessing}
                                                     />
@@ -959,7 +959,7 @@ const CloseSaleDialog = ({
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="flex flex-col gap-1 text-left text-slate-200">
+                                    <label className="flex flex-col gap-1 text-left text-slate-700 dark:text-slate-200">
                                         <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                                             Método de pago
                                         </span>
@@ -971,7 +971,7 @@ const CloseSaleDialog = ({
                                                         .value as typeof paymentMethod
                                                 )
                                             }
-                                            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                             disabled={isProcessing}
                                         >
                                             <option value="Contado">
@@ -987,7 +987,7 @@ const CloseSaleDialog = ({
                                         </select>
                                     </label>
 
-                                    <label className="flex flex-col gap-1 text-left text-slate-200">
+                                    <label className="flex flex-col gap-1 text-left text-slate-700 dark:text-slate-200">
                                         <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                                             Notas
                                         </span>
@@ -997,13 +997,13 @@ const CloseSaleDialog = ({
                                                 setNotes(event.target.value)
                                             }
                                             rows={3}
-                                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                             placeholder="Comentario opcional para el cierre"
                                             disabled={isProcessing}
                                         />
                                     </label>
                                     <div className="mt-2 rounded-lg ">
-                                        <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                                        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200 cursor-pointer">
                                             <div className="relative inline-flex items-center justify-center">
                                                 <input
                                                     type="checkbox"
@@ -1013,7 +1013,7 @@ const CloseSaleDialog = ({
                                                             e.target.checked
                                                         )
                                                     }
-                                                    className="peer h-6 w-6 appearance-none rounded-full border-2 border-slate-700 bg-slate-900 transition-colors checked:border-[#fa7316] checked:bg-[#fa7316] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                                    className="peer h-6 w-6 appearance-none rounded-full border-2 border-slate-300 bg-white transition-colors checked:border-[#fa7316] checked:bg-[#fa7316] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900"
                                                     disabled={isProcessing}
                                                 />
                                                 {sendEmail && (
@@ -1040,7 +1040,7 @@ const CloseSaleDialog = ({
                                     {sendEmail &&
                                         (!customerForm.email ||
                                             !customerForm.email.trim()) && (
-                                            <p className="text-xs text-red-400 mt-1">
+                                            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                                                 Debe ingresar un correo
                                                 electrónico para enviar el
                                                 comprobante
@@ -1057,7 +1057,7 @@ const CloseSaleDialog = ({
                                             !isCustomerFormValid ||
                                             customerForm.documentType === "DNI"
                                         }
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
                                         title={
                                             customerForm.documentType === "DNI"
                                                 ? "Las facturas solo se pueden emitir con RUC"
@@ -1072,7 +1072,7 @@ const CloseSaleDialog = ({
                                         type="button"
                                         onClick={handleEmitBoleta}
                                         disabled={isProcessing}
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
                                     >
                                         <HiOutlineReceiptTax className="h-5 w-5" />
                                         EMITIR BOLETA
@@ -1082,7 +1082,7 @@ const CloseSaleDialog = ({
                                         type="button"
                                         onClick={handleCloseWithoutEmit}
                                         disabled={isProcessing}
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
                                     >
                                         CERRAR SIN EMITIR
                                     </button>
@@ -1094,7 +1094,7 @@ const CloseSaleDialog = ({
                     <>
                         <header className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-2xl font-semibold">
+                                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                                     Generando documento
                                 </h2>
                             </div>
@@ -1105,7 +1105,7 @@ const CloseSaleDialog = ({
                                 <div className="h-2 w-2 animate-bounce rounded-full bg-[#fa7316] [animation-delay:-0.15s]"></div>
                                 <div className="h-2 w-2 animate-bounce rounded-full bg-[#fa7316]"></div>
                             </div>
-                            <p className="text-sm font-medium text-slate-200">
+                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
                                 ENVIANDO VENTA...
                             </p>
                         </div>
@@ -1114,14 +1114,14 @@ const CloseSaleDialog = ({
                     <>
                         <header className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-2xl font-semibold">
+                                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                                     Error
                                 </h2>
                             </div>
                         </header>
                         <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12">
                             <MdErrorOutline className="h-12 w-12 text-red-500" />
-                            <p className="text-sm font-medium text-red-400 text-center max-w-md">
+                            <p className="text-sm font-medium text-red-600 dark:text-red-400 text-center max-w-md">
                                 {emissionError || "Error al emitir documento"}
                             </p>
                             <button
@@ -1130,7 +1130,7 @@ const CloseSaleDialog = ({
                                     setEmissionStatus("idle");
                                     setEmissionError(null);
                                 }}
-                                className="rounded-lg border border-slate-700 bg-slate-800 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
+                                className="rounded-lg border border-slate-300 bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
                             >
                                 INTENTARLO NUEVAMENTE
                             </button>
@@ -1141,7 +1141,7 @@ const CloseSaleDialog = ({
                     <>
                         <header className="flex flex-col gap-2">
                             <div className="flex items-center justify-center sm:justify-between">
-                                <h2 className="text-2xl font-semibold">
+                                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                                     {isDocumentEmitted
                                         ? "Documento emitido"
                                         : "Venta cerrada"}
@@ -1150,7 +1150,7 @@ const CloseSaleDialog = ({
                         </header>
                         <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12">
                             <BiBadgeCheck className="h-12 w-12 text-green-500" />
-                            <p className="text-sm font-medium text-green-400 text-center">
+                            <p className="text-sm font-medium text-green-600 dark:text-green-400 text-center">
                                 {isDocumentEmitted
                                     ? "El documento se emitió de manera satisfactoria"
                                     : "La venta se cerró correctamente"}
@@ -1164,14 +1164,14 @@ const CloseSaleDialog = ({
                                             <button
                                                 type="button"
                                                 onClick={handleWhatsAppClick}
-                                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
+                                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
                                             >
                                                 <FaWhatsapp className="h-5 w-5" />
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={handleDownloadPDF}
-                                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white"
+                                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
                                             >
                                                 DESCARGAR PDF
                                             </button>
@@ -1180,7 +1180,7 @@ const CloseSaleDialog = ({
                                 <button
                                     type="button"
                                     onClick={handleClose}
-                                    className={`inline-flex ${isDocumentEmitted && onDownloadPDF && emittedDocumentId && emittedFileName ? "flex-1" : "w-full"} items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white`}
+                                    className={`inline-flex ${isDocumentEmitted && onDownloadPDF && emittedDocumentId && emittedFileName ? "flex-1" : "w-full"} items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white`}
                                 >
                                     CERRAR
                                 </button>
@@ -1190,8 +1190,8 @@ const CloseSaleDialog = ({
                                 onSendPDFToWhatsapp &&
                                 emittedDocumentId &&
                                 emittedFileName && (
-                                    <div className="mt-4 space-y-3 rounded-lg border border-slate-800 bg-slate-900/70 p-4 w-full max-w-md">
-                                        <label className="flex flex-col gap-1 text-left text-slate-200">
+                                    <div className="mt-4 space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4 w-full max-w-md dark:border-slate-800 dark:bg-slate-900/70">
+                                        <label className="flex flex-col gap-1 text-left text-slate-700 dark:text-slate-200">
                                             <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                                                 Número de WhatsApp
                                             </span>
@@ -1207,7 +1207,7 @@ const CloseSaleDialog = ({
                                                     }}
                                                     placeholder="+51"
                                                     disabled={isSendingWhatsApp}
-                                                    className="w-20 rounded-lg border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                    className="w-20 rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                                 />
                                                 <input
                                                     type="text"
@@ -1220,16 +1220,16 @@ const CloseSaleDialog = ({
                                                     }}
                                                     placeholder="987654321"
                                                     disabled={isSendingWhatsApp}
-                                                    className={`flex-1 rounded-lg border px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
+                                                    className={`flex-1 rounded-lg border px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 dark:text-white dark:placeholder:text-slate-500 ${
                                                         whatsappError
                                                             ? "border-red-500 focus:border-red-500 focus:ring-red-500/30"
-                                                            : "border-slate-700 bg-slate-900 focus:border-[#fa7316] focus:ring-[#fa7316]/30"
+                                                            : "border-slate-300 bg-white focus:border-[#fa7316] focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900"
                                                     }`}
                                                 />
                                             </div>
                                         </label>
                                         {whatsappError && (
-                                            <p className="text-xs text-red-400">
+                                            <p className="text-xs text-red-600 dark:text-red-400">
                                                 {whatsappError}
                                             </p>
                                         )}
@@ -1241,14 +1241,14 @@ const CloseSaleDialog = ({
                                                 !whatsappNumber.trim() ||
                                                 !whatsappCountryCode.trim()
                                             }
-                                            className="w-full rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="w-full rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
                                         >
                                             {isSendingWhatsApp
                                                 ? "ENVIANDO..."
                                                 : "ENVIAR"}
                                         </button>
                                         {whatsappError && (
-                                            <p className="text-xs text-red-400">
+                                            <p className="text-xs text-red-600 dark:text-red-400">
                                                 {whatsappError}
                                             </p>
                                         )}

@@ -284,15 +284,15 @@ const SaleEditorDrawer = ({
             className={`fixed inset-0 z-50 flex items-center justify-center ${isClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
         >
             <div
-                className={`absolute inset-0  ${isClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
+                className={`absolute inset-0 bg-black/40 backdrop-blur dark:bg-slate-950/70 ${isClosing ? "animate-[fadeOut_0.3s_ease-out]" : "animate-[fadeIn_0.2s_ease-out]"}`}
             />
             <div
-                className={`relative flex flex-col w-full h-full bg-slate-900 text-white shadow-xl shadow-black/50 ${isClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+                className={`relative flex flex-col w-full h-full bg-white text-slate-900 shadow-xl shadow-black/50 dark:bg-slate-900 dark:text-white ${isClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
             >
-                <header className="flex-shrink-0 flex flex-col gap-2 px-4 py-6 lg:p-6 border-b border-slate-800">
+                <header className="flex-shrink-0 flex flex-col gap-2 px-4 py-6 lg:p-6 border-b border-slate-200 dark:border-slate-800">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-md uppercase tracking-[0.1em] text-slate-400">
+                            <p className="text-md uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                                 {sale.table?.label ?? "Venta sin mesa"}
                             </p>
                         </div>
@@ -313,18 +313,18 @@ const SaleEditorDrawer = ({
                     </div>
 
                     <div className="flex flex-2 flex-col gap-4 overflow-y-auto  ">
-                        <div className="flex-shrink-0 rounded-lg border border-slate-800 bg-slate-950/50 overflow-hidden">
+                        <div className="flex-shrink-0 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden dark:border-slate-800 dark:bg-slate-950/50">
                             <button
                                 type="button"
                                 onClick={() =>
                                     setIsDetailsExpanded(!isDetailsExpanded)
                                 }
-                                className="w-full flex items-center justify-between p-4 text-left text-white hover:bg-slate-900/50 transition"
+                                className="w-full flex items-center justify-between p-4 text-left text-slate-900 hover:bg-slate-100 transition dark:text-white dark:hover:bg-slate-900/50"
                             >
                                 <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500">
                                     Detalles del pedido
                                 </h3>
-                                <span className="text-slate-400">
+                                <span className="text-slate-500 dark:text-slate-400">
                                     {isDetailsExpanded ? (
                                         <IoIosArrowUp />
                                     ) : (
@@ -333,8 +333,8 @@ const SaleEditorDrawer = ({
                                 </span>
                             </button>
                             {isDetailsExpanded && (
-                                <div className="space-y-4 p-4 border-t border-slate-800">
-                                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                <div className="space-y-4 p-4 border-t border-slate-200 dark:border-slate-800">
+                                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                                         Mesa asignada
                                         <select
                                             value={selectedTableId}
@@ -345,7 +345,7 @@ const SaleEditorDrawer = ({
                                                         | ""
                                                 )
                                             }
-                                            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                         >
                                             <option value="">Sin mesa</option>
                                             {tables.map((table) => (
@@ -370,7 +370,7 @@ const SaleEditorDrawer = ({
                                             ))}
                                         </select>
                                     </label>
-                                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                                         Personal asignado
                                         <select
                                             value={selectedStaffId}
@@ -381,7 +381,7 @@ const SaleEditorDrawer = ({
                                                         | ""
                                                 )
                                             }
-                                            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                         >
                                             <option value="">
                                                 Sin asignar
@@ -396,7 +396,7 @@ const SaleEditorDrawer = ({
                                             ))}
                                         </select>
                                     </label>
-                                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                                         Notas del pedido
                                         <textarea
                                             value={saleNotes}
@@ -404,7 +404,7 @@ const SaleEditorDrawer = ({
                                                 setSaleNotes(event.target.value)
                                             }
                                             rows={3}
-                                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                             placeholder="Comentarios especiales o instrucciones"
                                         />
                                     </label>
@@ -451,8 +451,8 @@ const SaleEditorDrawer = ({
                             onClick={() => setActiveTab("catalogo")}
                             className={`flex-1 px-4 py-2 text-sm font-semibold transition border-1 rounded-lg ${
                                 activeTab === "catalogo"
-                                    ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
-                                    : "border-transparent text-slate-400 hover:text-slate-300"
+                                    ? "border-[#fa7316] bg-[#fa7316]/10 text-slate-900 dark:text-white"
+                                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                             }`}
                         >
                             CATÁLOGO
@@ -462,8 +462,8 @@ const SaleEditorDrawer = ({
                             onClick={() => setActiveTab("pedido")}
                             className={`flex-1 px-4 py-2 text-sm font-semibold transition border-1 rounded-lg flex items-center justify-center ${
                                 activeTab === "pedido"
-                                    ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
-                                    : "border-transparent text-slate-400 hover:text-slate-300"
+                                    ? "border-[#fa7316] bg-[#fa7316]/10 text-slate-900 dark:text-white"
+                                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                             }`}
                         >
                             PEDIDO
@@ -489,18 +489,18 @@ const SaleEditorDrawer = ({
 
                     {activeTab === "pedido" && (
                         <div className="flex flex-1 flex-col gap-4 overflow-y-auto min-h-0">
-                            <div className="flex-shrink-0 rounded-lg border border-slate-800 bg-slate-950/50 overflow-hidden">
+                            <div className="flex-shrink-0 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden dark:border-slate-800 dark:bg-slate-950/50">
                                 <button
                                     type="button"
                                     onClick={() =>
                                         setIsDetailsExpanded(!isDetailsExpanded)
                                     }
-                                    className="w-full flex items-center justify-between p-4 text-left text-white hover:bg-slate-900/50 transition"
+                                    className="w-full flex items-center justify-between p-4 text-left text-slate-900 hover:bg-slate-100 transition dark:text-white dark:hover:bg-slate-900/50"
                                 >
                                     <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500">
                                         Detalles del pedido
                                     </h3>
-                                    <span className="text-slate-400">
+                                    <span className="text-slate-500 dark:text-slate-400">
                                         {isDetailsExpanded ? (
                                             <IoIosArrowUp />
                                         ) : (
@@ -509,8 +509,8 @@ const SaleEditorDrawer = ({
                                     </span>
                                 </button>
                                 {isDetailsExpanded && (
-                                    <div className="space-y-4 p-4 border-t border-slate-800">
-                                        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                    <div className="space-y-4 p-4 border-t border-slate-200 dark:border-slate-800">
+                                        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                                             Mesa asignada
                                             <select
                                                 value={selectedTableId}
@@ -521,7 +521,7 @@ const SaleEditorDrawer = ({
                                                             | ""
                                                     )
                                                 }
-                                                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                             >
                                                 <option value="">
                                                     Sin mesa
@@ -551,7 +551,7 @@ const SaleEditorDrawer = ({
                                                 ))}
                                             </select>
                                         </label>
-                                        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                                             Personal asignado
                                             <select
                                                 value={selectedStaffId}
@@ -562,7 +562,7 @@ const SaleEditorDrawer = ({
                                                             | ""
                                                     )
                                                 }
-                                                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                             >
                                                 <option value="">
                                                     Sin asignar
@@ -579,7 +579,7 @@ const SaleEditorDrawer = ({
                                                 ))}
                                             </select>
                                         </label>
-                                        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                                        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                                             Notas del pedido
                                             <textarea
                                                 value={saleNotes}
@@ -589,7 +589,7 @@ const SaleEditorDrawer = ({
                                                     )
                                                 }
                                                 rows={3}
-                                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                                 placeholder="Comentarios especiales o instrucciones"
                                             />
                                         </label>
@@ -628,23 +628,23 @@ const SaleEditorDrawer = ({
                     )}
                 </div>
 
-                <footer className="flex-shrink-0 flex flex-col gap-4 p-4 pb-6 lg:pb-4 border-t border-slate-800 bg-slate-900">
+                <footer className="flex-shrink-0 flex flex-col gap-4 p-4 pb-6 lg:pb-4 border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div className="flex md:flex-col justify-between gap-2">
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500">
                                     Total
                                 </span>
-                                <span className="text-2xl font-semibold text-white">
+                                <span className="text-2xl font-semibold text-slate-900 dark:text-white">
                                     {formatCurrency(total)}
                                 </span>
                             </div>
-                            <div className="flex flex-col gap-1 text-sm text-slate-300">
+                            <div className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-300">
                                 <div className="flex items-center justify-end md:justify-start gap-1">
                                     <span className="text-xs sm:text-sm font-semibold text-slate-500">
                                         Creada:
                                     </span>
-                                    <span className="font-semibold text-white">
+                                    <span className="font-semibold text-slate-900 dark:text-white">
                                         {formatTime(sale.sale.openedAt)}
                                     </span>
                                 </div>
@@ -655,7 +655,7 @@ const SaleEditorDrawer = ({
                                     <span className="block sm:hidden text-xs sm:text-sm font-semibold text-slate-500">
                                         En mesa:
                                     </span>
-                                    <span className="font-semibold text-white">
+                                    <span className="font-semibold text-slate-900 dark:text-white">
                                         {formatDuration(
                                             sale.sale.openedAt,
                                             Date.now()
@@ -676,14 +676,14 @@ const SaleEditorDrawer = ({
                                         saleNotes
                                     )
                                 }
-                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200 cursor-pointer"
+                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-600 transition hover:border-emerald-600 hover:text-emerald-700 dark:text-emerald-300 dark:hover:border-emerald-400 dark:hover:text-emerald-200 cursor-pointer"
                             >
                                 Concluir venta
                             </button>
                             <button
                                 type="button"
                                 onClick={() => onCancelSale(sale.sale._id)}
-                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200 cursor-pointer"
+                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-600 hover:text-red-700 dark:text-red-300 dark:hover:border-red-400 dark:hover:text-red-200 cursor-pointer"
                             >
                                 Cancelar venta
                             </button>

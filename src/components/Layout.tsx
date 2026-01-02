@@ -684,7 +684,7 @@ const Layout = () => {
                                                 handleCloseProfileMenu();
                                                 setTimeout(() => {
                                                     navigate(
-                                                        "/admin/suscripcion"
+                                                        "/admin/suscription"
                                                     );
                                                 }, 300);
                                             }}
@@ -734,7 +734,7 @@ const Layout = () => {
                                         onSubmit={handleSubmitOpenShift}
                                     >
                                         <header className="space-y-2">
-                                            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
+                                            <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-700 dark:bg-white/10 dark:text-white">
                                                 Abrir turno
                                             </span>
                                             <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
@@ -747,11 +747,11 @@ const Layout = () => {
                                             </p>
                                         </header>
 
-                                        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
-                                            <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                                        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
+                                            <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                                 Sucursal
                                             </p>
-                                            <p className="mt-2 text-lg font-semibold text-white">
+                                            <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
                                                 {selectedShiftBranch?.name ??
                                                     "Sin sucursal"}
                                             </p>
@@ -850,7 +850,7 @@ const Layout = () => {
                                         onSubmit={handleSubmitCloseShift}
                                     >
                                         <header className="space-y-2">
-                                            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white">
+                                            <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-700 dark:bg-white/10 dark:text-white">
                                                 Cerrar turno
                                             </span>
                                             <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
@@ -863,11 +863,11 @@ const Layout = () => {
                                             </p>
                                         </header>
 
-                                        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
-                                            <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                                        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
+                                            <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                                 Sucursal
                                             </p>
-                                            <p className="mt-2 text-lg font-semibold text-white">
+                                            <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
                                                 {selectedShiftBranch?.name ??
                                                     "Sin sucursal"}
                                             </p>
@@ -903,7 +903,7 @@ const Layout = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-100">
+                                                <div className="rounded-lg border border-emerald-500/30 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-100">
                                                     <p className="text-xs uppercase tracking-[0.1em]">
                                                         Debería haber
                                                     </p>
@@ -946,8 +946,8 @@ const Layout = () => {
                                                                 ) -
                                                                     shiftExpectedCash
                                                             ) < 0.01
-                                                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
-                                                                : "border-red-500/40 bg-red-500/10 text-red-200"
+                                                                ? "border-emerald-500/40 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200"
+                                                                : "border-red-500/40 bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-200"
                                                         }`}
                                                     >
                                                         <div className="flex items-center justify-between">
@@ -1052,7 +1052,7 @@ const Layout = () => {
                 )}
 
                
-                <div className="flex flex-1 flex-col overflow-x-scroll">
+                <div className="flex flex-1 flex-col overflow-x-auto">
                     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 dark:border-slate-800 dark:bg-slate-950/90 px-5 backdrop-blur">
                         <div className="flex items-center gap-3">
                             <button

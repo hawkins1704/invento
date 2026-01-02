@@ -211,11 +211,11 @@ const SalesTablesContent = ({
 
             <section className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-white">Mesas</h2>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Mesas</h2>
                     <button
                         type="button"
                         onClick={() => openCreateModal(null)}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:text-white cursor-pointer"
                         disabled={!hasActiveShift}
                     >
                         Venta sin mesa
@@ -224,8 +224,8 @@ const SalesTablesContent = ({
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {branchTables.length === 0 ? (
-                        <div className="col-span-full flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-800 bg-slate-950/50 p-12 text-center text-slate-400 flex-col items-center justify-center">
-                            <BiDish className="h-6 w-6 text-slate-600" />
+                        <div className="col-span-full flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-12 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400 flex-col items-center justify-center">
+                            <BiDish className="h-6 w-6 text-slate-400 dark:text-slate-600" />
                             <p className="max-w-sm text-sm">
                                 Aún no se han configurado mesas para esta
                                 sucursal. Crea mesas desde el panel de
@@ -242,18 +242,18 @@ const SalesTablesContent = ({
                             return (
                                 <article
                                     key={table._id}
-                                    className={`flex flex-col gap-4 rounded-lg border p-5 text-white shadow-inner shadow-black/20 ${
+                                    className={`flex flex-col gap-4 rounded-lg border p-5 text-slate-900 dark:text-white ${
                                         activeSale
                                             ? "border-[#fa7316]/50 bg-[#fa7316]/10"
-                                            : "border-slate-800 bg-slate-900/60"
+                                            : "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60"
                                     }`}
                                 >
                                     <header className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-xs uppercase tracking-[0.1em] text-slate-400">
+                                            <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                                                 Mesa
                                             </p>
-                                            <h3 className="text-2xl font-semibold text-white">
+                                            <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">
                                                 {table.label}
                                             </h3>
                                         </div>
@@ -262,11 +262,11 @@ const SalesTablesContent = ({
                                         />
                                     </header>
 
-                                    <div className="text-sm text-slate-300">
+                                    <div className="text-sm text-slate-600 dark:text-slate-300">
                                         {table.capacity ? (
                                             <p>
                                                 Capacidad:{" "}
-                                                <span className="font-semibold text-white">
+                                                <span className="font-semibold text-slate-900 dark:text-white">
                                                     {table.capacity} personas
                                                 </span>
                                             </p>
@@ -276,18 +276,18 @@ const SalesTablesContent = ({
                                     </div>
 
                                     {activeSale ? (
-                                        <div className="space-y-2 rounded-lg border border-[#fa7316]/40 bg-[#fa7316]/10 p-4 text-sm text-slate-200">
+                                        <div className="space-y-2 rounded-lg border border-[#fa7316]/40 bg-[#fa7316]/10 p-4 text-sm text-slate-700 dark:text-slate-200">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-slate-300">
+                                                <span className="text-slate-600 dark:text-slate-300">
                                                     Ticket
                                                 </span>
-                                                <span className="font-semibold text-white">
+                                                <span className="font-semibold text-slate-900 dark:text-white">
                                                     {formatCurrency(
                                                         activeSale.sale.total
                                                     )}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center justify-between text-xs text-slate-300">
+                                            <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
                                                 <span>Abierta</span>
                                                 <span>
                                                     {formatDuration(
@@ -304,7 +304,7 @@ const SalesTablesContent = ({
                                                         activeSale.sale._id
                                                     )
                                                 }
-                                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 cursor-pointer"
+                                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#fa7316]/10 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-[#fa7316]/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 cursor-pointer"
                                             >
                                                 Ver pedido
                                             </button>
@@ -315,7 +315,7 @@ const SalesTablesContent = ({
                                             onClick={() =>
                                                 openCreateModal(table)
                                             }
-                                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
+                                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:text-white cursor-pointer"
                                             disabled={
                                                 table.status ===
                                                     "out_of_service" ||
@@ -333,15 +333,15 @@ const SalesTablesContent = ({
             </section>
 
             <section className="space-y-4">
-                <header className="flex items-center justify-between text-white">
+                <header className="flex items-center justify-between text-slate-900 dark:text-white">
                     <h2 className="text-lg font-semibold">Pedidos abiertos</h2>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-300">
+                    <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 font-semibold">
                         {branchLiveSales.length} activos
                     </span>
                 </header>
 
                 {branchLiveSales.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-slate-800 bg-slate-900/60 p-12 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-12 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
                         <MdOutlineDinnerDining size={40} />
                         <p className="text-sm">
                             No hay pedidos abiertos. Abre una mesa o crea una
@@ -353,11 +353,11 @@ const SalesTablesContent = ({
                         {branchLiveSales.map((entry) => (
                             <article
                                 key={entry.sale._id}
-                                className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-5 text-white shadow-inner shadow-black/20"
+                                className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50 p-5 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white"
                             >
                                 <header className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-400">
+                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                                             {entry.table?.label ??
                                                 "Venta sin mesa"}
                                         </p>
@@ -373,10 +373,10 @@ const SalesTablesContent = ({
                                     </span>
                                 </header>
 
-                                <div className="space-y-2 text-sm text-slate-300">
+                                <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
                                     <div className="flex items-center justify-between">
                                         <span>Creada</span>
-                                        <span className="font-semibold text-white">
+                                        <span className="font-semibold text-slate-900 dark:text-white">
                                             {formatDateTime(
                                                 entry.sale.openedAt
                                             )}
@@ -384,7 +384,7 @@ const SalesTablesContent = ({
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span>Atiende</span>
-                                        <span className="font-semibold text-white">
+                                        <span className="font-semibold text-slate-900 dark:text-white">
                                             {entry.sale.staffId
                                                 ? (entry.staff?.name ??
                                                   "Personal")
@@ -393,13 +393,13 @@ const SalesTablesContent = ({
                                     </div>
                                 </div>
 
-                                <div className="space-y-2 text-sm text-slate-200">
+                                <div className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
                                     <h4 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                                         Productos
                                     </h4>
                                     <ul className="space-y-2">
                                         {entry.items.length === 0 ? (
-                                            <li className="rounded-lg border border-dashed border-slate-700 px-3 py-2 text-slate-400">
+                                            <li className="rounded-lg border border-dashed border-slate-300 px-3 py-2 text-slate-500 dark:border-slate-700 dark:text-slate-400">
                                                 Pendiente de agregar productos
                                             </li>
                                         ) : (
@@ -410,13 +410,13 @@ const SalesTablesContent = ({
                                                 return (
                                                     <li
                                                         key={item._id}
-                                                        className="flex items-center justify-between gap-3 rounded-lg bg-slate-950/40 px-3 py-2"
+                                                        className="flex items-center justify-between gap-3 rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-950/40"
                                                     >
                                                         <div className="flex flex-col">
-                                                            <span className="text-sm font-semibold text-white">
+                                                            <span className="text-sm font-semibold text-slate-900 dark:text-white">
                                                                 {item.productName? item.productName : (product?.name ?? "Producto")}
                                                             </span>
-                                                            <span className="text-xs text-slate-400">
+                                                            <span className="text-xs text-slate-500 dark:text-slate-400">
                                                                 {item.quantity}{" "}
                                                                 ×{" "}
                                                                 {formatCurrency(
@@ -424,7 +424,7 @@ const SalesTablesContent = ({
                                                                 )}
                                                             </span>
                                                         </div>
-                                                        <span className="text-sm font-semibold text-white">
+                                                        <span className="text-sm font-semibold text-slate-900 dark:text-white">
                                                             {formatCurrency(
                                                                 item.totalPrice
                                                             )}
@@ -442,7 +442,7 @@ const SalesTablesContent = ({
                                         onClick={() =>
                                             setSelectedSaleId(entry.sale._id)
                                         }
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/20 cursor-pointer"
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-white/20 dark:text-white cursor-pointer border border-slate-300 dark:border-slate-700"
                                     >
                                         Gestionar
                                     </button>
@@ -451,7 +451,7 @@ const SalesTablesContent = ({
                                         onClick={() =>
                                             openCloseDialog(entry.sale._id)
                                         }
-                                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 px-3 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200 cursor-pointer"
+                                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 px-3 py-2 text-sm font-semibold text-emerald-600 transition hover:border-emerald-600 hover:text-emerald-700 dark:text-emerald-300 dark:hover:border-emerald-400 dark:hover:text-emerald-200 cursor-pointer"
                                     >
                                         Concluir
                                     </button>
@@ -460,7 +460,7 @@ const SalesTablesContent = ({
                                         onClick={() =>
                                             openCancelDialog(entry.sale._id)
                                         }
-                                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/40 px-3 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200 cursor-pointer"
+                                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/40 px-3 py-2 text-sm font-semibold text-red-600 transition hover:border-red-600 hover:text-red-700 dark:text-red-300 dark:hover:border-red-400 dark:hover:text-red-200 cursor-pointer"
                                     >
                                         Cancelar
                                     </button>
@@ -1105,12 +1105,12 @@ const SalesTablesContent = ({
                 tone="danger"
                 description={
                     <div className="space-y-3">
-                        <p className="text-sm text-slate-200">
+                        <p className="text-sm text-slate-700 dark:text-slate-200">
                             Cancela la venta seleccionada. No se descontará
                             inventario, pero se registrará la cancelación para
                             auditoría.
                         </p>
-                        <label className="flex flex-col gap-1 text-left text-slate-200">
+                        <label className="flex flex-col gap-1 text-left text-slate-700 dark:text-slate-200">
                             <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
                                 Motivo (opcional)
                             </span>
@@ -1123,7 +1123,7 @@ const SalesTablesContent = ({
                                     }))
                                 }
                                 rows={3}
-                                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                 placeholder="Describe el motivo de la cancelación"
                             />
                         </label>

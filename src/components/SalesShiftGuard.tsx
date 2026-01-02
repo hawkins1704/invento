@@ -38,7 +38,7 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
 
     if (branches.length === 0) {
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300 shadow-inner shadow-black/20">
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300 ">
                 <LuStore className="w-10 h-10 text-slate-400" />
                 <p className="max-w-md text-sm text-slate-400">
                     Aún no tienes sucursales configuradas. Crea una sucursal
@@ -50,7 +50,7 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
 
     if (!branchId || !branch) {
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300 shadow-inner shadow-black/20">
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300">
                 <LuStore color={PRIMARY_COLOR} size={32} />
                 <p className="max-w-md text-sm text-slate-400">
                     Selecciona la sucursal en la que trabajarás para continuar
@@ -82,7 +82,7 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
 
     if (!activeShift) {
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-10 text-center text-slate-300 shadow-inner shadow-black/20">
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-10 text-center text-slate-300">
                 <div className="space-y-3">
                     <FaRegClock color={PRIMARY_COLOR} />
                     <p className="max-w-md text-sm text-slate-400">

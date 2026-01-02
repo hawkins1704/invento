@@ -171,10 +171,10 @@ const AdminBranches = () => {
                                                 })
                                             }
                                         >
-                                            <td className="px-6 py-4 text-sm font-semibold text-white">
+                                            <td className="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-white">
                                                 {branch.name}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-300">
+                                            <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {branch.address}
                                             </td>
                                         </TableRow>
@@ -196,11 +196,11 @@ const AdminBranches = () => {
 
             {isFormOpen && (
                 <div className={`fixed inset-0 z-50 flex items-center justify-center px-4 py-10 backdrop-blur ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`}>
-                    <div className={`absolute inset-0 bg-slate-950/70 ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`} />
-                    <div className={`relative w-full max-w-2xl rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-2xl shadow-black/60 ${isClosing ? 'animate-[fadeOutScale_0.3s_ease-out]' : 'animate-[fadeInScale_0.3s_ease-out]'}`}>
+                    <div className={`absolute inset-0 bg-black/40 dark:bg-slate-950/70 ${isClosing ? 'animate-[fadeOut_0.3s_ease-out]' : 'animate-[fadeIn_0.2s_ease-out]'}`} />
+                    <div className={`relative w-full max-w-2xl rounded-lg border border-slate-200 bg-white p-8 text-slate-900 shadow-2xl shadow-black/60 dark:border-slate-800 dark:bg-slate-900 dark:text-white ${isClosing ? 'animate-[fadeOutScale_0.3s_ease-out]' : 'animate-[fadeInScale_0.3s_ease-out]'}`}>
                         <CloseButton onClick={handleClose} />
                         <header className="mb-6 space-y-2">
-                            <h2 className="text-2xl font-semibold text-white">
+                            <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                                 Crear sucursal
                             </h2>
                         </header>
@@ -208,7 +208,7 @@ const AdminBranches = () => {
                             <div className="space-y-2">
                                 <label
                                     htmlFor="name"
-                                    className="text-sm font-medium text-slate-200"
+                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     Nombre de la sucursal
                                 </label>
@@ -219,13 +219,13 @@ const AdminBranches = () => {
                                     required
                                     value={formState.name}
                                     onChange={handleChange}
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <label
                                     htmlFor="address"
-                                    className="text-sm font-medium text-slate-200"
+                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     Dirección
                                 </label>
@@ -236,7 +236,7 @@ const AdminBranches = () => {
                                     required
                                     value={formState.address}
                                     onChange={handleChange}
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                 />
                             </div>
                             {formError && (
@@ -249,7 +249,7 @@ const AdminBranches = () => {
                                 <button
                                     type="button"
                                     onClick={handleClose}
-                                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white cursor-pointer"
+                                    className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white cursor-pointer"
                                     disabled={isSubmitting}
                                 >
                                     Cancelar
@@ -281,7 +281,7 @@ const BranchCard = ({
 }) => {
     return (
         <div
-            className="cursor-pointer rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60 focus-visible:bg-slate-900/60"
+            className="cursor-pointer rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:bg-slate-100 focus-visible:bg-slate-100 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:bg-slate-900/60 dark:focus-visible:bg-slate-900/60"
             role="button"
             tabIndex={0}
             onClick={onSelect}
@@ -293,8 +293,8 @@ const BranchCard = ({
             }}
         >
             <div className="space-y-2">
-                <p className="text-sm font-semibold text-white">{branch.name}</p>
-                <p className="text-xs text-slate-400">{branch.address}</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">{branch.name}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{branch.address}</p>
             </div>
         </div>
     );

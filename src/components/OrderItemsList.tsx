@@ -38,21 +38,21 @@ const OrderItemsList = ({
     };
 
     return (
-        <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+        <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
             <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500">
                     Pedido
                 </h3>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-300">
+                <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
                     {items.length} items
                 </span>
             </div>
             {items.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/50 p-6 text-center text-sm text-slate-400">
+                <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
                     {emptyStateMessage}
                 </div>
             ) : (
-                <ul className="divide-y divide-slate-800 overflow-y-auto pr-1">
+                <ul className="divide-y divide-slate-200 overflow-y-auto pr-1 dark:divide-slate-800">
                     {items.map((item) => {
                         const product = products.find(
                             (p) => p._id === item.productId
@@ -84,24 +84,24 @@ const OrderItemsList = ({
                         return (
                             <li
                                 key={item.productId}
-                                className="py-3 text-sm text-slate-200"
+                                className="py-3 text-sm text-slate-600 dark:text-slate-200"
                             >
                                 <div className="flex items-center justify-between gap-3 mb-3">
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-white truncate">
+                                        <p className="font-semibold text-slate-900 dark:text-white truncate">
                                             {item.productName}
                                         </p>
-                                        <p className="text-xs text-slate-400">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
                                             {formatCurrency(item.unitPrice)}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <FaRegEdit
-                                            className="w-4 h-4 text-slate-300 transition hover:text-[#fa7316] cursor-pointer"
+                                            className="w-4 h-4 text-slate-600 transition hover:text-[#fa7316] cursor-pointer dark:text-slate-300"
                                             onClick={() => onEdit(item.productId)}
                                         />
                                         <MdDeleteOutline
-                                            className="w-5 h-5 text-red-700 transition hover:text-red-300 cursor-pointer"
+                                            className="w-5 h-5 text-red-600 transition hover:text-red-700 cursor-pointer dark:text-red-700 dark:hover:text-red-300"
                                             onClick={() => onRemove(item.productId)}
                                             aria-label="Eliminar producto"
                                         />
@@ -116,7 +116,7 @@ const OrderItemsList = ({
                                                 item.quantity - 1
                                             )
                                         }
-                                        className={`inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-[#fa7316] hover:text-white ${
+                                        className={`inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-300 bg-slate-100 text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white ${
                                             useIconsForButtons ? "" : "cursor-pointer"
                                         }`}
                                         aria-label="Disminuir cantidad"
@@ -137,7 +137,7 @@ const OrderItemsList = ({
                                                 Number(event.target.value)
                                             )
                                         }
-                                        className="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-center text-sm font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-1 focus:ring-[#fa7316]/30"
+                                        className="flex-1 rounded border border-slate-300 bg-white px-3 py-2 text-center text-sm font-semibold text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-1 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                     />
                                     <button
                                         type="button"
@@ -148,9 +148,9 @@ const OrderItemsList = ({
                                             )
                                         }
                                         disabled={!canIncrement}
-                                        className={`inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-300 transition ${
+                                        className={`inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-300 bg-slate-100 text-slate-700 transition dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 ${
                                             canIncrement
-                                                ? "hover:border-[#fa7316] hover:text-white"
+                                                ? "hover:border-[#fa7316] hover:text-slate-900 dark:hover:text-white"
                                                 : "cursor-not-allowed opacity-50"
                                         } ${useIconsForButtons ? "cursor-pointer" : ""}`}
                                         aria-label="Aumentar cantidad"

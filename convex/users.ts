@@ -73,11 +73,21 @@ export const updateProfile = mutation({
 
     if (args.companyLogo) {
       if (user.companyLogo && user.companyLogo !== args.companyLogo) {
-        await ctx.storage.delete(user.companyLogo);
+        try {
+          await ctx.storage.delete(user.companyLogo);
+        } catch (error) {
+          // Ignorar si el archivo ya no existe
+          console.warn("No se pudo eliminar el logo anterior:", error);
+        }
       }
       companyLogoField = args.companyLogo;
     } else if (args.removeCompanyLogo && user.companyLogo) {
-      await ctx.storage.delete(user.companyLogo);
+      try {
+        await ctx.storage.delete(user.companyLogo);
+      } catch (error) {
+        // Ignorar si el archivo ya no existe
+        console.warn("No se pudo eliminar el logo:", error);
+      }
       companyLogoField = undefined;
     }
 

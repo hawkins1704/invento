@@ -72,7 +72,7 @@ function App() {
                             <Route path=":branchId" element={<AdminBranchDetails />} />
                         </Route>
                         <Route path="profile" element={<EditProfile />} />
-                        <Route path="suscripcion" element={<AdminSubscription />} />
+                        <Route path="suscription" element={<AdminSubscription />} />
                     </Route>
                     <Route path="sales">
                         <Route index element={<SalesDashboard />} />

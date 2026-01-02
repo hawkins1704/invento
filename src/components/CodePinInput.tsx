@@ -94,7 +94,7 @@ export function CodePinInput({
   return (
     <div className={`space-y-2 ${className}`}>
       <label
-        className="block text-sm font-medium text-slate-200"
+        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
         htmlFor={`${name}-digit-0`}
       >
         {label}
@@ -113,7 +113,7 @@ export function CodePinInput({
             onChange={(event) => handleChange(index, event.target.value.slice(-1))}
             onKeyDown={(event) => handleKeyDown(index, event)}
             onPaste={handlePaste}
-            className="h-12 w-12 rounded-lg border border-slate-700 bg-slate-900 text-center text-lg font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/40"
+            className="h-12 w-12 rounded-lg border border-slate-300 bg-white text-center text-lg font-semibold text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/40 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
           />
         ))}
       </div>

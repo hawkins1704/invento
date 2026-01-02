@@ -65,7 +65,7 @@ const AdminSubscription = () => {
 
     if (currentUser === undefined) {
         return (
-            <div className="flex flex-1 items-center justify-center text-slate-400">
+            <div className="flex flex-1 items-center justify-center text-slate-500 dark:text-slate-400">
                 Cargando información de suscripción...
             </div>
         );
@@ -92,7 +92,7 @@ const AdminSubscription = () => {
                                 className={`relative rounded-lg border p-6 transition-all ${
                                     isSelected
                                         ? "border-[#fa7316] bg-[#fa7316]/10 shadow-lg shadow-[#fa7316]/20"
-                                        : "border-slate-800 bg-slate-900/60 hover:border-slate-700"
+                                        : "border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-700"
                                 }`}
                             >
                                 {isSelected && (
@@ -107,16 +107,16 @@ const AdminSubscription = () => {
                                         className={`flex h-12 w-12 items-center justify-center rounded-lg ${
                                             isSelected
                                                 ? "bg-[#fa7316]/20 text-[#fa7316]"
-                                                : "bg-slate-800 text-slate-400"
+                                                : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
                                         }`}
                                     >
                                         {info.icon}
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-semibold text-white">
+                                        <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                                             {info.name}
                                         </h3>
-                                        <p className="text-sm text-slate-400">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">
                                             {info.description}
                                         </p>
                                     </div>
@@ -126,13 +126,13 @@ const AdminSubscription = () => {
                                     {info.features.map((feature, index) => (
                                         <li
                                             key={index}
-                                            className="flex items-start gap-2 text-sm text-slate-300"
+                                            className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300"
                                         >
                                             <FaCheck
                                                 className={`mt-0.5 flex-shrink-0 ${
                                                     isSelected
                                                         ? "text-[#fa7316]"
-                                                        : "text-slate-500"
+                                                        : "text-slate-400 dark:text-slate-500"
                                                 }`}
                                             />
                                             <span>{feature}</span>

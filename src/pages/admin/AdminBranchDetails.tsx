@@ -43,9 +43,9 @@ const InventoryProductCard = ({
     onSave: () => void;
 }) => {
     return (
-        <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
             <div className="flex items-start gap-4">
-                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 flex items-center justify-center">
+                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-300 bg-white flex items-center justify-center dark:border-slate-800 dark:bg-slate-900">
                     {item.imageUrl ? (
                         <img
                             src={item.imageUrl}
@@ -53,16 +53,16 @@ const InventoryProductCard = ({
                             className="h-full w-full object-cover"
                         />
                     ) : (
-                        <BiDish className="h-8 w-8 text-slate-600" />
+                        <BiDish className="h-8 w-8 text-slate-400 dark:text-slate-600" />
                     )}
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col gap-2">
                     <div className="flex flex-col gap-1">
-                        <p className="text-sm font-semibold text-white">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
                             {item.product.name}
                         </p>
                         {item.product.description && (
-                            <p className=" text-xs text-slate-400 line-clamp-2">
+                            <p className=" text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
                                 {item.product.description}
                             </p>
                         )}
@@ -72,7 +72,7 @@ const InventoryProductCard = ({
                             <span className="text-xs text-slate-500">
                                 Precio:
                             </span>
-                            <p className="text-sm font-semibold text-white">
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                 {formatCurrency(item.product.price)}
                             </p>
                         </div>
@@ -93,7 +93,7 @@ const InventoryProductCard = ({
                                     step="1"
                                     value={stockDraft}
                                     onChange={onStockChange}
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                                 />
                             </div>
                             <div className="flex items-end">
@@ -353,18 +353,18 @@ const AdminBranchDetails = () => {
 
     if (!branchId) {
         return (
-            <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
-                <h1 className="text-2xl font-semibold text-white">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white">
+                <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
                     Sucursal no encontrada
                 </h1>
-                <p className="mt-2 text-sm text-slate-400">
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                     No se encontró el identificador de la sucursal. Regresa al
                     listado e inténtalo nuevamente.
                 </p>
                 <button
                     type="button"
                     onClick={() => navigate("/admin/branches")}
-                    className="mt-6 inline-flex items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                    className="mt-6 inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                 >
                     Volver a sucursales
                 </button>
@@ -375,19 +375,19 @@ const AdminBranchDetails = () => {
     if (branchId && branchFromQuery === null) {
         return (
             <div className="space-y-6">
-                <header className="rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+                <header className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white">
                     <button
                         type="button"
                         onClick={() => navigate("/admin/branches")}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-xs font-semibold  text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-1 text-xs font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                     >
                         <FaArrowLeft />
                         <span>Volver</span>
                     </button>
-                    <h1 className="mt-4 text-3xl font-semibold text-white">
+                    <h1 className="mt-4 text-3xl font-semibold text-slate-900 dark:text-white">
                         Sucursal no disponible
                     </h1>
-                    <p className="mt-2 text-sm text-slate-400">
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                         No pudimos encontrar la información de esta sucursal.
                         Verifica el enlace o regresa al listado.
                     </p>
@@ -579,26 +579,26 @@ const AdminBranchDetails = () => {
 
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
+            <header className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50 p-8 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white lg:flex-row lg:items-center lg:justify-between">
                 <div className="space-y-3">
                     <button
                         type="button"
                         onClick={() => navigate("/admin/branches")}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-1 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-1 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                     >
                         <FaArrowLeft />
                         <span>Volver</span>
                     </button>
                     <div>
-                        <h1 className="text-3xl font-semibold text-white">
+                        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
                             Sucursal · {branchName}
                         </h1>
                         {formattedAddress && (
-                            <p className="mt-1 text-sm text-slate-400">
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                 {formattedAddress}
                             </p>
                         )}
-                        <p className="mt-2 text-sm text-slate-400">
+                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                             Ajusta los datos de la sucursal y gestiona el
                             inventario disponible en este local.
                         </p>
@@ -606,10 +606,10 @@ const AdminBranchDetails = () => {
                 </div>
             </header>
 
-            <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+            <section className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                             Información de la sucursal
                         </h2>
                     </div>
@@ -620,7 +620,7 @@ const AdminBranchDetails = () => {
                                 setIsEditingBranch(true);
                                 resetBranchForm();
                             }}
-                            className="inline-flex items-center gap-2 justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                            className="inline-flex items-center gap-2 justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                         >
                             <FiEdit3 />
                             <span>Editar información</span>
@@ -637,7 +637,7 @@ const AdminBranchDetails = () => {
                             <div className="space-y-2">
                                 <label
                                     htmlFor="name"
-                                    className="text-sm font-medium text-slate-200"
+                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     Nombre de la sucursal
                                 </label>
@@ -648,13 +648,13 @@ const AdminBranchDetails = () => {
                                     required
                                     value={branchForm.name}
                                     onChange={handleBranchFormChange}
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                 />
                             </div>
                             <div className="space-y-2 lg:col-span-2">
                                 <label
                                     htmlFor="address"
-                                    className="text-sm font-medium text-slate-200"
+                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     Dirección
                                 </label>
@@ -665,13 +665,13 @@ const AdminBranchDetails = () => {
                                     required
                                     value={branchForm.address}
                                     onChange={handleBranchFormChange}
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <label
                                     htmlFor="serieBoleta"
-                                    className="text-sm font-medium text-slate-200"
+                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     Serie Boleta
                                 </label>
@@ -683,16 +683,16 @@ const AdminBranchDetails = () => {
                                     value={branchForm.serieBoleta}
                                     onChange={handleBranchFormChange}
                                     placeholder="B001"
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                 />
-                                <p className="text-xs text-slate-400">
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
                                     4 caracteres (ej: B001)
                                 </p>
                             </div>
                             <div className="space-y-2">
                                 <label
                                     htmlFor="serieFactura"
-                                    className="text-sm font-medium text-slate-200"
+                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     Serie Factura
                                 </label>
@@ -704,9 +704,9 @@ const AdminBranchDetails = () => {
                                     value={branchForm.serieFactura}
                                     onChange={handleBranchFormChange}
                                     placeholder="F001"
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                 />
-                                <p className="text-xs text-slate-400">
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
                                     4 caracteres (ej: F001)
                                 </p>
                             </div>
@@ -725,7 +725,7 @@ const AdminBranchDetails = () => {
                                     resetBranchForm();
                                     setIsEditingBranch(false);
                                 }}
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                                 disabled={isSavingBranch}
                             >
                                 Cancelar
@@ -744,19 +744,19 @@ const AdminBranchDetails = () => {
                 ) : (
                     <>
                         <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                            <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-5">
+                            <div className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950/40">
                                 <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                                     Nombre
                                 </span>
-                                <p className="mt-2 text-lg font-semibold text-white">
+                                <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
                                     {branch?.name ?? "—"}
                                 </p>
                             </div>
-                            <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-5 lg:col-span-2">
+                            <div className="rounded-lg border border-slate-200 bg-white p-5 lg:col-span-2 dark:border-slate-800 dark:bg-slate-950/40">
                                 <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                                     Dirección
                                 </span>
-                                <p className="mt-2 text-lg font-semibold text-white">
+                                <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
                                     {branch?.address ?? "—"}
                                 </p>
                             </div>
@@ -794,10 +794,10 @@ const AdminBranchDetails = () => {
                 )}
             </section>
 
-            <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
+            <section className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                             Mesas de la sucursal
                         </h2>
                     </div>
@@ -809,7 +809,7 @@ const AdminBranchDetails = () => {
                             setTableFormError(null);
                             setIsTableModalOpen(true);
                         }}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                         disabled={!branchId}
                     >
                         <MdOutlineTableRestaurant />
@@ -818,8 +818,8 @@ const AdminBranchDetails = () => {
                 </div>
 
                 {branchTables.length === 0 ? (
-                    <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-700 bg-slate-950/40 px-6 py-12 text-center text-slate-400 flex-col items-center justify-center">
-                        <BiDish className="h-6 w-6 text-slate-600" />
+                    <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-400">
+                        <BiDish className="h-6 w-6 text-slate-400 dark:text-slate-600" />
                         <p className="max-w-sm text-sm">
                             Aún no has creado mesas para esta sucursal. Agrega
                             mesas para que el punto de venta pueda asignar
@@ -831,14 +831,14 @@ const AdminBranchDetails = () => {
                         {branchTables.map((table) => (
                             <article
                                 key={table._id as string}
-                                className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-950/40 p-5 text-white shadow-inner shadow-black/20"
+                                className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-5 text-slate-900 dark:border-slate-800 dark:bg-slate-950/40 dark:text-white"
                             >
                                 <header className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
                                             Mesa
                                         </p>
-                                        <h3 className="text-xl font-semibold text-white">
+                                        <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                                             {table.label}
                                         </h3>
                                     </div>
@@ -846,10 +846,10 @@ const AdminBranchDetails = () => {
                                         status={table.status ?? "available"}
                                     />
                                 </header>
-                                <div className="space-y-2 text-sm text-slate-300">
+                                <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
                                     <p>
                                         Capacidad:{" "}
-                                        <span className="font-semibold text-white">
+                                        <span className="font-semibold text-slate-900 dark:text-white">
                                             {table.capacity !== undefined
                                                 ? `${table.capacity} persona${table.capacity === 1 ? "" : "s"}`
                                                 : "Sin definir"}
@@ -857,7 +857,7 @@ const AdminBranchDetails = () => {
                                     </p>
                                     <p>
                                         Venta activa:{" "}
-                                        <span className="font-semibold text-white">
+                                        <span className="font-semibold text-slate-900 dark:text-white">
                                             {table.currentSaleId ? "Sí" : "No"}
                                         </span>
                                     </p>
@@ -879,14 +879,14 @@ const AdminBranchDetails = () => {
                                             setTableFormError(null);
                                             setIsTableModalOpen(true);
                                         }}
-                                        className="inline-flex flex-1 items-center justify-center rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-[#fa7316] hover:text-white"
+                                        className="inline-flex flex-1 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:text-white"
                                     >
                                         Editar
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setTableToDelete(table)}
-                                        className="inline-flex items-center justify-center rounded-lg border border-red-500/40 px-3 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200"
+                                        className="inline-flex items-center justify-center rounded-lg border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 transition hover:border-red-500 hover:text-red-800 dark:border-red-500/40 dark:text-red-300 dark:hover:border-red-400 dark:hover:text-red-200"
                                         disabled={Boolean(table.currentSaleId)}
                                     >
                                         Eliminar
@@ -899,12 +899,12 @@ const AdminBranchDetails = () => {
             </section>
 
             {isTableModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-10">
-                    <div className="absolute inset-0 bg-slate-950/70 backdrop-blur" />
-                    <div className="relative w-full max-w-lg rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-10 mb-0">
+                    <div className="absolute inset-0 bg-black/40 dark:bg-slate-950/70 backdrop-blur" />
+                    <div className="relative w-full max-w-lg rounded-lg border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl shadow-black/60 dark:border-slate-800 dark:bg-slate-900/95 dark:text-white">
                         <header className="flex items-center justify-between">
                             <div>
-                                <h3 className="mt-2 text-2xl font-semibold text-white">
+                                <h3 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">
                                     {editingTableId
                                         ? "Actualizar información"
                                         : "Registrar nueva mesa"}
@@ -917,7 +917,7 @@ const AdminBranchDetails = () => {
                                     setEditingTableId(null);
                                     setTableForm(DEFAULT_TABLE_FORM);
                                 }}
-                                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 text-slate-300 transition hover:text-white"
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 text-slate-700 transition hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                                 aria-label="Cerrar"
                             >
                                 ✕
@@ -930,7 +930,7 @@ const AdminBranchDetails = () => {
                         >
                             <div className="space-y-2">
                                 <label
-                                    className="text-sm font-medium text-slate-200"
+                                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                     htmlFor="label"
                                 >
                                     Nombre de la mesa
@@ -942,7 +942,7 @@ const AdminBranchDetails = () => {
                                     autoFocus
                                     value={tableForm.label}
                                     onChange={handleTableFormChange}
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                     placeholder="Ej. Terraza 1"
                                 />
                             </div>
@@ -950,7 +950,7 @@ const AdminBranchDetails = () => {
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="space-y-2">
                                     <label
-                                        className="text-sm font-medium text-slate-200"
+                                        className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                         htmlFor="capacity"
                                     >
                                         Capacidad (opcional)
@@ -963,14 +963,14 @@ const AdminBranchDetails = () => {
                                         step="1"
                                         value={tableForm.capacity}
                                         onChange={handleTableFormChange}
-                                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                         placeholder="Número de personas"
                                     />
                                 </div>
                                 {editingTableId && (
                                     <div className="space-y-2">
                                         <label
-                                            className="text-sm font-medium text-slate-200"
+                                            className="text-sm font-medium text-slate-700 dark:text-slate-200"
                                             htmlFor="status"
                                         >
                                             Estado
@@ -980,7 +980,7 @@ const AdminBranchDetails = () => {
                                             name="status"
                                             value={tableForm.status}
                                             onChange={handleTableFormChange}
-                                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                         >
                                             {TABLE_STATUSES.map((option) => (
                                                 <option
@@ -1010,7 +1010,7 @@ const AdminBranchDetails = () => {
                                         setTableForm(DEFAULT_TABLE_FORM);
                                         setTableFormError(null);
                                     }}
-                                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white"
+                                    className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                                     disabled={isSavingTable}
                                 >
                                     Cancelar
@@ -1043,7 +1043,7 @@ const AdminBranchDetails = () => {
             />
 
             <section>
-                <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Inventario
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1060,21 +1060,21 @@ const AdminBranchDetails = () => {
                                 }
                                 className={`flex flex-col gap-1 rounded-lg border p-4 text-left transition ${
                                     isSelected
-                                        ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
-                                        : "border-slate-800 bg-slate-900 text-slate-300 hover:border-[#fa7316]/50 hover:text-white"
+                                        ? "border-[#fa7316] bg-[#fa7316]/10 text-slate-900 dark:text-white"
+                                        : "border-slate-300 bg-white text-slate-700 hover:border-[#fa7316]/50 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
                                 }`}
                             >
                                 <span className="text-md font-semibold ">
                                     {item.category.name}
                                 </span>
-                                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
+                                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                                     {item.productCount} productos
                                 </span>
                             </button>
                         );
                     })}
                     {(!categories || categories.length === 0) && (
-                        <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/40 px-6 py-6 text-sm text-slate-400">
+                        <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-400">
                             Crea categorías para comenzar a clasificar productos
                             en esta sucursal.
                         </div>
@@ -1084,19 +1084,19 @@ const AdminBranchDetails = () => {
 
             <section className="">
                 {selectedCategoryId === null ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-500 dark:text-slate-400">
                         <span className="text-4xl" aria-hidden>
                             🗂️
                         </span>
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             Selecciona una categoría para gestionar el
                             inventario de sus productos.
                         </p>
                     </div>
                 ) : products.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-                        <FaBoxArchive className="w-10 h-10 text-slate-400" />
-                        <p className="text-sm text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-500 dark:text-slate-400">
+                        <FaBoxArchive className="w-10 h-10 text-slate-500 dark:text-slate-400" />
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             No hay productos en esta categoría. Agrega productos
                             desde el catálogo general.
                         </p>
@@ -1143,7 +1143,7 @@ const AdminBranchDetails = () => {
                                         <TableRow key={productId}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 flex items-center justify-center">
+                                                    <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-300 bg-white flex items-center justify-center dark:border-slate-800 dark:bg-slate-900">
                                                         {item.imageUrl ? (
                                                             <img
                                                                 src={
@@ -1156,14 +1156,14 @@ const AdminBranchDetails = () => {
                                                                 className="h-full w-full object-cover"
                                                             />
                                                         ) : (
-                                                            <BiDish className="h-6 w-6 text-slate-600" />
+                                                            <BiDish className="h-6 w-6 text-slate-400 dark:text-slate-600" />
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-semibold text-white">
+                                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                                             {item.product.name}
                                                         </p>
-                                                        <p className="text-xs text-slate-400">
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400">
                                                             {
                                                                 item.product
                                                                     .description
@@ -1172,12 +1172,12 @@ const AdminBranchDetails = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-white">
+                                            <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                                                 {formatCurrency(
                                                     item.product.price
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-white">
+                                            <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                                                 {item.product
                                                     .inventoryActivated ? (
                                                     <input
@@ -1196,7 +1196,7 @@ const AdminBranchDetails = () => {
                                                                 event
                                                             )
                                                         }
-                                                        className="w-24 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                        className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                                                     />
                                                 ) : (
                                                     <span className="text-sm text-slate-500">
@@ -1253,12 +1253,12 @@ const SummaryStatCard = ({
     value: string;
     helper: string;
 }) => (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-5">
+    <div className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950/40">
         <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
             {title}
         </span>
-        <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-        <p className="mt-1 text-xs text-slate-400">{helper}</p>
+        <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{value}</p>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{helper}</p>
     </div>
 );
 
@@ -1270,7 +1270,7 @@ const TableStatusBadge = ({ status }: { status: TableFormState["status"] }) => {
         available: {
             label: "Disponible",
             className:
-                "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+                "border-emerald-500/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200",
         },
         occupied: {
             label: "Ocupada",
@@ -1278,11 +1278,11 @@ const TableStatusBadge = ({ status }: { status: TableFormState["status"] }) => {
         },
         reserved: {
             label: "Reservada",
-            className: "border-sky-500/40 bg-sky-500/10 text-sky-300",
+            className: "border-sky-500/40 bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-200",
         },
         out_of_service: {
             label: "Fuera de servicio",
-            className: "border-red-500/40 bg-red-500/10 text-red-300",
+            className: "border-red-500/40 bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-200",
         },
     };
 

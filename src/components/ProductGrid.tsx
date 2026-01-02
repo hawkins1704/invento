@@ -77,8 +77,8 @@ const ProductGrid = ({
                                 }
                                 className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] transition ${
                                     isActive
-                                        ? "border-[#fa7316] bg-[#fa7316]/10 text-white "
-                                        : "border-slate-700 bg-slate-950/40 text-slate-300 hover:border-[#fa7316]/40 hover:text-white"
+                                        ? "border-[#fa7316] bg-[#fa7316]/10 text-slate-900 dark:text-white "
+                                        : "border-slate-300 bg-slate-100 text-slate-700 hover:border-[#fa7316]/40 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300 dark:hover:text-white"
                                 }`}
                             >
                                 {category.label}
@@ -94,16 +94,16 @@ const ProductGrid = ({
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Buscar productos"
-                    className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                    className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                 />
-                <span className="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-300">
+                <span className="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
                     {filteredProducts.length}
                 </span>
             </div>
 
-            <div className="flex-1 rounded-lg overflow-y-auto min-h-0 bg-slate-950/50 p-3 border border-slate-800">
+            <div className="flex-1 rounded-lg overflow-y-auto min-h-0 bg-slate-50 p-3 border border-slate-200 dark:bg-slate-950/50 dark:border-slate-800">
                 {filteredProducts.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
                         <FaMagnifyingGlass className="w-8 h-8" />
                         <p>
                             No se encontraron productos para los filtros
@@ -131,14 +131,14 @@ const ProductGrid = ({
                                     key={product._id}
                                     type="button"
                                     onClick={() => onAddProduct(product)}
-                                    className={`flex flex-row lg:flex-col items-center justify-center h-full gap-3 rounded-lg border ${productButtonPadding} text-left text-sm transition border-slate-800 ${
+                                    className={`flex flex-row lg:flex-col items-center justify-center h-full gap-3 rounded-lg border ${productButtonPadding} text-left text-sm transition ${
                                         isOutOfStock
-                                            ? "cursor-not-allowed border-red-500/40 bg-red-500/10 text-red-200"
-                                            : "border-slate-800 bg-slate-900/60 text-slate-200 hover:border-[#fa7316] hover:text-white"
+                                            ? "cursor-not-allowed border-red-500/40 bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-200"
+                                            : "border-slate-200 bg-slate-100 text-slate-700 hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:text-white"
                                     }`}
                                     disabled={isOutOfStock}
                                 >
-                                    <div className="flex-shrink-0 lg:w-full h-16 lg:h-auto aspect-square rounded-lg  overflow-hidden border border-slate-800 bg-slate-900/50">
+                                    <div className="flex-shrink-0 lg:w-full h-16 lg:h-auto aspect-square rounded-lg  overflow-hidden border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900/50">
                                         {product.imageUrl ? (
                                             <img
                                                 src={product.imageUrl}
@@ -146,7 +146,7 @@ const ProductGrid = ({
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-slate-500">
+                                            <div className="w-full h-full flex items-center justify-center text-slate-400 dark:text-slate-500">
                                                 <BiDish className="w-10 h-10" />
                                             </div>
                                         )}
@@ -154,27 +154,27 @@ const ProductGrid = ({
                                     <div className="flex-1 flex flex-col gap-2 min-w-0 items-center justify-center">
                                         <div className="space-y-1">
                                             {inventoryActivated && (
-                                                <p className="text-xs text-slate-400 text-center">
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
                                                     Stock: {availableStock}
                                                 </p>
                                             )}
                                             {isOutOfStock && (
-                                                <p className="text-xs text-red-200/80 text-center">
+                                                <p className="text-xs text-red-700 dark:text-red-200/80 text-center">
                                                     Producto agotado
                                                 </p>
                                             )}
                                             <p
-                                                className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} line-clamp-2 text-center`}
+                                                className={`text-sm font-semibold ${isOutOfStock ? "text-red-800 dark:text-red-100" : "text-slate-900 dark:text-white"} line-clamp-2 text-center`}
                                             >
                                                 {product.name}
                                             </p>
                                             <p
-                                                className={`text-xs ${isOutOfStock ? "text-red-200/80" : "text-slate-400"} line-clamp-3 text-center`}
+                                                className={`text-xs ${isOutOfStock ? "text-red-700 dark:text-red-200/80" : "text-slate-500 dark:text-slate-400"} line-clamp-3 text-center`}
                                             >
                                                 {product.description}
                                             </p>
                                             <p
-                                                className={`text-sm font-semibold ${isOutOfStock ? "text-red-100" : "text-white"} text-center`}
+                                                className={`text-sm font-semibold ${isOutOfStock ? "text-red-800 dark:text-red-100" : "text-slate-900 dark:text-white"} text-center`}
                                             >
                                                 {formatCurrency(product.price)}
                                             </p>

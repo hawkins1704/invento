@@ -102,14 +102,14 @@ const DateRangePicker = ({
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`flex-1 rounded-lg border px-4 py-2 text-xs text-white outline-none transition focus:ring-2 focus:ring-[#fa7316]/30 ${
+                    className={`flex-1 rounded-lg border px-4 py-2 text-xs text-slate-900 dark:text-white outline-none transition focus:ring-2 focus:ring-[#fa7316]/30 ${
                         startDate
-                            ? "border-slate-700 bg-slate-900/60"
-                            : "border-slate-700 bg-slate-900/60"
+                            ? "border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900/60"
+                            : "border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900/60"
                     } ${isOpen ? "border-[#fa7316] ring-2 ring-[#fa7316]/30" : ""}`}
                 >
                     <div className="text-left">
-                        <div className=" font-semibold">
+                        <div className="font-semibold">
                             {formatDate("Desde", startDate)}
                         </div>
                     </div>
@@ -117,14 +117,14 @@ const DateRangePicker = ({
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`flex-1 rounded-lg border px-4 py-2 text-xs text-white outline-none transition focus:ring-2 focus:ring-[#fa7316]/30 ${
+                    className={`flex-1 rounded-lg border px-4 py-2 text-xs text-slate-900 dark:text-white outline-none transition focus:ring-2 focus:ring-[#fa7316]/30 ${
                         endDate
-                            ? "border-slate-700 bg-slate-900/60"
-                            : "border-slate-700 bg-slate-900/60"
+                            ? "border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900/60"
+                            : "border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900/60"
                     } ${isOpen ? "border-[#fa7316] ring-2 ring-[#fa7316]/30" : ""}`}
                 >
                     <div className="text-left">
-                        <div className=" font-semibold">
+                        <div className="font-semibold">
                             {formatDate("Hasta", endDate)}
                         </div>
                     </div>
@@ -134,7 +134,7 @@ const DateRangePicker = ({
 
             {/* Calendario popup */}
             {isOpen && (
-                <div className="absolute left-0 top-full z-50 mt-2 rounded-lg border border-slate-700 bg-slate-900 p-4 shadow-xl">
+                <div className="absolute left-0 top-full z-50 mt-2 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 p-4 shadow-xl">
                     <style>{`
                        
                         .rdp-day_range_start{
@@ -146,8 +146,8 @@ const DateRangePicker = ({
                             color: white !important;
                         }
                         .rdp-day_range_middle {
-                            background-color: rgba(87, 65, 48, 0.2) !important;
-                            color: white !important;
+                            background-color: rgba(250, 115, 22, 0.2) !important;
+                            color: inherit !important;
                         }
                        
                         .rdp-today {
@@ -178,9 +178,9 @@ const DateRangePicker = ({
                             range_end: "rdp-day_range_end",
                             range_middle: "rdp-day_range_middle",
                         }}
-                        className="text-white"
+                        className="text-slate-900 dark:text-white"
                         classNames={{
-                            day: " p-0 font-normal aria-selected:opacity-100 hover:bg-slate-700 rounded-full",
+                            day: "p-0 font-normal aria-selected:opacity-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full",
                         }}
                     />
                 </div>

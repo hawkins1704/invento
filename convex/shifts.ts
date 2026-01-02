@@ -28,7 +28,7 @@ const computeCashSalesTotal = async (ctx: any, branchId: Id<"branches">, from: n
     .filter(
       (sale: any) =>
         sale.status === "closed" &&
-        sale.paymentMethod === "cash" &&
+        sale.paymentMethod === "Contado" &&
         sale.branchId === branchId &&
         typeof sale.closedAt === "number" &&
         sale.closedAt >= from &&

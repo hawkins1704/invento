@@ -474,14 +474,14 @@ const AdminSales = () => {
 
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-6 sm:p-8 text-white shadow-inner shadow-black/20 lg:flex-row lg:items-center lg:justify-between">
+            <header className="flex flex-col gap-6 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-6 sm:p-8 text-slate-900 dark:text-white lg:flex-row lg:items-center lg:justify-between">
                 <div className="space-y-3">
                     <Chip label="Ventas" />
                     <div className="space-y-2">
-                        <h1 className="text-3xl font-semibold">
+                        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
                             Panel de ventas
                         </h1>
-                        <p className="max-w-2xl text-sm text-slate-300 hidden sm:block">
+                        <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300 hidden sm:block">
                             Alterna entre el historial consolidado y las ventas
                             en vivo para monitorear cada sucursal en tiempo
                             real.
@@ -496,7 +496,7 @@ const AdminSales = () => {
                         className={`inline-flex flex-1 justify-center items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition rounded-lg cursor-pointer ${
                             viewMode === "history"
                                 ? "bg-[#fa7316] text-white"
-                                : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
+                                : "border border-slate-300 bg-white text-slate-700 hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white"
                         }`}
                     >
                         Historial
@@ -507,7 +507,7 @@ const AdminSales = () => {
                         className={`inline-flex flex-1 justify-center items-center gap-2  px-4 py-2 text-sm font-semibold transition rounded-lg cursor-pointer ${
                             viewMode === "live"
                                 ? "bg-[#fa7316] text-white "
-                                : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
+                                : "border border-slate-300 bg-white text-slate-700 hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white"
                         }`}
                     >
                         Ventas en vivo
@@ -766,9 +766,9 @@ const HistoryView = ({
 
     return (
         <div className="space-y-6">
-            <section className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-800 bg-slate-900/50 p-5 text-white shadow-inner shadow-black/20">
+            <section className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50 p-5 text-slate-900 dark:text-white">
                 <div className="flex flex-col gap-2">
-                    <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                    <span className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                         Periodo
                     </span>
                     <div className="flex flex-wrap items-end gap-2">
@@ -778,7 +778,7 @@ const HistoryView = ({
                             className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
                                 period === "day"
                                     ? "bg-[#fa7316] text-white border border-[#fa7316]"
-                                    : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
+                                    : "border border-slate-300 bg-white text-slate-700 hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white"
                             }`}
                         >
                             Hoy
@@ -791,7 +791,7 @@ const HistoryView = ({
                             className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
                                 period === "month"
                                     ? "bg-[#fa7316] text-white border border-[#fa7316]"
-                                    : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
+                                    : "border border-slate-300 bg-white text-slate-700 hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white"
                             }`}
                         >
                             Por Mes
@@ -804,7 +804,7 @@ const HistoryView = ({
                             className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
                                 period === "custom"
                                     ? "bg-[#fa7316] text-white border border-[#fa7316]"
-                                    : "border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
+                                    : "border border-slate-300 bg-white text-slate-700 hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white"
                             }`}
                         >
                             Por rango
@@ -844,8 +844,8 @@ const HistoryView = ({
                                     className={`rounded-lg flex-2 border px-4 py-2 text-xs font-semibold transition ${
                                         period === "month" &&
                                         selectedMonth !== undefined
-                                            ? "border-[#fa7316] text-white"
-                                            : "border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
+                                            ? "border-[#fa7316] text-slate-900 dark:text-white"
+                                            : "border-slate-300 bg-white text-slate-700 hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white"
                                     } outline-none `}
                                 >
                                     <option value="">Mes</option>
@@ -875,8 +875,8 @@ const HistoryView = ({
                                     className={`rounded-lg flex-1 border px-4 py-2 text-xs font-semibold transition ${
                                         period === "month" &&
                                         selectedYear !== undefined
-                                            ? "border-[#fa7316] text-white"
-                                            : "border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
+                                            ? "border-[#fa7316] text-slate-900 dark:text-white"
+                                            : "border-slate-300 bg-white text-slate-700 hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white"
                                     } outline-none`}
                                 >
                                     <option value="">Año</option>
@@ -892,7 +892,7 @@ const HistoryView = ({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <label className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                    <label className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                         Sucursal
                     </label>
                     <select
@@ -909,7 +909,7 @@ const HistoryView = ({
                                 onBranchChange(value as Id<"branches">);
                             }
                         }}
-                        className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                        className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                     >
                         <option value="all">Todas las sucursales</option>
                         {branches.map((branch) => (
@@ -924,7 +924,7 @@ const HistoryView = ({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <label className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                    <label className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                         Personal
                     </label>
                     <select
@@ -941,7 +941,7 @@ const HistoryView = ({
                                 onStaffChange(value as Id<"staff">);
                             }
                         }}
-                        className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                        className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                     >
                         <option value="all">Todo el personal</option>
                         {staffMembers.map((member) => (
@@ -990,9 +990,9 @@ const HistoryView = ({
             </section>
 
             <section className="grid gap-4">
-                <div className="overflow-x-auto rounded-lg border border-slate-800 bg-slate-900/60 text-white shadow-inner shadow-black/20">
-                    <header className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
-                        <h2 className="text-lg font-semibold">
+                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 text-slate-900 dark:text-white">
+                    <header className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                             Ventas cerradas
                         </h2>
 
@@ -1000,7 +1000,7 @@ const HistoryView = ({
                     </header>
 
                     {data.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-slate-400">
+                        <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-slate-600 dark:text-slate-400">
                             <FaRegSadTear size={40} />
                             <p className="text-sm">
                                 No se encontraron ventas en el periodo
@@ -1047,7 +1047,7 @@ const HistoryView = ({
                                         <TableRow key={entry.sale._id}>
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col">
-                                                    <span className="font-semibold text-white">
+                                                    <span className="font-semibold text-slate-900 dark:text-white">
                                                         {formatDate(
                                                             entry.sale
                                                                 .closedAt ??
@@ -1055,7 +1055,7 @@ const HistoryView = ({
                                                                     .openedAt
                                                         )}
                                                     </span>
-                                                    <span className="text-xs text-slate-400">
+                                                    <span className="text-xs text-slate-600 dark:text-slate-400">
                                                         {formatTime(
                                                             entry.sale
                                                                 .closedAt ??
@@ -1065,18 +1065,18 @@ const HistoryView = ({
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-200">
+                                            <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-200">
                                                 {branchNameById.get(
                                                     entry.sale
                                                         .branchId as string
                                                 ) ?? "Sucursal"}
                                             </td>
                                             
-                                            <td className="px-6 py-4 text-sm text-slate-300">
+                                            <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {entry.table?.label ??
                                                     "Sin mesa"}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-300">
+                                            <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {entry.sale.staffId
                                                     ? (staffNameById.get(
                                                           entry.sale
@@ -1084,7 +1084,7 @@ const HistoryView = ({
                                                       ) ?? "Personal")
                                                     : "Sin asignar"}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-300">
+                                            <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {entry.sale.paymentMethod
                                                     ? methodLabel(
                                                           entry.sale
@@ -1110,12 +1110,12 @@ const HistoryView = ({
                                                         )}
                                                     </button>
                                                 ) : (
-                                                    <span className="text-slate-500">
+                                                    <span className="text-slate-500 dark:text-slate-500">
                                                         SIN DOC
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 text-right text-sm font-semibold text-white">
+                                            <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">
                                                 {formatCurrency(
                                                     entry.sale.total
                                                 )}
@@ -1127,7 +1127,7 @@ const HistoryView = ({
                         </>
                     )}
 
-                    <div className="border-slate-800 px-5 pb-5">
+                    <div className="border-t border-slate-200 dark:border-slate-800 px-5 pb-5">
                         <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -1140,14 +1140,14 @@ const HistoryView = ({
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-3">
-                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-white shadow-inner shadow-black/20">
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4 text-slate-900 dark:text-white">
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">
                             Métodos de pago
                         </h3>
                         <ul className="mt-4 space-y-3 text-sm">
                             {!paymentBreakdownData ||
                             paymentBreakdownData.length === 0 ? (
-                                <li className="rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3 text-slate-400">
+                                <li className="rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3 text-slate-600 dark:text-slate-400">
                                     Aún no se registran métodos de pago en este
                                     periodo.
                                 </li>
@@ -1155,19 +1155,19 @@ const HistoryView = ({
                                 paymentBreakdownData.map((item) => (
                                     <li
                                         key={item.method}
-                                        className="flex items-center justify-between rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3"
+                                        className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3"
                                     >
                                         <div className="flex-1">
-                                            <span className="text-slate-200">
+                                            <span className="text-slate-700 dark:text-slate-200">
                                                 {getPaymentMethodLabel(
                                                     item.method
                                                 )}
                                             </span>
-                                            <span className="ml-2 text-xs text-slate-500">
+                                            <span className="ml-2 text-xs text-slate-500 dark:text-slate-500">
                                                 {item.percentage.toFixed(1)}%
                                             </span>
                                         </div>
-                                        <span className="font-semibold text-white">
+                                        <span className="font-semibold text-slate-900 dark:text-white">
                                             {formatCurrency(item.amount)}
                                         </span>
                                     </li>
@@ -1176,13 +1176,13 @@ const HistoryView = ({
                         </ul>
                     </div>
 
-                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-white shadow-inner shadow-black/20">
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4 text-slate-900 dark:text-white">
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">
                             Productos más vendidos
                         </h3>
                         <ul className="mt-4 space-y-3 text-sm">
                             {!topProducts || topProducts.length === 0 ? (
-                                <li className="rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3 text-slate-400">
+                                <li className="rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3 text-slate-600 dark:text-slate-400">
                                     Aún no se registran productos vendidos en
                                     este periodo.
                                 </li>
@@ -1190,19 +1190,19 @@ const HistoryView = ({
                                 topProducts.map((product) => (
                                     <li
                                         key={product.productId as string}
-                                        className="flex flex-col gap-1 rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3"
+                                        className="flex flex-col gap-1 rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3"
                                     >
                                         <div className="flex items-center justify-between">
-                                            <span className="text-slate-200">
+                                            <span className="text-slate-700 dark:text-slate-200">
                                                 {product.productName}
                                             </span>
-                                            <span className="font-semibold text-white">
+                                            <span className="font-semibold text-slate-900 dark:text-white">
                                                 {formatCurrency(
                                                     product.revenue
                                                 )}
                                             </span>
                                         </div>
-                                        <span className="text-xs text-slate-500">
+                                        <span className="text-xs text-slate-500 dark:text-slate-500">
                                             {product.quantity} unidades
                                         </span>
                                     </li>
@@ -1211,13 +1211,13 @@ const HistoryView = ({
                         </ul>
                     </div>
 
-                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-white shadow-inner shadow-black/20">
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4 text-slate-900 dark:text-white">
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">
                             Top personal
                         </h3>
                         <ul className="mt-4 space-y-3 text-sm">
                             {!topStaffData || topStaffData.length === 0 ? (
-                                <li className="rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3 text-slate-400">
+                                <li className="rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3 text-slate-600 dark:text-slate-400">
                                     Aún no se registran ventas por personal en
                                     este periodo.
                                 </li>
@@ -1225,12 +1225,12 @@ const HistoryView = ({
                                 topStaffData.map((staff) => (
                                     <li
                                         key={staff.staffId}
-                                        className="flex items-center justify-between rounded-lg border border-slate-800/60 bg-slate-950/60 px-4 py-3"
+                                        className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3"
                                     >
-                                        <span className="text-slate-200">
+                                        <span className="text-slate-700 dark:text-slate-200">
                                             {staff.staffName}
                                         </span>
-                                        <span className="font-semibold text-white">
+                                        <span className="font-semibold text-slate-900 dark:text-white">
                                             {formatCurrency(staff.totalAmount)}
                                         </span>
                                     </li>
@@ -1241,14 +1241,14 @@ const HistoryView = ({
                 </div>
             </section>
 
-            <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-white shadow-inner shadow-black/20">
-                <h2 className="text-lg font-semibold mb-6">
+            <section className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-6 text-slate-900 dark:text-white">
+                <h2 className="text-lg font-semibold mb-6 text-slate-900 dark:text-white">
                     Mapa de ventas por hora
                 </h2>
                 {!salesByHourData ||
                 salesByHourData.length === 0 ||
                 salesByHourData.every((h) => h.amount === 0) ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-600 dark:text-slate-400">
                         <HiOutlineReceiptTax size={40} />
                         <p className="text-sm">
                             Aún no hay ventas registradas en el periodo
@@ -1290,13 +1290,13 @@ const HistoryView = ({
                                                     key={hourData.hour}
                                                     className="flex items-center gap-3"
                                                 >
-                                                    <div className="w-16 text-xs font-semibold text-slate-400">
+                                                    <div className="w-16 text-xs font-semibold text-slate-600 dark:text-slate-400">
                                                         {formatHour(
                                                             hourData.hour
                                                         )}
                                                     </div>
                                                     <div className="flex-1 relative">
-                                                        <div className="h-8 rounded-lg bg-slate-950/60 overflow-hidden">
+                                                        <div className="h-8 rounded-lg bg-slate-200 dark:bg-slate-950/60 overflow-hidden">
                                                             <div
                                                                 className="h-full rounded-lg transition-all bg-[#fa7316]"
                                                                 style={{
@@ -1324,7 +1324,7 @@ const HistoryView = ({
                                     </div>
 
                                     {/* Desktop: barras verticales en horizontal */}
-                                    <div className="hidden md:flex items-end justify-between gap-1 h-64 px-2 overflow-x-scroll">
+                                    <div className="hidden md:flex items-end justify-between gap-1 h-64 px-2 overflow-x-auto">
                                         {salesByHourData.map((hourData) => {
                                             const barHeight =
                                                 (hourData.amount /
@@ -1346,7 +1346,7 @@ const HistoryView = ({
                                                 >
                                                     {/* Barra vertical */}
                                                     <div className="w-full flex-1 flex items-end relative">
-                                                        <div className="w-full rounded-t-lg bg-slate-950/60 overflow-hidden h-full flex items-end">
+                                                        <div className="w-full rounded-t-lg bg-slate-200 dark:bg-slate-950/60 overflow-hidden h-full flex items-end">
                                                             <div
                                                                 className="w-full rounded-t-lg transition-all bg-[#fa7316]"
                                                                 style={{
@@ -1369,7 +1369,7 @@ const HistoryView = ({
                                                         </div>
                                                     </div>
                                                     {/* Hora en el eje X */}
-                                                    <div className="text-xs font-semibold text-slate-400 mt-1">
+                                                    <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mt-1">
                                                         {formatHour(
                                                             hourData.hour
                                                         )}
@@ -1387,16 +1387,16 @@ const HistoryView = ({
 
             {/* Modal de descarga de documento */}
             {selectedSale && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 py-10 backdrop-blur">
-                    <div className="relative w-full max-w-md rounded-lg border border-slate-800 bg-slate-900/95 p-6 text-white shadow-2xl shadow-black/60">
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 dark:bg-slate-950/70 px-4 py-10 backdrop-blur">
+                    <div className="relative w-full max-w-md rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/95 p-6 text-slate-900 dark:text-white shadow-2xl shadow-black/60">
                         <CloseButton onClick={handleCloseModal} />
 
                         <div className="space-y-5 pt-6">
                             <header className="space-y-2">
-                                <h2 className="text-2xl font-semibold text-white">
+                                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                                     Descargar PDF
                                 </h2>
-                                <p className="text-sm text-slate-400">
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
                                     Selecciona el formato del documento que
                                     deseas descargar.
                                 </p>
@@ -1405,20 +1405,20 @@ const HistoryView = ({
                             {isLoadingDocument ? (
                                 <div className="flex flex-col items-center justify-center gap-3 py-8">
                                     <FaSpinner className="animate-spin text-2xl text-[#fa7316]" />
-                                    <p className="text-sm text-slate-400">
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">
                                         Cargando información del documento...
                                     </p>
                                 </div>
                             ) : documentFileName ? (
                                 <>
-                                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
-                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4 text-sm text-slate-700 dark:text-slate-300">
+                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                             Documento
                                         </p>
-                                        <p className="mt-2 text-lg font-semibold text-white">
+                                        <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
                                             {documentFileName}
                                         </p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">
                                             {selectedSale.sale.documentType ===
                                             "01"
                                                 ? "Factura"
@@ -1428,7 +1428,7 @@ const HistoryView = ({
 
                                     <div className="space-y-2">
                                         <label
-                                            className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500"
+                                            className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500"
                                             htmlFor="pdf-format"
                                         >
                                             Formato
@@ -1442,7 +1442,7 @@ const HistoryView = ({
                                                 )
                                             }
                                             disabled={isDownloading}
-                                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                         >
                                             <option value="A4">A4</option>
                                             <option value="A5">A5</option>
@@ -1453,7 +1453,7 @@ const HistoryView = ({
                                                 Ticket 80mm
                                             </option>
                                         </select>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">
                                             Selecciona el formato de impresión
                                             del documento.
                                         </p>
@@ -1470,7 +1470,7 @@ const HistoryView = ({
                                             type="button"
                                             onClick={handleCloseModal}
                                             disabled={isDownloading}
-                                            className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-[#fa7316] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
                                         >
                                             Cancelar
                                         </button>
@@ -1536,7 +1536,7 @@ const LiveView = ({
                             className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
                                 isActive
                                     ? "border-transparent bg-[#fa7316] text-white "
-                                    : "border-slate-700 bg-slate-900/60 text-slate-300 hover:border-white/30 hover:text-white"
+                                    : "border-slate-300 bg-white text-slate-700 hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white"
                             }`}
                         >
                             {branch.name}
@@ -1544,7 +1544,7 @@ const LiveView = ({
                     );
                 })}
                 {branches.length === 0 && (
-                    <span className="rounded-lg border border-dashed border-slate-700 bg-slate-950/50 px-4 py-2 text-sm text-slate-400">
+                    <span className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-950/50 px-4 py-2 text-sm text-slate-600 dark:text-slate-400">
                         Crea una sucursal para comenzar a registrar ventas.
                     </span>
                 )}
@@ -1563,14 +1563,14 @@ const LiveView = ({
                 />
             </section>
 
-            <section className="rounded-lg border border-slate-800 bg-slate-900/60 text-white shadow-inner shadow-black/20">
-                <header className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
-                    <h2 className="text-lg font-semibold">Pedidos en vivo</h2>
+            <section className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 text-slate-900 dark:text-white">
+                <header className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Pedidos en vivo</h2>
                     <Chip label={data.length.toString() + " activos"} />
                 </header>
 
                 {selectedBranch === null ? (
-                    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-slate-600 dark:text-slate-400">
                         <LuStore size={40} />
                         <p className="text-sm">
                             Selecciona una sucursal para visualizar los pedidos
@@ -1578,7 +1578,7 @@ const LiveView = ({
                         </p>
                     </div>
                 ) : data.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-slate-600 dark:text-slate-400">
                         <FaRegSadTear size={40} />
                         <p className="text-sm">
                             No hay pedidos abiertos actualmente en esta
@@ -1591,15 +1591,15 @@ const LiveView = ({
                         {data.map((entry) => (
                             <article
                                 key={entry.sale._id}
-                                className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-950/50 p-5 shadow-inner shadow-black/20"
+                                className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/50 p-5"
                             >
                                 <header className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500">
+                                        <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                             {entry.table?.label ??
                                                 "Pedido sin mesa"}
                                         </p>
-                                        <h3 className="text-xl font-semibold text-white">
+                                        <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                                             {formatCurrency(entry.sale.total)}
                                         </h3>
                                     </div>
@@ -1611,9 +1611,9 @@ const LiveView = ({
                                     </span>
                                 </header>
 
-                                <div className="space-y-2 text-sm text-slate-200">
+                                <div className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-slate-400">
+                                        <span className="text-slate-600 dark:text-slate-400">
                                             Atiende
                                         </span>
                                         <span className="font-semibold">
@@ -1626,7 +1626,7 @@ const LiveView = ({
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-slate-400">
+                                        <span className="text-slate-600 dark:text-slate-400">
                                             Creado
                                         </span>
                                         <span className="font-semibold">
@@ -1638,12 +1638,12 @@ const LiveView = ({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <h4 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                                    <h4 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
                                         Productos
                                     </h4>
-                                    <ul className="space-y-2 text-sm text-slate-200">
+                                    <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
                                         {entry.items.length === 0 ? (
-                                            <li className="rounded-lg border border-dashed border-slate-700 px-3 py-2 text-slate-400">
+                                            <li className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 px-3 py-2 text-slate-600 dark:text-slate-400">
                                                 No hay productos aún en este
                                                 pedido.
                                             </li>
@@ -1651,15 +1651,15 @@ const LiveView = ({
                                             entry.items.map((item) => (
                                                 <li
                                                     key={item._id}
-                                                    className="flex items-center justify-between rounded-lg bg-slate-900/60 px-3 py-2"
+                                                    className="flex items-center justify-between rounded-lg bg-slate-100 dark:bg-slate-900/60 px-3 py-2"
                                                 >
-                                                    <span className="text-slate-300">
+                                                    <span className="text-slate-600 dark:text-slate-300">
                                                         {item.quantity} ×{" "}
                                                         {formatCurrency(
                                                             item.unitPrice
                                                         )}
                                                     </span>
-                                                    <span className="font-semibold text-white">
+                                                    <span className="font-semibold text-slate-900 dark:text-white">
                                                         {formatCurrency(
                                                             item.totalPrice
                                                         )}
@@ -1671,7 +1671,7 @@ const LiveView = ({
                                 </div>
 
                                 {entry.sale.notes && (
-                                    <p className="rounded-lg border border-slate-800/60 bg-slate-950/60 px-3 py-2 text-sm text-slate-300">
+                                    <p className="rounded-lg border border-slate-200 dark:border-slate-800/60 bg-slate-100 dark:bg-slate-950/60 px-3 py-2 text-sm text-slate-600 dark:text-slate-300">
                                         {entry.sale.notes}
                                     </p>
                                 )}
@@ -1725,19 +1725,19 @@ const SaleCard = ({
     };
 
     return (
-        <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4 transition hover:bg-slate-900/60">
+        <div className="rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/40 p-4 transition hover:bg-slate-100 dark:hover:bg-slate-900/60">
             <div className="flex items-start justify-between gap-4 mb-3">
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         {formatCurrency(entry.sale.total)}
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                         {formatDate(entry.sale.closedAt ?? entry.sale.openedAt)}{" "}
                         {formatTime(entry.sale.closedAt ?? entry.sale.openedAt)}
                     </p>
                 </div>
                 <div className="flex-shrink-0">
-                    <span className="inline-flex items-center rounded-full border border-slate-800 bg-slate-900/60 px-3 py-1 text-xs font-semibold text-slate-300">
+                    <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/60 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
                         {entry.sale.paymentMethod
                             ? methodLabel(entry.sale.paymentMethod)
                             : "No registrado"}
@@ -1746,21 +1746,21 @@ const SaleCard = ({
             </div>
             <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500">Sucursal:</span>
-                    <p className="text-sm font-medium text-slate-200">
+                    <span className="text-xs text-slate-500 dark:text-slate-500">Sucursal:</span>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         {branchNameById.get(entry.sale.branchId as string) ??
                             "Sucursal"}
                     </p>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500">Mesa:</span>
-                    <p className="text-sm font-medium text-slate-300">
+                    <span className="text-xs text-slate-500 dark:text-slate-500">Mesa:</span>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                         {entry.table?.label ?? "Sin mesa"}
                     </p>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500">Atiende:</span>
-                    <p className="text-sm font-medium text-slate-300">
+                    <span className="text-xs text-slate-500 dark:text-slate-500">Atiende:</span>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                         {entry.sale.staffId
                             ? (staffNameById.get(
                                   entry.sale.staffId as string
@@ -1769,7 +1769,7 @@ const SaleCard = ({
                     </p>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500">Documento:</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-500">Documento:</span>
                     {entry.sale.documentId && entry.sale.documentType ? (
                         <button
                             type="button"
@@ -1779,7 +1779,7 @@ const SaleCard = ({
                             {getDocumentTypeLabel(entry.sale.documentType)}
                         </button>
                     ) : (
-                        <p className="text-sm font-medium text-slate-500">
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-500">
                             SIN DOC
                         </p>
                     )}

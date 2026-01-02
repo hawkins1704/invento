@@ -46,9 +46,9 @@ const InventoryProductCard = ({
     onSave: () => void;
 }) => {
     return (
-        <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
             <div className="flex items-start gap-4">
-                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 flex items-center justify-center">
+                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center dark:border-slate-800 dark:bg-slate-900">
                     {item.imageUrl ? (
                         <img
                             src={item.imageUrl}
@@ -56,16 +56,16 @@ const InventoryProductCard = ({
                             className="h-full w-full object-cover"
                         />
                     ) : (
-                        <BiDish className="h-8 w-8 text-slate-600" />
+                        <BiDish className="h-8 w-8 text-slate-400 dark:text-slate-600" />
                     )}
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col gap-2">
                     <div className="flex flex-col gap-1">
-                        <p className="text-sm font-semibold text-white">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
                             {item.product.name}
                         </p>
                         {item.product.description && (
-                            <p className=" text-xs text-slate-400 line-clamp-2">
+                            <p className=" text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
                                 {item.product.description}
                             </p>
                         )}
@@ -75,7 +75,7 @@ const InventoryProductCard = ({
                             <span className="text-xs text-slate-500">
                                 Precio:
                             </span>
-                            <p className="text-sm font-semibold text-white">
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                 {formatCurrency(item.product.price)}
                             </p>
                         </div>
@@ -97,7 +97,7 @@ const InventoryProductCard = ({
                                     value={stockDraft}
                                     onChange={onStockChange}
                                     disabled={!isEditable}
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                                 />
                             </div>
                             {isEditable && (
@@ -173,13 +173,13 @@ const InventoryCodeVerification = ({
 
     return (
         <div className="flex min-h-[60vh] items-center justify-center">
-            <div className="w-full max-w-md rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-white shadow-inner shadow-black/20">
+            <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-8 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white">
                 <div className="space-y-6">
                     <div className="text-center">
-                        <h2 className="text-2xl font-semibold text-white">
+                        <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                             Código de Inventario
                         </h2>
-                        <p className="mt-2 text-sm text-slate-400">
+                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                             Ingresa el código de 4 dígitos para acceder a la gestión de inventario.
                         </p>
                     </div>
@@ -195,7 +195,7 @@ const InventoryCodeVerification = ({
                         />
 
                         {error && (
-                            <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                            <div className="rounded-lg border border-red-500/40 bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-500/10 dark:text-red-300">
                                 {error}
                             </div>
                         )}
@@ -383,7 +383,7 @@ const SalesInventoryContent = ({
      
 
       <section>
-                <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
+                <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Inventario
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -400,21 +400,21 @@ const SalesInventoryContent = ({
                                 }
                                 className={`flex flex-col gap-1 rounded-lg border p-4 text-left transition ${
                                     isSelected
-                                        ? "border-[#fa7316] bg-[#fa7316]/10 text-white"
-                                        : "border-slate-800 bg-slate-900 text-slate-300 hover:border-[#fa7316]/50 hover:text-white"
+                                        ? "border-[#fa7316] bg-[#fa7316]/10 text-slate-900 dark:text-white"
+                                        : "border-slate-200 bg-slate-50 text-slate-700 hover:border-[#fa7316]/50 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
                                 }`}
                             >
                                 <span className="text-md font-semibold ">
                                     {item.category.name}
                                 </span>
-                                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
+                                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                                     {item.productCount} productos
                                 </span>
                             </button>
                         );
                     })}
                     {(!categories || categories.length === 0) && (
-                        <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/40 px-6 py-6 text-sm text-slate-400">
+                        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-6 py-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-400">
                             Crea categorías para comenzar a clasificar productos
                             en esta sucursal.
                         </div>
@@ -424,19 +424,19 @@ const SalesInventoryContent = ({
 
             <section className="">
                 {selectedCategoryId === null ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-500 dark:text-slate-400">
                         <span className="text-4xl" aria-hidden>
                             🗂️
                         </span>
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             Selecciona una categoría para ver el
                             inventario de sus productos.
                         </p>
                     </div>
                 ) : products.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-400">
-                        <FaBoxArchive className="w-10 h-10 text-slate-400" />
-        <p className="text-sm text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-500 dark:text-slate-400">
+                        <FaBoxArchive className="w-10 h-10 text-slate-400 dark:text-slate-400" />
+        <p className="text-sm text-slate-500 dark:text-slate-400">
                             No hay productos en esta categoría. Agrega productos
                             desde el catálogo general.
                         </p>
@@ -484,7 +484,7 @@ const SalesInventoryContent = ({
                                         <TableRow key={productId}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 flex items-center justify-center">
+                                                    <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center dark:border-slate-800 dark:bg-slate-900">
                                                         {item.imageUrl ? (
                                                             <img
                                                                 src={
@@ -497,14 +497,14 @@ const SalesInventoryContent = ({
                                                                 className="h-full w-full object-cover"
                                                             />
                                                         ) : (
-                                                            <BiDish className="h-6 w-6 text-slate-600" />
+                                                            <BiDish className="h-6 w-6 text-slate-400 dark:text-slate-600" />
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-semibold text-white">
+                                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                                             {item.product.name}
                                                         </p>
-                                                        <p className="text-xs text-slate-400">
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400">
                                                             {
                                                                 item.product
                                                                     .description
@@ -513,12 +513,12 @@ const SalesInventoryContent = ({
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-white">
+                                            <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                                                 {formatCurrency(
                                                     item.product.price
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-white">
+                                            <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                                                 {item.product.inventoryActivated ? (
                                                     isCodeVerified ? (
                                                         <input
@@ -537,10 +537,10 @@ const SalesInventoryContent = ({
                                                                     event
                                                                 )
                                                             }
-                                                            className="w-24 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30"
+                                                            className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                                                         />
                                                     ) : (
-                                                        <span className="text-sm font-semibold text-white">
+                                                        <span className="text-sm font-semibold text-slate-900 dark:text-white">
                                                             {item.stock}
                                                         </span>
                                                     )
