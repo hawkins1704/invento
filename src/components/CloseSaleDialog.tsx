@@ -71,7 +71,7 @@ type CloseSaleDialogProps = {
         fileName?: string;
         error?: string;
     }>;
-    onDownloadPDF?: (documentId: string, fileName: string, openInPrintMode?: boolean) => Promise<void>;
+    onDownloadPDF?: (documentId: string, fileName: string) => Promise<void>;
     onSendPDFToWhatsapp?: (
         phoneNumber: string,
         documentId: string,
@@ -656,7 +656,7 @@ const CloseSaleDialog = ({
 
     const handleDownloadPDF = async () => {
         if (onDownloadPDF && emittedDocumentId && emittedFileName) {
-            await onDownloadPDF(emittedDocumentId, emittedFileName, true);
+            await onDownloadPDF(emittedDocumentId, emittedFileName);
         }
     };
 
@@ -1173,7 +1173,7 @@ const CloseSaleDialog = ({
                                                 onClick={handleDownloadPDF}
                                                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
                                             >
-                                                DESCARGAR PDF
+                                                IMPRIMIR PDF
                                             </button>
                                         </div>
                                     )}

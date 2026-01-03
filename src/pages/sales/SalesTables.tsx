@@ -1035,7 +1035,7 @@ const SalesTablesContent = ({
                         setIsProcessingClose(false);
                     }
                 }}
-                onDownloadPDF={async (documentId: string, fileName: string, openInPrintMode?: boolean) => {
+                onDownloadPDF={async (documentId: string, fileName: string) => {
                     try {
                         // Usar el formato del usuario o A4 por defecto
                         const format =
@@ -1043,8 +1043,7 @@ const SalesTablesContent = ({
                         await downloadPDF(
                             documentId,
                             format as "A4" | "A5" | "ticket58mm" | "ticket80mm",
-                            fileName,
-                            openInPrintMode ?? false
+                            fileName
                         );
                     } catch (error) {
                         console.error("Error al abrir PDF:", error);
