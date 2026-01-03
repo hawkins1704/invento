@@ -1170,7 +1170,7 @@ const StatusBadge = ({
             available: {
                 label: "Disponible",
                 className:
-                    "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+                    "border-emerald-500/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200",
             },
             occupied: {
                 label: "Ocupada",
@@ -1178,11 +1178,11 @@ const StatusBadge = ({
             },
             reserved: {
                 label: "Reservada",
-                className: "border-sky-500/40 bg-sky-500/10 text-sky-300",
+                className: "border-sky-500/40 bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-200",
             },
             out_of_service: {
                 label: "Fuera de servicio",
-                className: "border-red-500/40 bg-red-500/10 text-red-300",
+                className: "border-red-500/40 bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-200",
             },
         };
 

@@ -29,7 +29,7 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
         return (
             <div className="flex min-h-[60vh] items-center justify-center">
                 <div
-                    className="h-12 w-12 animate-spin rounded-full border-4 border-slate-800 border-t-[#fa7316]"
+                    className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-[#fa7316] dark:border-slate-800"
                     aria-hidden
                 />
             </div>
@@ -38,9 +38,9 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
 
     if (branches.length === 0) {
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300 ">
-                <LuStore className="w-10 h-10 text-slate-400" />
-                <p className="max-w-md text-sm text-slate-400">
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-lg border border-slate-200 bg-slate-50 p-8 text-center text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
+                <LuStore className="w-10 h-10 text-slate-500 dark:text-slate-400" />
+                <p className="max-w-md text-sm text-slate-500 dark:text-slate-400">
                     Aún no tienes sucursales configuradas. Crea una sucursal
                     desde el panel de administración para comenzar.
                 </p>
@@ -50,9 +50,9 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
 
     if (!branchId || !branch) {
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-lg border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-300">
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-lg border border-slate-200 bg-slate-50 p-8 text-center text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
                 <LuStore color={PRIMARY_COLOR} size={32} />
-                <p className="max-w-md text-sm text-slate-400">
+                <p className="max-w-md text-sm text-slate-500 dark:text-slate-400">
                     Selecciona la sucursal en la que trabajarás para continuar
                     con las ventas.
                 </p>
@@ -73,7 +73,7 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
         return (
             <div className="flex min-h-[60vh] items-center justify-center">
                 <div
-                    className="h-12 w-12 animate-spin rounded-full border-4 border-slate-800 border-t-[#fa7316]"
+                    className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-[#fa7316] dark:border-slate-800"
                     aria-hidden
                 />
             </div>
@@ -82,16 +82,16 @@ const SalesShiftGuard = ({ children }: SalesShiftGuardProps) => {
 
     if (!activeShift) {
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-10 text-center text-slate-300">
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 rounded-lg border border-slate-200 bg-slate-50 p-10 text-center text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
                 <div className="space-y-3">
                     <FaRegClock color={PRIMARY_COLOR} />
-                    <p className="max-w-md text-sm text-slate-400">
+                    <p className="max-w-md text-sm text-slate-500 dark:text-slate-400">
                         No hay un turno abierto para la sucursal{" "}
-                        <span className="font-semibold text-white">
+                        <span className="font-semibold text-slate-900 dark:text-white">
                             {branch.name}
                         </span>
                         . Usa el botón{" "}
-                        <span className="font-semibold text-white">
+                        <span className="font-semibold text-slate-900 dark:text-white">
                             Abrir turno
                         </span>{" "}
                         en el menú lateral para comenzar a vender.
