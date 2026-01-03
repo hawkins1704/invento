@@ -199,11 +199,13 @@ class APISUNATClient {
    * @param documentId ID del documento
    * @param format Formato del PDF (A4, A5, ticket58mm, ticket80mm)
    * @param fileName Nombre del archivo (con o sin .pdf)
+   * @param openInPrintMode Si es true, abre el PDF directamente en modo impresión
    */
   async downloadPDF(
     documentId: string,
     format: PDFFormat,
     fileName: string,
+    openInPrintMode: boolean = false
   ): Promise<void> {
     try {
       // Asegurar que el fileName termine en .pdf
@@ -213,8 +215,71 @@ class APISUNATClient {
       const baseUrl = this.axiosInstance.defaults.baseURL || APISUNAT_BASE_URL;
       const pdfUrl = `${baseUrl}/documents/${documentId}/getPDF/${format}/${fileNameWithExtension}`;
       
-      // Abrir el PDF en una nueva pestaña para evitar problemas de CORS
-      window.open(pdfUrl, '_blank');
+      if (openInPrintMode) {
+        // Abrir el PDF en una nueva ventana y luego ejecutar print
+        const printWindow = window.open(pdfUrl, '_blank');
+        
+        if (printWindow) {
+          // Intentar ejecutar print después de que el PDF se cargue
+          // Usamos un timeout porque no podemos detectar cuando el PDF está completamente cargado
+          setTimeout(() => {
+            try {
+              printWindow.print();
+              // Cerrar la ventana después de un tiempo si el usuario cancela la impresión
+              setTimeout(() => {
+                if (!printWindow.closed) {
+                  printWindow.close();
+                }
+              }, 1000);
+            } catch (error) {
+              console.error("Error al ejecutar print:", error);
+              // Si falla, dejar la ventana abierta para que el usuario pueda imprimir manualmente
+            }
+          }, 1000); // Esperar 1 segundo para que el PDF comience a cargarse
+        } else {
+          // Si el popup fue bloqueado, intentar con iframe como fallback
+          const iframe = document.createElement('iframe');
+          iframe.style.position = 'fixed';
+          iframe.style.right = '0';
+          iframe.style.bottom = '0';
+          iframe.style.width = '0';
+          iframe.style.height = '0';
+          iframe.style.border = 'none';
+          iframe.src = pdfUrl;
+          
+          document.body.appendChild(iframe);
+          
+          iframe.onload = () => {
+            try {
+              setTimeout(() => {
+                if (iframe.contentWindow) {
+                  iframe.contentWindow.print();
+                }
+                setTimeout(() => {
+                  if (document.body.contains(iframe)) {
+                    document.body.removeChild(iframe);
+                  }
+                }, 1000);
+              }, 500);
+            } catch (error) {
+              console.error("Error al ejecutar print en iframe:", error);
+              if (document.body.contains(iframe)) {
+                document.body.removeChild(iframe);
+              }
+              window.open(pdfUrl, '_blank');
+            }
+          };
+          
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 5000);
+        }
+      } else {
+        // Abrir el PDF en una nueva pestaña para evitar problemas de CORS
+        window.open(pdfUrl, '_blank');
+      }
     } catch (error) {
       console.log("Error al abrir PDF: ", error);
       throw new Error("Error al abrir el PDF");

@@ -71,7 +71,7 @@ type CloseSaleDialogProps = {
         fileName?: string;
         error?: string;
     }>;
-    onDownloadPDF?: (documentId: string, fileName: string) => Promise<void>;
+    onDownloadPDF?: (documentId: string, fileName: string, openInPrintMode?: boolean) => Promise<void>;
     onSendPDFToWhatsapp?: (
         phoneNumber: string,
         documentId: string,
@@ -656,7 +656,7 @@ const CloseSaleDialog = ({
 
     const handleDownloadPDF = async () => {
         if (onDownloadPDF && emittedDocumentId && emittedFileName) {
-            await onDownloadPDF(emittedDocumentId, emittedFileName);
+            await onDownloadPDF(emittedDocumentId, emittedFileName, true);
         }
     };
 

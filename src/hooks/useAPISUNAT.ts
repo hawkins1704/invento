@@ -126,17 +126,19 @@ export function useAPISUNAT() {
 
   /**
    * Abre el PDF de un documento en una nueva pestaña
+   * @param openInPrintMode Si es true, abre el PDF directamente en modo impresión
    */
   const downloadPDF = async (
     documentId: string,
     format: PDFFormat,
     fileName: string,
+    openInPrintMode: boolean = false
   ): Promise<void> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      await apisunatClient.downloadPDF(documentId, format, fileName);
+      await apisunatClient.downloadPDF(documentId, format, fileName, openInPrintMode);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Error al abrir PDF";

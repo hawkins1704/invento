@@ -116,7 +116,7 @@ const OrderItemsList = ({
                                                 item.quantity - 1
                                             )
                                         }
-                                        className={`inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-300 bg-slate-100 text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white ${
+                                        className={`h-9 flex flex-1 items-center justify-center rounded border border-slate-300 bg-slate-100 text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white ${
                                             useIconsForButtons ? "" : "cursor-pointer"
                                         }`}
                                         aria-label="Disminuir cantidad"
@@ -137,7 +137,7 @@ const OrderItemsList = ({
                                                 Number(event.target.value)
                                             )
                                         }
-                                        className="flex-1 rounded border border-slate-300 bg-white px-3 py-2 text-center text-sm font-semibold text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-1 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                                        className="flex-1 min-w-0 rounded border border-slate-300 bg-white px-3 py-2 text-center text-sm font-semibold text-slate-900 outline-none transition focus:border-[#fa7316] focus:ring-1 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                                     />
                                     <button
                                         type="button"
@@ -148,7 +148,7 @@ const OrderItemsList = ({
                                             )
                                         }
                                         disabled={!canIncrement}
-                                        className={`inline-flex h-9 flex-1 items-center justify-center rounded border border-slate-300 bg-slate-100 text-slate-700 transition dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 ${
+                                        className={`h-9 flex flex-1 items-center justify-center rounded border border-slate-300 bg-slate-100 text-slate-700 transition dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 ${
                                             canIncrement
                                                 ? "hover:border-[#fa7316] hover:text-slate-900 dark:hover:text-white"
                                                 : "cursor-not-allowed opacity-50"
