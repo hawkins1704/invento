@@ -193,7 +193,7 @@ class APISUNATClient {
 
 
   /**
-   * Abre el PDF de un documento directamente en modo impresión
+   * Abre el PDF de un documento en una nueva pestaña
    * Endpoint: GET /documents/:documentId/getPDF/:format/:fileName[.pdf]
    * 
    * @param documentId ID del documento
@@ -212,64 +212,20 @@ class APISUNATClient {
       // Construir la URL completa
       const baseUrl = this.axiosInstance.defaults.baseURL || APISUNAT_BASE_URL;
       const pdfUrl = `${baseUrl}/documents/${documentId}/getPDF/${format}/${fileNameWithExtension}`;
-      
-      // Crear un iframe oculto para cargar el PDF y abrirlo en modo impresión
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = 'none';
-      iframe.style.opacity = '0';
-      iframe.style.pointerEvents = 'none';
-      
-      // Función para limpiar el iframe después de imprimir
-      const cleanup = () => {
-        setTimeout(() => {
-          if (iframe.parentNode) {
-            iframe.parentNode.removeChild(iframe);
-          }
-        }, 1000);
-      };
-      
-      // Manejar el evento de carga del PDF
-      iframe.onload = () => {
-        try {
-          // Esperar un momento para asegurar que el PDF esté completamente cargado
-          setTimeout(() => {
-            const iframeWindow = iframe.contentWindow;
-            if (iframeWindow) {
-              // Llamar a print() en el contexto del iframe
-              iframeWindow.print();
-              // Limpiar el iframe después de un tiempo
-              cleanup();
-            }
-          }, 500);
-        } catch (error) {
-          console.error("Error al imprimir PDF:", error);
-          cleanup();
-          throw new Error("Error al abrir el diálogo de impresión");
-        }
-      };
-      
-      // Manejar errores de carga
-      iframe.onerror = () => {
-        cleanup();
-        throw new Error("Error al cargar el PDF");
-      };
-      
-      // Agregar el iframe al DOM y cargar el PDF
-      document.body.appendChild(iframe);
-      iframe.src = pdfUrl;
-      
-      // Timeout de seguridad: si después de 10 segundos no se ha cargado, limpiar
-      setTimeout(() => {
-        if (iframe.parentNode) {
-          cleanup();
-        }
-      }, 10000);
-      
+
+      //TEST IFRAME
+      // const iframe = document.createElement('iframe');
+      // iframe.src = pdfUrl;
+      // iframe.style.display = 'block';
+      // document.body.appendChild(iframe);
+      // window.print();
+
+  
+      // Abrir el PDF en una nueva pestaña para evitar problemas de CORS
+      window.open(pdfUrl, '_blank');
+  
+
+
     } catch (error) {
       console.log("Error al abrir PDF: ", error);
       throw new Error("Error al abrir el PDF");
