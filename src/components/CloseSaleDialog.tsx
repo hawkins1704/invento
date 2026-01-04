@@ -71,7 +71,7 @@ type CloseSaleDialogProps = {
         fileName?: string;
         error?: string;
     }>;
-    onDownloadPDF?: (documentId: string, fileName: string) => Promise<void>;
+    onPrintPDF?: (documentId: string, fileName: string) => Promise<void>;
     onSendPDFToWhatsapp?: (
         phoneNumber: string,
         documentId: string,
@@ -89,7 +89,7 @@ const CloseSaleDialog = ({
     onCloseWithoutEmit,
     onEmitBoleta,
     onEmitFactura,
-    onDownloadPDF,
+    onPrintPDF,
     onSendPDFToWhatsapp,
 }: CloseSaleDialogProps) => {
     const [paymentMethod, setPaymentMethod] = useState<
@@ -654,9 +654,9 @@ const CloseSaleDialog = ({
         return null;
     }
 
-    const handleDownloadPDF = async () => {
-        if (onDownloadPDF && emittedDocumentId && emittedFileName) {
-            await onDownloadPDF(emittedDocumentId, emittedFileName);
+    const handlePrintPDF = async () => {
+        if (onPrintPDF && emittedDocumentId && emittedFileName) {
+            await onPrintPDF(emittedDocumentId, emittedFileName);
         }
     };
 
@@ -1157,7 +1157,7 @@ const CloseSaleDialog = ({
                             </p>
                             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
                                 {isDocumentEmitted &&
-                                    onDownloadPDF &&
+                                    onPrintPDF &&
                                     emittedDocumentId &&
                                     emittedFileName && (
                                         <div className="flex  sm:flex-row gap-3 w-full max-w-md">
@@ -1170,7 +1170,7 @@ const CloseSaleDialog = ({
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={handleDownloadPDF}
+                                                onClick={handlePrintPDF}
                                                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
                                             >
                                                 IMPRIMIR PDF
@@ -1180,7 +1180,7 @@ const CloseSaleDialog = ({
                                 <button
                                     type="button"
                                     onClick={handleClose}
-                                    className={`inline-flex ${isDocumentEmitted && onDownloadPDF && emittedDocumentId && emittedFileName ? "flex-1" : "w-full"} items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white`}
+                                    className={`inline-flex ${isDocumentEmitted && onPrintPDF && emittedDocumentId && emittedFileName ? "flex-1" : "w-full"} items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white`}
                                 >
                                     CERRAR
                                 </button>

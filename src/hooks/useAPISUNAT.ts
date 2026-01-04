@@ -146,7 +146,28 @@ export function useAPISUNAT() {
     }
   };
 
+    /**
+   * Imprime el PDF de un documento
+   */
+    const printPDF = async (
+      documentId: string,
+      format: PDFFormat,
+      fileName: string,
+    ): Promise<void> => {
+      setIsLoading(true);
+      setError(null);
   
+      try {
+        await apisunatClient.printPDF(documentId, format, fileName);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Error al imprimir PDF";
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
 
   return {
     getLastDocument,
@@ -154,6 +175,7 @@ export function useAPISUNAT() {
     listDocuments,
     getDocument,
     downloadPDF,
+    printPDF,
     isLoading,
     error,
     clearError: () => setError(null),

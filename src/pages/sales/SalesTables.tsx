@@ -97,7 +97,7 @@ const SalesTablesContent = ({
     const createCustomer = useMutation(api.customers.create);
     const updateCustomer = useMutation(api.customers.update);
     const updateSaleDocumentId = useMutation(api.sales.updateDocumentId);
-    const { getLastDocument, emitDocument, downloadPDF } = useAPISUNAT();
+    const { getLastDocument, emitDocument, printPDF } = useAPISUNAT();
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [tableForNewSale, setTableForNewSale] =
@@ -1035,22 +1035,23 @@ const SalesTablesContent = ({
                         setIsProcessingClose(false);
                     }
                 }}
-                onDownloadPDF={async (documentId: string, fileName: string) => {
+                onPrintPDF={async (documentId: string, fileName: string) => {
+             
                     try {
                         // Usar el formato del usuario o A4 por defecto
                         const format =
                             (currentUser as any)?.printFormat || "A4";
-                        await downloadPDF(
+                        await printPDF(
                             documentId,
                             format as "A4" | "A5" | "ticket58mm" | "ticket80mm",
                             fileName
                         );
                     } catch (error) {
-                        console.error("Error al abrir PDF:", error);
+                        console.error("Error al imprimir PDF:", error);
                         alert(
                             error instanceof Error
                                 ? error.message
-                                : "Error al abrir el PDF"
+                                : "Error al imprimir el PDF"
                         );
                     }
                 }}
