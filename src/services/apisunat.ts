@@ -258,24 +258,7 @@ class APISUNATClient {
                 this.axiosInstance.defaults.baseURL || APISUNAT_BASE_URL;
             const pdfUrl = `${baseUrl}/documents/${documentId}/getPDF/${format}/${fileNameWithExtension}`;
             // console.log("pdfUrl: ", pdfUrl);
-
-            const formatWithoutTicket = format.replace(/^ticket/i, "");
-            const directpdfUrl = `https://pdf.apisunat.com/${documentId}/${formatWithoutTicket}/${fileNameWithExtension}`;
-            console.log("directpdfUrl: ", directpdfUrl);
-            const iframe = document.createElement("iframe");
-            iframe.src = directpdfUrl;
-            iframe.style.display = "block";
-            iframe.style.width = "100%";
-            iframe.style.height = "100%";
-            document.body.appendChild(iframe);
-            
-            const printWindow = iframe.contentWindow;
-            if(printWindow) {
-              console.log("printWindow disponible: ", printWindow);
-                // printWindow.focus();
-                // printWindow.print();
-            }
-            // window.print();
+            window.open(pdfUrl, "_blank");
         } catch (error) {
             console.log("Error al imprimir PDF: ", error);
             throw new Error("Error al imprimir el PDF");

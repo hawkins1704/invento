@@ -31,8 +31,8 @@ export const useTheme = () => {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
     
     // Debug: verificar que se aplicó correctamente
-    console.log("Theme changed to:", theme);
-    console.log("HTML has dark class:", root.classList.contains("dark"));
+    // console.log("Theme changed to:", theme);
+    // console.log("HTML has dark class:", root.classList.contains("dark"));
   }, [theme]);
 
   const toggleTheme = () => {

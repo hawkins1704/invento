@@ -725,7 +725,7 @@ const CloseSaleDialog = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 py-10">
             <div className="absolute inset-0 bg-black/40 backdrop-blur dark:bg-slate-950/70" />
-            <div className="relative flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl shadow-black/60 dark:border-slate-800 dark:bg-slate-900/95 dark:text-white max-h-[90vh] overflow-hidden">
+            <div id="print-container" className="relative flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl shadow-black/60 dark:border-slate-800 dark:bg-slate-900/95 dark:text-white max-h-[90vh] overflow-hidden">
                 {emissionStatus === "idle" ? (
                     <>
                         <header className="flex flex-col gap-2">
@@ -1106,7 +1106,7 @@ const CloseSaleDialog = ({
                                 <div className="h-2 w-2 animate-bounce rounded-full bg-[#fa7316]"></div>
                             </div>
                             <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                                ENVIANDO VENTA...
+                                ENVIANDO A SUNAT...
                             </p>
                         </div>
                     </>
@@ -1143,8 +1143,8 @@ const CloseSaleDialog = ({
                             <div className="flex items-center justify-center sm:justify-between">
                                 <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
                                     {isDocumentEmitted
-                                        ? "Documento emitido"
-                                        : "Venta cerrada"}
+                                        ? "Documento emitido!"
+                                        : "Venta finalizada!"}
                                 </h2>
                             </div>
                         </header>

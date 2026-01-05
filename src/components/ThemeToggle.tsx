@@ -5,13 +5,13 @@ const ThemeToggle = () => {
   const { theme, toggleTheme, isDark } = useTheme();
 
   const handleToggle = () => {
-    console.log("Toggle clicked, current theme:", theme);
+    // console.log("Toggle clicked, current theme:", theme);
     toggleTheme();
     // Verificar después de un pequeño delay
-    setTimeout(() => {
-      console.log("HTML classes:", document.documentElement.classList.toString());
-      console.log("Theme after toggle:", localStorage.getItem("theme"));
-    }, 100);
+    // setTimeout(() => {
+    //   console.log("HTML classes:", document.documentElement.classList.toString());
+    //   console.log("Theme after toggle:", localStorage.getItem("theme"));
+    // }, 100);
   };
 
   return (
