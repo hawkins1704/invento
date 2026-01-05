@@ -2,7 +2,7 @@ import { useTheme } from "../hooks/useTheme";
 import { HiSun, HiMoon } from "react-icons/hi";
 
 const ThemeToggle = () => {
-  const { theme, toggleTheme, isDark } = useTheme();
+  const {  toggleTheme, isDark } = useTheme();
 
   const handleToggle = () => {
     // console.log("Toggle clicked, current theme:", theme);
