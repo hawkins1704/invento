@@ -7,6 +7,7 @@ import { ConvexError } from "convex/values";
  * Acción para consultar datos de una empresa por RUC
  * Actúa como proxy para evitar problemas de CORS
  * "use node" permite usar process.env y fetch nativo de Node.js
+ * Utiliza MiAPI Cloud para consultas de RUC
  */
 export const consultarRUC = action({
   args: {
@@ -20,22 +21,23 @@ export const consultarRUC = action({
     }
 
     // Obtener variables de entorno
-    const baseUrl = process.env.DECOLECTA_BASE_URL;
-    const apiToken = process.env.DECOLECTA_API_TOKEN;
+    const baseUrl = process.env.MIAPI_BASE_URL;
+    const apiToken = process.env.MIAPI_API_TOKEN;
 
     if (!baseUrl || !apiToken) {
-      throw new ConvexError("Configuración de Decolecta no encontrada");
+      throw new ConvexError("Configuración de MiAPI no encontrada");
     }
 
     // Limpiar el RUC de espacios y caracteres especiales
     const rucLimpio = args.ruc.trim().replace(/\D/g, "");
 
-    if (!rucLimpio || rucLimpio.length < 8) {
-      throw new ConvexError("El RUC debe tener al menos 8 dígitos");
+    if (!rucLimpio || rucLimpio.length !== 11) {
+      throw new ConvexError("El RUC debe tener 11 dígitos");
     }
 
     try {
-      const url = `${baseUrl}/v1/sunat/ruc?numero=${encodeURIComponent(rucLimpio)}`;
+      // Endpoint de MiAPI: GET /v1/ruc/{ruc}
+      const url = `${baseUrl}/v1/ruc/${rucLimpio}`;
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -52,13 +54,28 @@ export const consultarRUC = action({
       }
 
       const data = await response.json();
+      
+      // MiAPI devuelve { success: true, datos: {...} }
+      // Retornamos solo los datos para mantener compatibilidad con el código existente
+      if (data.success && data.datos) {
+        return data.datos;
+      }
+      
+      // Si success es false o no hay datos, lanzar error
+      if (!data.success) {
+        throw new ConvexError(
+          data.message || data.error || "Error al consultar RUC: La consulta no fue exitosa"
+        );
+      }
+      
+      // Fallback: retornar data directamente si no tiene la estructura esperada
       return data;
     } catch (error) {
       if (error instanceof ConvexError) {
         throw error;
       }
       throw new ConvexError(
-        error instanceof Error ? error.message : "Error de conexión con Decolecta"
+        error instanceof Error ? error.message : "Error de conexión con MiAPI"
       );
     }
   },
@@ -67,6 +84,7 @@ export const consultarRUC = action({
 /**
  * Acción para consultar datos de una persona por DNI
  * Actúa como proxy para evitar problemas de CORS
+ * Utiliza MiAPI Cloud para consultas de DNI
  */
 export const consultarDNI = action({
   args: {
@@ -80,24 +98,23 @@ export const consultarDNI = action({
     }
 
     // Obtener variables de entorno
-    const baseUrl = process.env.DECOLECTA_BASE_URL;
-    const apiToken = process.env.DECOLECTA_API_TOKEN;
-
-
+    const baseUrl = process.env.MIAPI_BASE_URL;
+    const apiToken = process.env.MIAPI_API_TOKEN;
 
     if (!baseUrl || !apiToken) {
-      throw new ConvexError("Configuración de Decolecta no encontrada");
+      throw new ConvexError("Configuración de MiAPI no encontrada");
     }
 
     // Limpiar el DNI de espacios y caracteres especiales
     const dniLimpio = args.dni.trim().replace(/\D/g, "");
 
-    if (!dniLimpio || dniLimpio.length < 8) {
+    if (!dniLimpio || dniLimpio.length !== 8) {
       throw new ConvexError("El DNI debe tener 8 dígitos");
     }
 
     try {
-      const url = `${baseUrl}/v1/reniec/dni?numero=${encodeURIComponent(dniLimpio)}`;
+      // Endpoint de MiAPI: GET /v1/dni/{dni}
+      const url = `${baseUrl}/v1/dni/${dniLimpio}`;
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -114,15 +131,29 @@ export const consultarDNI = action({
       }
 
       const data = await response.json();
+      
+      // MiAPI devuelve { success: true, datos: {...} }
+      // Retornamos solo los datos para mantener compatibilidad con el código existente
+      if (data.success && data.datos) {
+        return data.datos;
+      }
+      
+      // Si success es false o no hay datos, lanzar error
+      if (!data.success) {
+        throw new ConvexError(
+          data.message || data.error || "Error al consultar DNI: La consulta no fue exitosa"
+        );
+      }
+      
+      // Fallback: retornar data directamente si no tiene la estructura esperada
       return data;
     } catch (error) {
       if (error instanceof ConvexError) {
         throw error;
       }
       throw new ConvexError(
-        error instanceof Error ? error.message : "Error de conexión con Decolecta"
+        error instanceof Error ? error.message : "Error de conexión con MiAPI"
       );
     }
   },
 });
-

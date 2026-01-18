@@ -7,8 +7,8 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { FaArrowLeft } from "react-icons/fa";
 import { MdDeleteOutline } from "react-icons/md";
-import { useDecolecta } from "../../hooks/useDecolecta";
-import type { RUCResponse } from "../../types/decolecta";
+import { useMiAPIDoc } from "../../hooks/useMiAPIDoc";
+import type { RUCResponse } from "../../types/miapidoc";
 
 type ProfileFormState = {
   name: string;
@@ -63,7 +63,7 @@ const EditProfile = () => {
   const [isCompanyLogoRemoved, setIsCompanyLogoRemoved] = useState(false);
   const [isLoadingRUC, setIsLoadingRUC] = useState(false);
   
-  const { consultarRUC } = useDecolecta();
+  const { consultarRUC } = useMiAPIDoc();
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastQueriedRUCRef = useRef<string>("");
 
@@ -134,7 +134,7 @@ const EditProfile = () => {
         try {
           const response = await consultarRUC(rucNumber);
           if (response) {
-            // Mapear datos de RUC según estructura de Decolecta API
+            // Mapear datos de RUC según estructura de MiAPI Cloud
             setFormState((previous) => {
               const updated = { ...previous };
               const rucResponse = response as RUCResponse;
@@ -144,24 +144,27 @@ const EditProfile = () => {
                 updated.companyName = rucResponse.razon_social;
               }
               
-              // Mapear dirección
-              if (rucResponse.direccion) {
-                updated.companyAddress = rucResponse.direccion;
-              }
-              
-              // Mapear distrito
-              if (rucResponse.distrito) {
-                updated.companyDistrict = rucResponse.distrito;
-              }
-              
-              // Mapear provincia
-              if (rucResponse.provincia) {
-                updated.companyProvince = rucResponse.provincia;
-              }
-              
-              // Mapear departamento
-              if (rucResponse.departamento) {
-                updated.companyDepartment = rucResponse.departamento;
+              // Mapear datos desde domiciliado
+              if (rucResponse.domiciliado) {
+                // Mapear dirección
+                if (rucResponse.domiciliado.direccion) {
+                  updated.companyAddress = rucResponse.domiciliado.direccion;
+                }
+                
+                // Mapear distrito
+                if (rucResponse.domiciliado.distrito) {
+                  updated.companyDistrict = rucResponse.domiciliado.distrito;
+                }
+                
+                // Mapear provincia
+                if (rucResponse.domiciliado.provincia) {
+                  updated.companyProvince = rucResponse.domiciliado.provincia;
+                }
+                
+                // Mapear departamento
+                if (rucResponse.domiciliado.departamento) {
+                  updated.companyDepartment = rucResponse.domiciliado.departamento;
+                }
               }
               
               return updated;

@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import { useQuery } from "convex/react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { api } from "../../convex/_generated/api";
-import { useDecolecta } from "../hooks/useDecolecta";
-import type { RUCResponse, DNIResponse } from "../types/decolecta";
+import { useMiAPIDoc } from "../hooks/useMiAPIDoc";
+import type { RUCResponse, DNIResponse } from "../types/miapidoc";
 import { HiOutlineReceiptTax } from "react-icons/hi";
 import { MdErrorOutline } from "react-icons/md";
 import { BiBadgeCheck } from "react-icons/bi";
@@ -121,7 +121,7 @@ const CloseSaleDialog = ({
     const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
     const [whatsappError, setWhatsappError] = useState<string | null>(null);
 
-    const { consultarRUC, consultarDNI } = useDecolecta();
+    const { consultarRUC, consultarDNI } = useMiAPIDoc();
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastQueriedRef = useRef<string>(""); // Para evitar consultas duplicadas
 
@@ -269,7 +269,7 @@ const CloseSaleDialog = ({
             return;
         }
 
-        // Solo consultar Decolecta si:
+        // Solo consultar MiAPI si:
         // 1. El formulario de cliente está visible
         // 2. Se detectó un tipo de documento válido
         // 3. El número tiene exactamente la longitud requerida
@@ -295,7 +295,7 @@ const CloseSaleDialog = ({
                     if (documentType === "RUC") {
                         const response = await consultarRUC(documentNumber);
                         if (response) {
-                            // Mapear datos de RUC según estructura de Decolecta API
+                            // Mapear datos de RUC según estructura de MiAPI Cloud
                             setCustomerForm((previous) => {
                                 const updated = { ...previous };
                                 const rucResponse = response as RUCResponse;
@@ -305,53 +305,56 @@ const CloseSaleDialog = ({
                                     updated.name = rucResponse.razon_social;
                                 }
 
-                                // Mapear dirección (con tilde según la API)
-                                if (rucResponse.direccion) {
-                                    updated.address = rucResponse.direccion;
+                                // Mapear dirección desde domiciliado
+                                if (rucResponse.domiciliado?.direccion) {
+                                    updated.address = rucResponse.domiciliado.direccion;
                                 }
 
-                                // Nota: La API de RUC básico no devuelve email ni teléfono
+                                // Nota: La API de RUC no devuelve email ni teléfono
                                 // Estos campos se mantienen vacíos o se pueden llenar manualmente
 
                                 return updated;
                             });
-                            // Resetear datos originales ya que viene de Decolecta (nuevo cliente)
+                            // Resetear datos originales ya que viene de MiAPI (nuevo cliente)
                             setOriginalCustomerData(null);
                             setCustomerIdFromConvex(null);
                         }
                     } else if (documentType === "DNI") {
                         const response = await consultarDNI(documentNumber);
                         if (response) {
-                            // Mapear datos de DNI según estructura de Decolecta API
+                            // Mapear datos de DNI según estructura de MiAPI Cloud
                             setCustomerForm((previous) => {
                                 const updated = { ...previous };
                                 const dniResponse = response as DNIResponse;
 
-                                // Priorizar full_name, si no existe construir desde los campos individuales
-                                if (dniResponse.full_name) {
-                                    updated.name = dniResponse.full_name;
-                                } else if (
-                                    dniResponse.first_name &&
-                                    dniResponse.first_last_name &&
-                                    dniResponse.second_last_name
-                                ) {
-                                    updated.name =
-                                        `${dniResponse.first_last_name} ${dniResponse.second_last_name} ${dniResponse.first_name}`.trim();
-                                } else if (
-                                    dniResponse.first_name &&
-                                    dniResponse.first_last_name
-                                ) {
-                                    updated.name =
-                                        `${dniResponse.first_last_name} ${dniResponse.first_name}`.trim();
-                                } else if (dniResponse.first_name) {
-                                    updated.name = dniResponse.first_name;
+                                // Construir nombre completo desde los campos de MiAPI
+                                // Formato: ape_paterno ape_materno nombres
+                                const nombreParts: string[] = [];
+                                if (dniResponse.ape_paterno) {
+                                    nombreParts.push(dniResponse.ape_paterno);
                                 }
-                                // Nota: La API de DNI de Decolecta no devuelve dirección, email ni teléfono
+                                if (dniResponse.ape_materno) {
+                                    nombreParts.push(dniResponse.ape_materno);
+                                }
+                                if (dniResponse.nombres) {
+                                    nombreParts.push(dniResponse.nombres);
+                                }
+                                
+                                if (nombreParts.length > 0) {
+                                    updated.name = nombreParts.join(" ").trim();
+                                }
+
+                                // Mapear dirección desde domiciliado (opcional)
+                                if (dniResponse.domiciliado?.direccion) {
+                                    updated.address = dniResponse.domiciliado.direccion;
+                                }
+
+                                // Nota: La API de DNI no devuelve email ni teléfono
                                 // Estos campos se mantienen vacíos o se pueden llenar manualmente
 
                                 return updated;
                             });
-                            // Resetear datos originales ya que viene de Decolecta (nuevo cliente)
+                            // Resetear datos originales ya que viene de MiAPI (nuevo cliente)
                             setOriginalCustomerData(null);
                             setCustomerIdFromConvex(null);
                         }
@@ -396,7 +399,7 @@ const CloseSaleDialog = ({
     // Función para comparar si hay cambios en los datos del cliente
     const hasCustomerChanges = (): boolean => {
         if (!originalCustomerData) {
-            // Si no hay datos originales, significa que es un cliente nuevo (viene de Decolecta)
+            // Si no hay datos originales, significa que es un cliente nuevo (viene de MiAPI)
             // En este caso, siempre hay "cambios" porque necesitamos crear el cliente
             return true;
         }

@@ -1,15 +1,15 @@
 import { useState, useCallback } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import type { RUCResponse, DNIResponse } from "../types/decolecta";
+import type { RUCResponse, DNIResponse } from "../types/miapidoc";
 
 /**
- * Hook personalizado para usar Decolecta API a través de Convex (proxy)
+ * Hook personalizado para usar MiAPI Cloud (consulta DNI/RUC) a través de Convex (proxy)
  * Evita problemas de CORS haciendo las peticiones desde el servidor
  * 
  * Ejemplo de uso:
  * ```tsx
- * const { consultarRUC, consultarDNI, isLoading, error } = useDecolecta();
+ * const { consultarRUC, consultarDNI, isLoading, error } = useMiAPIDoc();
  * 
  * const handleConsultarRUC = async () => {
  *   const result = await consultarRUC("20100070970");
@@ -19,13 +19,13 @@ import type { RUCResponse, DNIResponse } from "../types/decolecta";
  * };
  * ```
  */
-export function useDecolecta() {
+export function useMiAPIDoc() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Acciones de Convex que actúan como proxy
-  const consultarRUCAction = useAction(api.decolecta.consultarRUC);
-  const consultarDNIAction = useAction(api.decolecta.consultarDNI);
+  const consultarRUCAction = useAction(api.miapidoc.consultarRUC);
+  const consultarDNIAction = useAction(api.miapidoc.consultarDNI);
 
   /**
    * Consulta datos de una empresa por RUC
@@ -79,4 +79,3 @@ export function useDecolecta() {
     clearError: () => setError(null),
   };
 }
-
