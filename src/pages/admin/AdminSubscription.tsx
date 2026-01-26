@@ -63,6 +63,24 @@ const AdminSubscription = () => {
     const currentSubscription: SubscriptionType =
         (currentUser?.subscriptionType as SubscriptionType) || "starter";
 
+    const getButtonText = (type: SubscriptionType): string => {
+        switch (type) {
+            case "starter":
+                return "DESEO REDUCIR MI PLAN";
+            case "negocio":
+            case "pro":
+                return "LO QUIERO!";
+            default:
+                return "";
+        }
+    };
+
+    const getWhatsAppUrl = (planName: string): string => {
+        const message = `Hola! Soy cliente de Fudi! Tengo el plan ${currentUser?.subscriptionType} y quiero cambiar mi plan al Plan ${planName}`;
+        const encodedMessage = encodeURIComponent(message);
+        return `https://wa.me/51999122784?text=${encodedMessage}`;
+    };
+
     if (currentUser === undefined) {
         return (
             <div className="flex flex-1 items-center justify-center text-slate-500 dark:text-slate-400">
@@ -77,7 +95,7 @@ const AdminSubscription = () => {
             <PageHeader
                 chipLabel="Suscripciones"
                 title="Gestionar suscripciones"
-                description="Contacta a soporte para actualizar tu plan!"
+                description=""
             />
 
             <div className="grid gap-6 lg:grid-cols-3">
@@ -89,7 +107,7 @@ const AdminSubscription = () => {
                         return (
                             <div
                                 key={type}
-                                className={`relative rounded-lg border p-6 transition-all ${
+                                className={`relative flex flex-col rounded-lg border p-6 transition-all ${
                                     isSelected
                                         ? "border-[#fa7316] bg-[#fa7316]/10 shadow-lg shadow-[#fa7316]/20"
                                         : "border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-700"
@@ -122,7 +140,7 @@ const AdminSubscription = () => {
                                     </div>
                                 </div>
 
-                                <ul className="space-y-3">
+                                <ul className="mb-6 flex-1 space-y-3">
                                     {info.features.map((feature, index) => (
                                         <li
                                             key={index}
@@ -140,10 +158,19 @@ const AdminSubscription = () => {
                                     ))}
                                 </ul>
 
-                                {isSelected && (
-                                    <div className="mt-6 rounded-lg border border-[#fa7316]/30 bg-[#fa7316]/5 px-4 py-3 text-center text-sm text-[#fa7316] font-semibold uppercase ">
-                                        Plan activo
+                                {isSelected ? (
+                                    <div className="rounded-lg border border-[#fa7316]/30 bg-[#fa7316] px-4 py-3 text-center text-sm text-white font-semibold uppercase ">
+                                        Ya tengo este plan
                                     </div>
+                                ) : (
+                                    <a
+                                        href={getWhatsAppUrl(info.name)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block rounded-lg border border-[#fa7316] px-4 py-3 text-center text-sm text-[#fa7316] font-semibold uppercase transition-colors hover:bg-[#fa7316]/10"
+                                    >
+                                        {getButtonText(type)}
+                                    </a>
                                 )}
                             </div>
                         );
