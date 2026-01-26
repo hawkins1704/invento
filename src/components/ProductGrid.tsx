@@ -120,17 +120,25 @@ const ProductGrid = ({
                                 product.allowNegativeSale ?? false;
 
                             // Validar stock según la configuración
+                            // Si showInventoryCheck es false, no verificar stock en absoluto
+                            // Si showInventoryCheck es true, solo verificar si inventoryActivated está activado
                             const isOutOfStock = showInventoryCheck
                                 ? inventoryActivated &&
                                   availableStock <= 0 &&
                                   !allowNegativeSale
-                                : availableStock <= 0 && !allowNegativeSale;
+                                : false; // No verificar stock cuando showInventoryCheck es false
 
                             return (
                                 <button
                                     key={product._id}
                                     type="button"
-                                    onClick={() => onAddProduct(product)}
+                                    onClick={() => {
+                                        // Prevenir clic si está sin stock
+                                        if (isOutOfStock) {
+                                            return;
+                                        }
+                                        onAddProduct(product);
+                                    }}
                                     className={`flex flex-row lg:flex-col items-center justify-center h-full gap-3 rounded-lg border ${productButtonPadding} text-left text-sm transition ${
                                         isOutOfStock
                                             ? "cursor-not-allowed border-red-500/40 bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-200"
@@ -159,8 +167,8 @@ const ProductGrid = ({
                                                 </p>
                                             )}
                                             {isOutOfStock && (
-                                                <p className="text-xs text-red-700 dark:text-red-200/80 text-center">
-                                                    Producto agotado
+                                                <p className="text-xs font-semibold text-red-700 dark:text-red-200/80 text-center">
+                                                   PRODUCTO AGOTADO
                                                 </p>
                                             )}
                                             <p

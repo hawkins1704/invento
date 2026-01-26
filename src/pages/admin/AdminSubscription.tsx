@@ -141,7 +141,7 @@ const AdminSubscription = () => {
                                 </ul>
 
                                 {isSelected && (
-                                    <div className="mt-6 rounded-lg border border-[#fa7316]/30 bg-[#fa7316]/5 px-4 py-3 text-center text-sm text-[#fa7316]">
+                                    <div className="mt-6 rounded-lg border border-[#fa7316]/30 bg-[#fa7316]/5 px-4 py-3 text-center text-sm text-[#fa7316] font-semibold uppercase ">
                                         Plan activo
                                     </div>
                                 )}

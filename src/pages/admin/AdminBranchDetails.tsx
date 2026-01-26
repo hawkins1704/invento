@@ -302,12 +302,7 @@ const AdminBranchDetails = () => {
             : null);
     const branchTables = tables ?? [];
     const totalTables = branchTables.length;
-    const availableTables = branchTables.filter(
-        (table) => (table.status ?? "available") === "available"
-    ).length;
-    const occupiedTables = branchTables.filter(
-        (table) => table.status === "occupied"
-    ).length;
+
     const branchName =
         (location.state as { branchName?: string } | null)?.branchName ??
         branch?.name ??
@@ -762,22 +757,8 @@ const AdminBranchDetails = () => {
                             </div>
                         </div>
 
-                        <div className="mt-4 grid gap-4 md:grid-cols-3">
-                            <SummaryStatCard
-                                title="Mesas registradas"
-                                value={totalTables.toString()}
-                                helper="Total de mesas configuradas."
-                            />
-                            <SummaryStatCard
-                                title="Disponibles"
-                                value={availableTables.toString()}
-                                helper="Mesas listas para asignar."
-                            />
-                            <SummaryStatCard
-                                title="Ocupadas"
-                                value={occupiedTables.toString()}
-                                helper="Mesas con ventas activas."
-                            />
+                        <div className="mt-4 grid gap-4 md:grid-cols-4">
+                         
 
                             <SummaryStatCard
                                 title="Serie Boleta"
@@ -788,6 +769,16 @@ const AdminBranchDetails = () => {
                                 title="Serie Factura"
                                 value={branch?.serieFactura ?? "—"}
                                 helper="Serie de facturas para la sucursal."
+                            />
+                            <SummaryStatCard
+                                title="Correlativo Boleta"
+                                value={branch?.correlativoBoleta?.toString() ?? "—"}
+                                helper="Próximo número de boleta a emitir."
+                            />
+                            <SummaryStatCard
+                                title="Correlativo Factura"
+                                value={branch?.correlativoFactura?.toString() ?? "—"}
+                                helper="Próximo número de factura a emitir."
                             />
                         </div>
                     </>
@@ -1046,7 +1037,7 @@ const AdminBranchDetails = () => {
                 <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Inventario
                 </h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
                     {categories?.map((item) => {
                         const categoryId = item.category
                             ._id as unknown as string;
@@ -1058,17 +1049,17 @@ const AdminBranchDetails = () => {
                                 onClick={() =>
                                     setSelectedCategoryId(categoryId)
                                 }
-                                className={`flex flex-col gap-1 rounded-lg border p-4 text-left transition ${
+                                className={`flex flex-col gap-1 rounded-lg border p-3 text-left transition ${
                                     isSelected
                                         ? "border-[#fa7316] bg-[#fa7316]/10 text-slate-900 dark:text-white"
                                         : "border-slate-300 bg-white text-slate-700 hover:border-[#fa7316]/50 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
                                 }`}
                             >
-                                <span className="text-md font-semibold ">
+                                <span className="text-sm font-semibold ">
                                     {item.category.name}
                                 </span>
-                                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
-                                    {item.productCount} productos
+                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                                    {item.productCount} Productos
                                 </span>
                             </button>
                         );
@@ -1085,9 +1076,7 @@ const AdminBranchDetails = () => {
             <section className="">
                 {selectedCategoryId === null ? (
                     <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-500 dark:text-slate-400">
-                        <span className="text-4xl" aria-hidden>
-                            🗂️
-                        </span>
+                        
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             Selecciona una categoría para gestionar el
                             inventario de sus productos.

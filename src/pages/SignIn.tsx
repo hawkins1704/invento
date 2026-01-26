@@ -1,7 +1,7 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import CodePinInput from "../components/CodePinInput";
 
 
@@ -240,6 +240,17 @@ export function SignIn() {
                                   ? "Iniciar sesión"
                                   : "Crear cuenta"}
                         </button>
+
+                        {step === "signIn" && (
+                            <div className="text-center">
+                                <Link
+                                    to="/password-reset"
+                                    className="text-sm font-medium text-slate-600 transition hover:text-[#fa7316] dark:text-slate-400 dark:hover:text-[#fa7316]"
+                                >
+                                    ¿Olvidaste tu contraseña?
+                                </Link>
+                            </div>
+                        )}
                     </form>
 
                     <footer className="mt-8 text-center text-sm text-slate-600 dark:text-slate-400">

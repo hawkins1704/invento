@@ -16,8 +16,8 @@ export default defineSchema({
     salesCode: v.string(),
     inventoryCode: v.string(),
     IGVPercentage: v.optional(v.union(v.literal(10), v.literal(18))),
-    personaId: v.optional(v.string()),
-    personaToken: v.optional(v.string()),
+    secretKey: v.optional(v.string()),
+    currency: v.optional(v.union(v.literal("PEN"), v.literal("USD"))),
     companyName: v.optional(v.string()),
     companyCommercialName: v.optional(v.string()),
     ruc: v.optional(v.string()),
@@ -26,12 +26,12 @@ export default defineSchema({
     companyDistrict: v.optional(v.string()),
     companyProvince: v.optional(v.string()),
     companyDepartment: v.optional(v.string()),
-    printFormat: v.optional(v.union(v.literal("A4"), v.literal("A5"), v.literal("ticket58mm"), v.literal("ticket80mm"))),
     subscriptionType: v.optional(v.union(v.literal("starter"), v.literal("negocio"), v.literal("pro"))),
   }).index("email", ["email"]),
   products: defineTable({
     name: v.string(),
     description: v.string(),
+    code: v.string(),
     unitValue: v.optional(v.number()),
     igv: v.optional(v.number()),
     price: v.number(),
@@ -48,6 +48,8 @@ export default defineSchema({
     address: v.string(),
     serieBoleta: v.optional(v.string()),
     serieFactura: v.optional(v.string()),
+    correlativoBoleta: v.optional(v.number()),
+    correlativoFactura: v.optional(v.number()),
   }).index("name", ["name"]),
   branchInventories: defineTable({
     branchId: v.id("branches"),
@@ -101,14 +103,16 @@ export default defineSchema({
     paymentMethod: v.optional(
       v.union(
         v.literal("Contado"),
-        v.literal("Tarjeta"),
-        v.literal("Transferencia"),
-        v.literal("Otros")
+        v.literal("Credito")
       )
     ),
     notes: v.optional(v.string()),
-    documentId: v.optional(v.string()),
     documentType: v.optional(v.union(v.literal("01"), v.literal("03"))),
+    cdr: v.optional(v.string()),
+    pdfA4: v.optional(v.string()),
+    pdfTicket: v.optional(v.string()),
+    xmlFirmado: v.optional(v.string()),
+    xmlSinFirmar: v.optional(v.string()),
     updatedAt: v.number(),
   })
     .index("byBranchStatus", ["branchId", "status", "openedAt"])

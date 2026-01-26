@@ -39,8 +39,8 @@ export const useOrderItems = ({
         (product: ProductListItem) => {
             const inventoryActivated = product.inventoryActivated ?? false;
 
-            // Si el inventario no está activado, permitir agregar sin validaciones
-            if (showInventoryCheck && !inventoryActivated) {
+            // Si showInventoryCheck es false, permitir agregar sin validaciones
+            if (!showInventoryCheck) {
                 setItems((previous) => {
                     const existing = previous.find(
                         (item) => item.productId === product._id
@@ -66,12 +66,42 @@ export const useOrderItems = ({
                 return;
             }
 
+            // Si showInventoryCheck es true, validar según configuración de inventario
+            // Si el inventario no está activado, permitir agregar sin validaciones
+            if (!inventoryActivated) {
+                setItems((previous) => {
+                    const existing = previous.find(
+                        (item) => item.productId === product._id
+                    );
+                    if (existing) {
+                        return previous.map((item) =>
+                            item.productId === product._id
+                                ? { ...item, quantity: item.quantity + 1 }
+                                : item
+                        );
+                    }
+                    return [
+                        ...previous,
+                        {
+                            productId: product._id,
+                            productName: product.name,
+                            imageUrl: product.imageUrl,
+                            unitPrice: product.price,
+                            quantity: 1,
+                        },
+                    ];
+                });
+                return;
+            }
+
+            // Producto es inventariable (inventoryActivated = true)
+            // Validar stock disponible
             const allowNegativeSale = product.allowNegativeSale ?? false;
             const availableStock = getAvailableStock(product);
 
-            // Si no permite venta en negativo y no hay stock disponible, no hacer nada
+            // Si no permite venta en negativo y no hay stock disponible, bloquear agregar
             if (!allowNegativeSale && availableStock <= 0) {
-                return;
+                return; // No hacer nada, producto sin stock
             }
 
             setItems((previous) => {
@@ -122,10 +152,25 @@ export const useOrderItems = ({
                 return;
             }
 
+            // Si showInventoryCheck es false, permitir cualquier cantidad
+            if (!showInventoryCheck) {
+                setItems((previous) =>
+                    previous
+                        .map((item) => {
+                            if (item.productId !== productId) {
+                                return item;
+                            }
+                            return { ...item, quantity: Math.max(1, quantity) };
+                        })
+                        .filter((item) => item.quantity > 0)
+                );
+                return;
+            }
+
             const inventoryActivated = product.inventoryActivated ?? false;
 
             // Si el inventario no está activado, permitir cualquier cantidad
-            if (showInventoryCheck && !inventoryActivated) {
+            if (!inventoryActivated) {
                 setItems((previous) =>
                     previous
                         .map((item) => {
@@ -220,6 +265,11 @@ export const useOrderItems = ({
      * Retorna un array de errores si hay problemas de stock
      */
     const validateStock = useCallback((): string[] => {
+        // Si showInventoryCheck es false, no validar stock
+        if (!showInventoryCheck) {
+            return [];
+        }
+
         const stockErrors: string[] = [];
         for (const item of items) {
             const product = products.find((p) => p._id === item.productId);
@@ -230,7 +280,7 @@ export const useOrderItems = ({
             const inventoryActivated = product.inventoryActivated ?? false;
 
             // Si el inventario no está activado, saltar validación
-            if (showInventoryCheck && !inventoryActivated) {
+            if (!inventoryActivated) {
                 continue;
             }
 

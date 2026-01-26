@@ -27,7 +27,7 @@ const SalesPageHeader = ({
 
     return (
         <header
-            className={`flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50 p-6 sm:p-8 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white ${
+            className={`flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50 p-6 sm:p-6 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white ${
                 actions ? "lg:flex-row lg:items-center lg:justify-between" : ""
             } ${className}`}
         >

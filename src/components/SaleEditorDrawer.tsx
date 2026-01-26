@@ -42,7 +42,7 @@ type SaleEditorDrawerProps = {
     onCloseSale: (
         saleId: Id<"sales">,
         saleData: LiveSale,
-        paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
+        paymentMethod: "Contado" | "Credito",
         notes: string
     ) => void;
     onCancelSale: (saleId: Id<"sales">) => void;
@@ -214,7 +214,7 @@ const SaleEditorDrawer = ({
         setItems,
         products,
         branchId,
-        showInventoryCheck: false,
+        showInventoryCheck: true, // Validar stock al agregar nuevos productos
     });
 
     // Wrappers que actualizan el estado (el guardado automático se hace en el useEffect)
@@ -308,7 +308,7 @@ const SaleEditorDrawer = ({
                             categories={categories}
                             branchId={branchId}
                             onAddProduct={addItem}
-                            showInventoryCheck={false}
+                            showInventoryCheck={true}
                         />
                     </div>
 
@@ -482,7 +482,7 @@ const SaleEditorDrawer = ({
                                 branchId={branchId}
                                 onAddProduct={addItem}
                                 gridClassName="grid grid-cols-1 md:grid-cols-2 gap-3"
-                                showInventoryCheck={false}
+                                showInventoryCheck={true}
                             />
                         </div>
                     )}
@@ -676,14 +676,14 @@ const SaleEditorDrawer = ({
                                         saleNotes
                                     )
                                 }
-                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-600 transition hover:border-emerald-600 hover:text-emerald-700 dark:text-emerald-300 dark:hover:border-emerald-400 dark:hover:text-emerald-200 cursor-pointer"
+                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 cursor-pointer"
                             >
                                 Concluir venta
                             </button>
                             <button
                                 type="button"
                                 onClick={() => onCancelSale(sale.sale._id)}
-                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-600 hover:text-red-700 dark:text-red-300 dark:hover:border-red-400 dark:hover:text-red-200 cursor-pointer"
+                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 cursor-pointer"
                             >
                                 Cancelar venta
                             </button>

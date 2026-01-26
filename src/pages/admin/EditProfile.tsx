@@ -19,10 +19,8 @@ type ProfileFormState = {
   companyCommercialName: string;
   ruc: string;
   companyLogoFile: File | null;
-  personaId: string;
-  personaToken: string;
   IGVPercentage: "10" | "18" | "";
-  printFormat: "A4" | "A5" | "ticket58mm" | "ticket80mm" | "";
+  currency: "PEN" | "USD" | "";
   companyAddress: string;
   companyDistrict: string;
   companyProvince: string;
@@ -38,10 +36,8 @@ const DEFAULT_FORM: ProfileFormState = {
     companyCommercialName: "",
     ruc: "",
   companyLogoFile: null,
-    personaId: "",
-    personaToken: "",
     IGVPercentage: "",
-    printFormat: "",
+    currency: "",
   companyAddress: "",
   companyDistrict: "",
   companyProvince: "",
@@ -79,10 +75,8 @@ const EditProfile = () => {
         companyCommercialName: (currentUser as Doc<"users">).companyCommercialName ?? "",
         ruc: initialRUC,
         companyLogoFile: null,
-        personaId: currentUser.personaId ?? "",
-        personaToken: currentUser.personaToken ?? "",
         IGVPercentage: currentUser.IGVPercentage ? (currentUser.IGVPercentage.toString() as "10" | "18") : "",
-        printFormat: (currentUser as Doc<"users">).printFormat ?? "",
+        currency: (currentUser as Doc<"users">).currency ?? "",
         companyAddress: (currentUser as Doc<"users">).companyAddress ?? "",
         companyDistrict: (currentUser as Doc<"users">).companyDistrict ?? "",
         companyProvince: (currentUser as Doc<"users">).companyProvince ?? "",
@@ -266,13 +260,11 @@ const EditProfile = () => {
         ruc: formState.ruc.trim() || undefined,
         companyLogo: companyLogoStorageId,
         removeCompanyLogo: shouldRemoveCompanyLogo ? true : undefined,
-        personaId: formState.personaId.trim() || undefined,
-        personaToken: formState.personaToken.trim() || undefined,
         IGVPercentage: formState.IGVPercentage
           ? (Number(formState.IGVPercentage) as 10 | 18)
           : undefined,
-        printFormat: formState.printFormat
-          ? (formState.printFormat as "A4" | "A5" | "ticket58mm" | "ticket80mm")
+        currency: formState.currency
+          ? (formState.currency as "PEN" | "USD")
           : undefined,
         companyAddress: formState.companyAddress.trim() || undefined,
         companyDistrict: formState.companyDistrict.trim() || undefined,
@@ -545,47 +537,11 @@ const EditProfile = () => {
           <div className="border-b border-slate-300 pb-3 dark:border-slate-700">
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Datos de Facturación</h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Configuración para la emisión de comprobantes electrónicos con APISUNAT.
+              Configuración para la emisión de comprobantes electrónicos.
             </p>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
-            <div className="space-y-2">
-              <label
-                htmlFor="personaId"
-                className="text-sm font-medium text-slate-700 dark:text-slate-200"
-              >
-                Persona ID
-              </label>
-              <input
-                id="personaId"
-                name="personaId"
-                type="text"
-                value={formState.personaId}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                placeholder="ID de persona en APISUNAT"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="personaToken"
-                className="text-sm font-medium text-slate-700 dark:text-slate-200"
-              >
-                Persona Token
-              </label>
-              <input
-                id="personaToken"
-                name="personaToken"
-                type="text"
-                value={formState.personaToken}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                placeholder="Token de autenticación APISUNAT"
-              />
-            </div>
-
             <div className="space-y-2">
               <label
                 htmlFor="IGVPercentage"
@@ -612,26 +568,24 @@ const EditProfile = () => {
 
             <div className="space-y-2">
               <label
-                htmlFor="printFormat"
+                htmlFor="currency"
                 className="text-sm font-medium text-slate-700 dark:text-slate-200"
               >
-                Formato de Impresión PDF
+                Moneda
               </label>
               <select
-                id="printFormat"
-                name="printFormat"
-                value={formState.printFormat}
+                id="currency"
+                name="currency"
+                value={formState.currency}
                 onChange={handleChange}
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
               >
-                <option value="">Selecciona un formato</option>
-                <option value="A4">A4</option>
-                <option value="A5">A5</option>
-                <option value="ticket58mm">Ticket 58mm</option>
-                <option value="ticket80mm">Ticket 80mm</option>
+                <option value="">Selecciona una moneda</option>
+                <option value="PEN">PEN (Soles)</option>
+                <option value="USD">USD (Dólares)</option>
               </select>
               <p className="text-xs text-slate-500">
-                Formato predeterminado para descargar PDFs de documentos emitidos.
+                Moneda predeterminada para los productos y ventas.
               </p>
             </div>
           </div>

@@ -8,7 +8,6 @@ import { HiOutlineReceiptTax } from "react-icons/hi";
 import { MdErrorOutline } from "react-icons/md";
 import { BiBadgeCheck } from "react-icons/bi";
 import CloseButton from "./CloseButton";
-import { FaWhatsapp } from "react-icons/fa";
 
 type CustomerFormState = {
     documentType: "RUC" | "DNI" | "";
@@ -37,46 +36,34 @@ type CustomerMetadata = {
 type CloseSaleDialogProps = {
     isOpen: boolean;
     saleId: Id<"sales"> | null;
-    paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros";
+    paymentMethod: "Contado" | "Credito";
     notes: string;
     isProcessing: boolean;
     onClose: () => void;
     onCloseWithoutEmit: (
         customerData: CustomerFormState | null,
         customerMetadata: CustomerMetadata,
-        paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
+        paymentMethod: "Contado" | "Credito",
         notes?: string
     ) => Promise<{ success: boolean; error?: string }>;
     onEmitBoleta: (
         customerData: CustomerFormState | null,
         customerMetadata: CustomerMetadata,
-        paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
-        notes?: string,
-        customerEmail?: string
+        paymentMethod: "Contado" | "Credito",
+        notes?: string
     ) => Promise<{
         success: boolean;
-        documentId?: string;
-        fileName?: string;
         error?: string;
     }>;
     onEmitFactura: (
         customerData: CustomerFormState,
         customerMetadata: CustomerMetadata,
-        paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros",
-        notes?: string,
-        customerEmail?: string
+        paymentMethod: "Contado" | "Credito",
+        notes?: string
     ) => Promise<{
         success: boolean;
-        documentId?: string;
-        fileName?: string;
         error?: string;
     }>;
-    onPrintPDF?: (documentId: string, fileName: string) => Promise<void>;
-    onSendPDFToWhatsapp?: (
-        phoneNumber: string,
-        documentId: string,
-        fileName: string
-    ) => Promise<{ success: boolean; error?: string }>;
 };
 
 const CloseSaleDialog = ({
@@ -89,37 +76,25 @@ const CloseSaleDialog = ({
     onCloseWithoutEmit,
     onEmitBoleta,
     onEmitFactura,
-    onPrintPDF,
-    onSendPDFToWhatsapp,
 }: CloseSaleDialogProps) => {
     const [paymentMethod, setPaymentMethod] = useState<
-        "Contado" | "Tarjeta" | "Transferencia" | "Otros"
+        "Contado" | "Credito"
     >(initialPaymentMethod);
     const [notes, setNotes] = useState(initialNotes);
     const [customerForm, setCustomerForm] = useState<CustomerFormState>(
         DEFAULT_CUSTOMER_FORM
     );
     const [showCustomerForm, setShowCustomerForm] = useState(false);
-    const [sendEmail, setSendEmail] = useState(false);
     const [isLoadingCustomerData, setIsLoadingCustomerData] = useState(false);
     const [emissionStatus, setEmissionStatus] = useState<
         "idle" | "loading" | "success" | "error" | "closed"
     >("idle");
     const [emissionError, setEmissionError] = useState<string | null>(null);
-    const [emittedDocumentId, setEmittedDocumentId] = useState<string | null>(
-        null
-    );
-    const [emittedFileName, setEmittedFileName] = useState<string | null>(null);
     const [originalCustomerData, setOriginalCustomerData] =
         useState<CustomerFormState | null>(null);
     const [customerIdFromConvex, setCustomerIdFromConvex] =
         useState<Id<"customers"> | null>(null);
     const [isDocumentEmitted, setIsDocumentEmitted] = useState(false);
-    const [showWhatsAppForm, setShowWhatsAppForm] = useState(false);
-    const [whatsappCountryCode, setWhatsappCountryCode] = useState("+51");
-    const [whatsappNumber, setWhatsappNumber] = useState("");
-    const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
-    const [whatsappError, setWhatsappError] = useState<string | null>(null);
 
     const { consultarRUC, consultarDNI } = useMiAPIDoc();
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -213,6 +188,7 @@ const CloseSaleDialog = ({
             setCustomerIdFromConvex(customerFromConvex._id);
             setIsLoadingCustomerData(false);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [customerFromConvex, showCustomerForm]);
 
     // Efecto para consultar datos automáticamente cuando se ingresa RUC o DNI
@@ -434,21 +410,13 @@ const CloseSaleDialog = ({
         setShowCustomerForm(false);
         setPaymentMethod("Contado");
         setNotes("");
-        setSendEmail(false);
         setIsLoadingCustomerData(false);
         setEmissionStatus("idle");
         setEmissionError(null);
-        setEmittedDocumentId(null);
-        setEmittedFileName(null);
         setIsDocumentEmitted(false);
         setOriginalCustomerData(null);
         setCustomerIdFromConvex(null);
         lastQueriedRef.current = "";
-        setShowWhatsAppForm(false);
-        setWhatsappCountryCode("+51");
-        setWhatsappNumber("");
-        setIsSendingWhatsApp(false);
-        setWhatsappError(null);
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
@@ -508,19 +476,6 @@ const CloseSaleDialog = ({
                 ? customerForm
                 : null;
 
-        // Validar que si se quiere enviar correo, debe haber email
-        if (sendEmail && (!customerForm.email || !customerForm.email.trim())) {
-            alert(
-                "Debe ingresar un correo electrónico para enviar el comprobante"
-            );
-            return;
-        }
-
-        const customerEmail =
-            sendEmail && customerForm.email?.trim()
-                ? customerForm.email.trim()
-                : undefined;
-
         const customerMetadata: CustomerMetadata = {
             customerId: customerIdFromConvex,
             hasChanges: hasCustomerChanges(),
@@ -529,22 +484,18 @@ const CloseSaleDialog = ({
 
         setEmissionStatus("loading");
         setEmissionError(null);
-        setEmittedDocumentId(null);
 
         try {
             const result = await onEmitBoleta(
                 customerData,
                 customerMetadata,
                 paymentMethod,
-                notes.trim() || undefined,
-                customerEmail
+                notes.trim() || undefined
             );
 
-            if (result.success && result.documentId) {
+            if (result.success) {
                 setIsDocumentEmitted(true);
                 setEmissionStatus("success");
-                setEmittedDocumentId(result.documentId);
-                setEmittedFileName(result.fileName || null);
             } else {
                 setEmissionStatus("error");
                 setEmissionError(result.error || "Error al emitir boleta");
@@ -569,19 +520,6 @@ const CloseSaleDialog = ({
             return; // No permitir emitir factura sin datos del cliente
         }
 
-        // Validar que si se quiere enviar correo, debe haber email
-        if (sendEmail && (!customerForm.email || !customerForm.email.trim())) {
-            alert(
-                "Debe ingresar un correo electrónico para enviar el comprobante"
-            );
-            return;
-        }
-
-        const customerEmail =
-            sendEmail && customerForm.email?.trim()
-                ? customerForm.email.trim()
-                : undefined;
-
         const customerMetadata: CustomerMetadata = {
             customerId: customerIdFromConvex,
             hasChanges: hasCustomerChanges(),
@@ -590,22 +528,18 @@ const CloseSaleDialog = ({
 
         setEmissionStatus("loading");
         setEmissionError(null);
-        setEmittedDocumentId(null);
 
         try {
             const result = await onEmitFactura(
                 customerForm,
                 customerMetadata,
                 paymentMethod,
-                notes.trim() || undefined,
-                customerEmail
+                notes.trim() || undefined
             );
 
-            if (result.success && result.documentId) {
+            if (result.success) {
                 setIsDocumentEmitted(true);
                 setEmissionStatus("success");
-                setEmittedDocumentId(result.documentId);
-                setEmittedFileName(result.fileName || null);
             } else {
                 setEmissionStatus("error");
                 setEmissionError(result.error || "Error al emitir factura");
@@ -656,74 +590,6 @@ const CloseSaleDialog = ({
     if (!isOpen || !saleId) {
         return null;
     }
-
-    const handlePrintPDF = async () => {
-        if (onPrintPDF && emittedDocumentId && emittedFileName) {
-            await onPrintPDF(emittedDocumentId, emittedFileName);
-        }
-    };
-
-    const handleWhatsAppClick = () => {
-        setShowWhatsAppForm(!showWhatsAppForm);
-        setWhatsappError(null);
-    };
-
-    const handleSendWhatsApp = async () => {
-        if (!onSendPDFToWhatsapp || !emittedDocumentId || !emittedFileName) {
-            return;
-        }
-
-        // Validar número de teléfono (solo números, mínimo 9 dígitos)
-        const cleanNumber = whatsappNumber.trim().replace(/\D/g, "");
-        if (cleanNumber.length < 9) {
-            setWhatsappError(
-                "El número de teléfono debe tener al menos 9 dígitos"
-            );
-            return;
-        }
-
-        // Validar código de país (debe empezar con + y tener al menos 1 dígito)
-        const cleanCountryCode = whatsappCountryCode.trim();
-        if (!cleanCountryCode.startsWith("+") || cleanCountryCode.length < 2) {
-            setWhatsappError(
-                "El código de país debe empezar con + y tener al menos 1 dígito"
-            );
-            return;
-        }
-
-        // Combinar código de país con número (sin el + del código de país, ya que wa.me lo maneja)
-        const countryCodeDigits = cleanCountryCode.replace(/\D/g, "");
-        const fullPhoneNumber = `${countryCodeDigits}${cleanNumber}`;
-
-        setIsSendingWhatsApp(true);
-        setWhatsappError(null);
-
-        try {
-            const result = await onSendPDFToWhatsapp(
-                fullPhoneNumber,
-                emittedDocumentId,
-                emittedFileName
-            );
-
-            if (result.success) {
-                setShowWhatsAppForm(false);
-                setWhatsappCountryCode("+51");
-                setWhatsappNumber("");
-            } else {
-                setWhatsappError(
-                    result.error || "Error al enviar por WhatsApp"
-                );
-            }
-        } catch (error) {
-            setWhatsappError(
-                error instanceof Error
-                    ? error.message
-                    : "Error desconocido al enviar por WhatsApp"
-            );
-        } finally {
-            setIsSendingWhatsApp(false);
-        }
-    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-4 py-10">
@@ -978,15 +844,11 @@ const CloseSaleDialog = ({
                                             disabled={isProcessing}
                                         >
                                             <option value="Contado">
-                                                Efectivo
+                                                Contado
                                             </option>
-                                            <option value="Tarjeta">
-                                                Tarjeta
+                                            <option value="Credito">
+                                                Crédito
                                             </option>
-                                            <option value="Transferencia">
-                                                Transferencia
-                                            </option>
-                                            <option value="Otros">Otros</option>
                                         </select>
                                     </label>
 
@@ -1005,50 +867,6 @@ const CloseSaleDialog = ({
                                             disabled={isProcessing}
                                         />
                                     </label>
-                                    <div className="mt-2 rounded-lg ">
-                                        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200 cursor-pointer">
-                                            <div className="relative inline-flex items-center justify-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={sendEmail}
-                                                    onChange={(e) =>
-                                                        setSendEmail(
-                                                            e.target.checked
-                                                        )
-                                                    }
-                                                    className="peer h-6 w-6 appearance-none rounded-full border-2 border-slate-300 bg-white transition-colors checked:border-[#fa7316] checked:bg-[#fa7316] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900"
-                                                    disabled={isProcessing}
-                                                />
-                                                {sendEmail && (
-                                                    <svg
-                                                        className="pointer-events-none absolute h-4 w-4 text-white"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                        strokeWidth={3}
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            d="M5 13l4 4L19 7"
-                                                        />
-                                                    </svg>
-                                                )}
-                                            </div>
-                                            <span>
-                                                Enviar comprobante por correo
-                                            </span>
-                                        </label>
-                                    </div>
-                                    {sendEmail &&
-                                        (!customerForm.email ||
-                                            !customerForm.email.trim()) && (
-                                            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                                                Debe ingresar un correo
-                                                electrónico para enviar el
-                                                comprobante
-                                            </p>
-                                        )}
                                 </div>
 
                                 <div className="flex flex-col lg:flex-row gap-2 lg:gap-3 pt-4">
@@ -1158,105 +976,13 @@ const CloseSaleDialog = ({
                                     ? "El documento se emitió de manera satisfactoria"
                                     : "La venta se cerró correctamente"}
                             </p>
-                            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-                                {isDocumentEmitted &&
-                                    onPrintPDF &&
-                                    emittedDocumentId &&
-                                    emittedFileName && (
-                                        <div className="flex  sm:flex-row gap-3 w-full max-w-md">
-                                            <button
-                                                type="button"
-                                                onClick={handleWhatsAppClick}
-                                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
-                                            >
-                                                <FaWhatsapp className="h-5 w-5" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={handlePrintPDF}
-                                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
-                                            >
-                                                IMPRIMIR PDF
-                                            </button>
-                                        </div>
-                                    )}
-                                <button
-                                    type="button"
-                                    onClick={handleClose}
-                                    className={`inline-flex ${isDocumentEmitted && onPrintPDF && emittedDocumentId && emittedFileName ? "flex-1" : "w-full"} items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white`}
-                                >
-                                    CERRAR
-                                </button>
-                            </div>
-                            {showWhatsAppForm &&
-                                isDocumentEmitted &&
-                                onSendPDFToWhatsapp &&
-                                emittedDocumentId &&
-                                emittedFileName && (
-                                    <div className="mt-4 space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4 w-full max-w-md dark:border-slate-800 dark:bg-slate-900/70">
-                                        <label className="flex flex-col gap-1 text-left text-slate-700 dark:text-slate-200">
-                                            <span className="text-xs uppercase tracking-[0.1em] text-slate-500">
-                                                Número de WhatsApp
-                                            </span>
-                                            <div className="flex gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={whatsappCountryCode}
-                                                    onChange={(e) => {
-                                                        setWhatsappCountryCode(
-                                                            e.target.value
-                                                        );
-                                                        setWhatsappError(null);
-                                                    }}
-                                                    placeholder="+51"
-                                                    disabled={isSendingWhatsApp}
-                                                    className="w-20 rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={whatsappNumber}
-                                                    onChange={(e) => {
-                                                        setWhatsappNumber(
-                                                            e.target.value
-                                                        );
-                                                        setWhatsappError(null);
-                                                    }}
-                                                    placeholder="987654321"
-                                                    disabled={isSendingWhatsApp}
-                                                    className={`flex-1 rounded-lg border px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 dark:text-white dark:placeholder:text-slate-500 ${
-                                                        whatsappError
-                                                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/30"
-                                                            : "border-slate-300 bg-white focus:border-[#fa7316] focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900"
-                                                    }`}
-                                                />
-                                            </div>
-                                        </label>
-                                        {whatsappError && (
-                                            <p className="text-xs text-red-600 dark:text-red-400">
-                                                {whatsappError}
-                                            </p>
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={handleSendWhatsApp}
-                                            disabled={
-                                                isSendingWhatsApp ||
-                                                !whatsappNumber.trim() ||
-                                                !whatsappCountryCode.trim()
-                                            }
-                                            className="w-full rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
-                                        >
-                                            {isSendingWhatsApp
-                                                ? "ENVIANDO..."
-                                                : "ENVIAR"}
-                                        </button>
-                                        {whatsappError && (
-                                            <p className="text-xs text-red-600 dark:text-red-400">
-                                                {whatsappError}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
+                            <button
+                                type="button"
+                                onClick={handleClose}
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
+                            >
+                                CERRAR
+                            </button>
                         </div>
                     </>
                 ) : null}

@@ -614,6 +614,23 @@ const AdminProductDetail = () => {
 
                     <div className="space-y-2">
                         <label
+                            htmlFor="code"
+                            className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                        >
+                            Código
+                        </label>
+                        <input
+                            id="code"
+                            name="code"
+                            type="text"
+                            disabled
+                            value={product.code ?? "—"}
+                            className="w-full rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 text-sm text-slate-500 cursor-not-allowed dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label
                             htmlFor="description"
                             className="text-sm font-medium text-slate-700 dark:text-slate-200"
                         >
@@ -758,12 +775,12 @@ const AdminProductDetail = () => {
                     )}
 
                     {formError && (
-                        <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                        <div className="rounded-lg border border-red-500 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300">
                             {formError}
                         </div>
                     )}
                     {successMessage && (
-                        <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+                        <div className="rounded-lg border border-emerald-500 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
                             {successMessage}
                         </div>
                     )}

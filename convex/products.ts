@@ -186,8 +186,26 @@ export const create = mutation({
 
     const inventoryActivated = args.inventoryActivated ?? false;
 
+    // Generar código automático (PR0001, PR0002, etc.)
+    const allProducts = await ctx.db.query("products").collect();
+    let maxNumber = 0;
+    
+    for (const product of allProducts) {
+      if (product.code && product.code.startsWith("PR")) {
+        const numberPart = product.code.substring(2);
+        const number = parseInt(numberPart, 10);
+        if (!isNaN(number) && number > maxNumber) {
+          maxNumber = number;
+        }
+      }
+    }
+    
+    const nextNumber = maxNumber + 1;
+    const productCode = `PR${String(nextNumber).padStart(4, "0")}`;
+
     const productId = await ctx.db.insert("products", {
       ...productData,
+      code: productCode,
       igv,
       price,
       ...(image ? { image } : {}),

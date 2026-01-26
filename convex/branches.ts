@@ -69,6 +69,8 @@ export const create = mutation({
     await ctx.db.insert("branches", {
       name: args.name.trim(),
       address: args.address.trim(),
+      correlativoBoleta: 1,
+      correlativoFactura: 1,
     });
   },
 });
@@ -112,6 +114,34 @@ export const update = mutation({
     }
     if (args.serieFactura !== undefined) {
       updates.serieFactura = args.serieFactura.trim() || undefined;
+    }
+
+    await ctx.db.patch(args.branchId, updates);
+  },
+});
+
+export const updateCorrelativo = mutation({
+  args: {
+    branchId: v.id("branches"),
+    documentType: v.union(v.literal("01"), v.literal("03")),
+    correlativo: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new ConvexError("No autenticado");
+    }
+
+    const branch = await ctx.db.get(args.branchId);
+    if (!branch) {
+      throw new ConvexError("La sucursal no existe.");
+    }
+
+    const updates: Record<string, unknown> = {};
+    if (args.documentType === "03") {
+      updates.correlativoBoleta = args.correlativo;
+    } else {
+      updates.correlativoFactura = args.correlativo;
     }
 
     await ctx.db.patch(args.branchId, updates);

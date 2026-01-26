@@ -93,13 +93,14 @@ export const buildSunatFileName = (
  * Convierte un número a palabras en español
  * 
  * @param amount Monto numérico (ej: 13.20)
- * @returns Monto en palabras en mayúsculas (ej: "TRECE CON 20/100 SOLES")
+ * @param currency Tipo de moneda: "PEN" o "USD" (default: "PEN")
+ * @returns Monto en palabras en mayúsculas (ej: "TRECE CON 20/100 SOLES" o "TRECE CON 20/100 DÓLARES AMERICANOS")
  * 
  * @example
  * numberToWords(13.20) // "TRECE CON 20/100 SOLES"
- * numberToWords(100.50) // "CIEN CON 50/100 SOLES"
+ * numberToWords(100.50, "USD") // "CIEN CON 50/100 DÓLARES AMERICANOS"
  */
-export const numberToWords = (amount: number): string => {
+export const numberToWords = (amount: number, currency: "PEN" | "USD" = "PEN"): string => {
   const unidades = [
     "",
     "UNO",
@@ -243,8 +244,9 @@ export const numberToWords = (amount: number): string => {
     palabrasEnteras = resultado.trim();
   }
 
-  // Formatear resultado final
-  return `${palabrasEnteras} CON ${centavos}/100 SOLES`;
+  // Formatear resultado final según currency
+  const currencyText = currency === "USD" ? "DÓLARES AMERICANOS" : "SOLES";
+  return `${palabrasEnteras} CON ${centavos}/100 ${currencyText}`;
 };
 
 

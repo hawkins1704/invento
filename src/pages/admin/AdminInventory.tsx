@@ -441,6 +441,22 @@ const updateStockField = (branchId: string, value: string) => {
                 )}
               </div>
               <div className="space-y-2">
+                <label htmlFor="code" className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Código
+                </label>
+                <input
+                  id="code"
+                  name="code"
+                  type="text"
+                  disabled
+                  value="Se generará automáticamente"
+                  className="w-full rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 text-sm text-slate-500 cursor-not-allowed dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  El código se generará automáticamente al guardar el producto (formato: PR0001, PR0002, etc.)
+                </p>
+              </div>
+              <div className="space-y-2">
                 <label htmlFor="description" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                   Descripción
                 </label>

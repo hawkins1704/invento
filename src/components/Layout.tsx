@@ -75,12 +75,6 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
         icon: <PiMoney color={PRIMARY_COLOR} />,
     },
     {
-        label: "Documentos Emitidos",
-        description: "Facturas y boletas",
-        path: "/admin/documents",
-        icon: <FaFileInvoice color={PRIMARY_COLOR} />,
-    },
-    {
         label: "Personal",
         description: "Roles y accesos",
         path: "/admin/staff",

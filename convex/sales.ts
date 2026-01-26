@@ -12,7 +12,7 @@ const itemInputSchema = v.object({
 })
 
 const paymentMethodSchema = v.optional(
-  v.union(v.literal("Contado"), v.literal("Tarjeta"), v.literal("Transferencia"), v.literal("Otros"))
+  v.union(v.literal("Contado"), v.literal("Credito"))
 )
 
 type ItemInput = {
@@ -556,6 +556,11 @@ export const close = mutation({
     notes: v.optional(v.string()),
     customerId: v.optional(v.id("customers")),
     documentType: v.optional(v.union(v.literal("01"), v.literal("03"))),
+    cdr: v.optional(v.string()),
+    pdfA4: v.optional(v.string()),
+    pdfTicket: v.optional(v.string()),
+    xmlFirmado: v.optional(v.string()),
+    xmlSinFirmar: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx)
@@ -583,13 +588,18 @@ export const close = mutation({
 
     await ctx.db.patch(sale._id, {
       status: "closed",
-      paymentMethod: args.paymentMethod ?? undefined,
+      paymentMethod: (args.paymentMethod as "Contado" | "Credito" | undefined) ?? undefined,
       closedAt: now(),
       notes: args.notes !== undefined ? normalizeNotes(args.notes) : sale.notes,
       subtotal: totals.subtotal,
       total: totals.total,
       customerId: args.customerId,
       documentType: args.documentType,
+      cdr: args.cdr,
+      pdfA4: args.pdfA4,
+      pdfTicket: args.pdfTicket,
+      xmlFirmado: args.xmlFirmado,
+      xmlSinFirmar: args.xmlSinFirmar,
       updatedAt: now(),
     })
 
@@ -628,29 +638,6 @@ export const cancel = mutation({
     if (sale.tableId) {
       await releaseTable(ctx, sale.tableId, sale._id)
     }
-  },
-})
-
-export const updateDocumentId = mutation({
-  args: {
-    saleId: v.id("sales"),
-    documentId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx)
-    if (userId === null) {
-      throw new ConvexError("No autenticado")
-    }
-
-    const sale = await ctx.db.get(args.saleId)
-    if (!sale) {
-      throw new ConvexError("La venta no existe")
-    }
-
-    await ctx.db.patch(args.saleId, {
-      documentId: args.documentId,
-      updatedAt: now(),
-    })
   },
 })
 

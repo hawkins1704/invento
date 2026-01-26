@@ -48,15 +48,14 @@ export const updateProfile = mutation({
     ruc: v.optional(v.string()),
     companyLogo: v.optional(v.id("_storage")),
     removeCompanyLogo: v.optional(v.boolean()),
-    personaId: v.optional(v.string()),
-    personaToken: v.optional(v.string()),
+    secretKey: v.optional(v.string()),
+    currency: v.optional(v.union(v.literal("PEN"), v.literal("USD"))),
     IGVPercentage: v.optional(v.union(v.literal(10), v.literal(18))),
     companyCommercialName: v.optional(v.string()),
     companyAddress: v.optional(v.string()),
     companyDistrict: v.optional(v.string()),
     companyProvince: v.optional(v.string()),
     companyDepartment: v.optional(v.string()),
-    printFormat: v.optional(v.union(v.literal("A4"), v.literal("A5"), v.literal("ticket58mm"), v.literal("ticket80mm"))),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -114,11 +113,11 @@ export const updateProfile = mutation({
     if (companyLogoField !== undefined) {
       updates.companyLogo = companyLogoField;
     }
-    if (args.personaId !== undefined) {
-      updates.personaId = args.personaId.trim() || undefined;
+    if (args.secretKey !== undefined) {
+      updates.secretKey = args.secretKey.trim() || undefined;
     }
-    if (args.personaToken !== undefined) {
-      updates.personaToken = args.personaToken.trim() || undefined;
+    if (args.currency !== undefined) {
+      updates.currency = args.currency;
     }
     if (args.IGVPercentage !== undefined) {
       updates.IGVPercentage = args.IGVPercentage;
@@ -140,9 +139,6 @@ export const updateProfile = mutation({
     }
     if (args.companyDepartment !== undefined) {
       updates.companyDepartment = args.companyDepartment.trim() || undefined;
-    }
-    if (args.printFormat !== undefined) {
-      updates.printFormat = args.printFormat;
     }
 
     await ctx.db.patch(userId, updates);

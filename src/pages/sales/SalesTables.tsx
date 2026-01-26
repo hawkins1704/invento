@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
@@ -8,17 +7,17 @@ import {
     formatCurrency,
     formatDateTime,
     formatDuration,
-    buildSunatFileName,
 } from "../../utils/format";
-import { buildDocumentBody } from "../../utils/sunat";
-import { useAPISUNAT } from "../../hooks/useAPISUNAT";
+import { numberToWords } from "../../utils/format";
+import { miapiClient } from "../../services/miapi";
+import type { GenerarXMLComprobanteRequest, EnviarXMLASUNATResponse } from "../../services/miapi";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import CloseSaleDialog from "../../components/CloseSaleDialog";
 import SalesShiftGuard from "../../components/SalesShiftGuard";
 import NewSaleModal from "../../components/NewSaleModal";
 import SaleEditorDrawer from "../../components/SaleEditorDrawer";
-import SalesPageHeader from "../../components/sales-page-header/SalesPageHeader";
-import InfoCard from "../../components/InfoCard";
+// import SalesPageHeader from "../../components/sales-page-header/SalesPageHeader";
+// import InfoCard from "../../components/InfoCard";
 import type { ShiftSummary } from "../../hooks/useSalesShift";
 import { MdOutlineDinnerDining } from "react-icons/md";
 import { BiDish } from "react-icons/bi";
@@ -41,6 +40,7 @@ const SalesTablesContent = ({
 }: SalesTablesContentProps) => {
     const selectedBranchId = branch._id as Id<"branches">;
     const hasActiveShift = Boolean(shiftSummary);
+    const [activeTab, setActiveTab] = useState<"mesas" | "pedidos">("mesas");
 
     const tables = useQuery(
         api.branchTables.list,
@@ -96,8 +96,7 @@ const SalesTablesContent = ({
     const cancelSaleMutation = useMutation(api.sales.cancel);
     const createCustomer = useMutation(api.customers.create);
     const updateCustomer = useMutation(api.customers.update);
-    const updateSaleDocumentId = useMutation(api.sales.updateDocumentId);
-    const { getLastDocument, emitDocument, printPDF } = useAPISUNAT();
+    const updateBranchCorrelativo = useMutation(api.branches.updateCorrelativo);
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [tableForNewSale, setTableForNewSale] =
@@ -112,7 +111,7 @@ const SalesTablesContent = ({
     const [closeState, setCloseState] = useState<{
         saleId: Id<"sales"> | null;
         saleData: LiveSale | null;
-        paymentMethod: "Contado" | "Tarjeta" | "Transferencia" | "Otros";
+        paymentMethod: "Contado" | "Credito";
         notes: string;
     }>({
         saleId: null,
@@ -175,23 +174,23 @@ const SalesTablesContent = ({
     const branchTables = tables ?? [];
     const branchLiveSales = liveSales ?? [];
 
-    const summary = useMemo(() => {
-        const list = liveSales ?? [];
-        return list.reduce(
-            (accumulator, entry) => {
-                accumulator.totalSales += 1;
-                accumulator.totalAmount += entry.sale.total;
-                return accumulator;
-            },
-            { totalSales: 0, totalAmount: 0 }
-        );
-    }, [liveSales]);
+    // const summary = useMemo(() => {
+    //     const list = liveSales ?? [];
+    //     return list.reduce(
+    //         (accumulator, entry) => {
+    //             accumulator.totalSales += 1;
+    //             accumulator.totalAmount += entry.sale.total;
+    //             return accumulator;
+    //         },
+    //         { totalSales: 0, totalAmount: 0 }
+    //     );
+    // }, [liveSales]);
 
     return (
         <div className="space-y-8">
-            <SalesPageHeader title="Mesas y pedidos" />
+            {/* <SalesPageHeader title="Mesas y pedidos" /> */}
 
-            <section className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+            {/* <section className="grid gap-4 grid-cols-2 lg:grid-cols-3">
                 <InfoCard
                     label="Mesas registradas"
                     value={branchTables.length.toString()}
@@ -207,11 +206,45 @@ const SalesTablesContent = ({
                     value={formatCurrency(summary.totalAmount)}
                     description="Suma de los pedidos abiertos."
                 />
-            </section>
+            </section> */}
 
-            <section className="space-y-4">
+            {/* Tabs Navigation */}
+            <div className="border-b border-slate-200 dark:border-slate-800">
+                <nav className=" flex space-x-8" aria-label="Tabs">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("mesas")}
+                        className={`whitespace-nowrap border-b-2 px-1 pb-3 text-md font-semibold transition-colors ${
+                            activeTab === "mesas"
+                                ? "border-[#fa7316] text-[#fa7316]"
+                                : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-300"
+                        }`}
+                    >
+                        Mesas
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("pedidos")}
+                        className={`whitespace-nowrap border-b-2 px-1 pb-3 text-md font-semibold transition-colors ${
+                            activeTab === "pedidos"
+                                ? "border-[#fa7316] text-[#fa7316]"
+                                : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-300"
+                        }`}
+                    >
+                        Pedidos abiertos
+                        {branchLiveSales.length > 0 && (
+                            <span className="ml-2 rounded-full bg-[#fa7316]/10 px-2 py-0.5 text-xs text-[#fa7316]">
+                                {branchLiveSales.length}
+                            </span>
+                        )}
+                    </button>
+                </nav>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === "mesas" && (
+                <section className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Mesas</h2>
                     <button
                         type="button"
                         onClick={() => openCreateModal(null)}
@@ -331,14 +364,11 @@ const SalesTablesContent = ({
                     )}
                 </div>
             </section>
+            )}
 
-            <section className="space-y-4">
-                <header className="flex items-center justify-between text-slate-900 dark:text-white">
-                    <h2 className="text-lg font-semibold">Pedidos abiertos</h2>
-                    <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs uppercase tracking-[0.1em] text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 font-semibold">
-                        {branchLiveSales.length} activos
-                    </span>
-                </header>
+            {activeTab === "pedidos" && (
+                <section className="space-y-4">
+                
 
                 {branchLiveSales.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-12 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
@@ -470,6 +500,7 @@ const SalesTablesContent = ({
                     </div>
                 )}
             </section>
+            )}
 
             {isCreateOpen && selectedBranchId && (
                 <NewSaleModal
@@ -611,8 +642,7 @@ const SalesTablesContent = ({
                     customerData,
                     customerMetadata,
                     paymentMethod,
-                    notes,
-                    customerEmail
+                    notes
                 ) => {
                     if (!closeState.saleId || !closeState.saleData) {
                         throw new Error(
@@ -662,153 +692,174 @@ const SalesTablesContent = ({
 
                         // PASO 1: Validar que tenemos los datos necesarios del usuario
                         if (
-                            !currentUser?.personaId ||
-                            !currentUser?.personaToken ||
+                            !currentUser?.secretKey ||
                             !currentUser?.ruc ||
-                            !branch.serieBoleta
+                            !currentUser?.currency ||
+                            !branch.serieBoleta ||
+                            branch.correlativoBoleta === undefined
                         ) {
                             throw new Error(
-                                "Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Boleta de la sucursal"
+                                "Faltan datos de configuración: Secret Key, RUC, Currency, Serie Boleta o Correlativo Boleta de la sucursal"
                             );
                         }
 
-                        // PASO 2: Obtener el número correlativo desde SUNAT
-                        const lastDocResponse = await getLastDocument({
-                            personaId: currentUser.personaId,
-                            personaToken: currentUser.personaToken,
-                            type: "03", // Boleta
-                            serie: branch.serieBoleta,
-                        });
+                        // PASO 2: Obtener el número correlativo desde la sucursal
+                        const correlativoActual = branch.correlativoBoleta || 1;
+                        const correlativoStr = String(correlativoActual).padStart(8, "0");
 
-                        if (!lastDocResponse) {
-                            throw new Error(
-                                "No se pudo obtener el número correlativo desde SUNAT"
-                            );
-                        }
+                        // PASO 3: Preparar datos para generar XML
+                        const igvPercentage = currentUser.IGVPercentage || 18;
+                        const currency = currentUser.currency;
+                        
+                        // Calcular total
+                        const total = closeState.saleData.sale.total;
+                        const totalTexto = numberToWords(total, currency);
 
-                        // PASO 3: Construir el fileName
-                        const fileName = buildSunatFileName(
-                            currentUser.ruc,
-                            "03", // Boleta
-                            branch.serieBoleta,
-                            lastDocResponse.suggestedNumber
-                        );
+                        // Obtener fecha y hora actual
+                        const now = new Date();
+                        const fechaEmision = now.toISOString().split("T")[0]; // YYYY-MM-DD
+                        const horaEmision = now.toTimeString().slice(0, 8); // HH:mm:ss
 
-                        // PASO 4 - Construir documentBody (estructura UBL completa)
-                        // Crear mapeo de productos con información completa (productId -> {name, unitValue, igv})
-                        const productsMap = new Map<
-                            string,
-                            { name: string; unitValue: number; igv: number }
-                        >();
-                        (products ?? []).forEach((product) => {
-                            if (
-                                product.unitValue !== undefined &&
-                                product.igv !== undefined
-                            ) {
-                                productsMap.set(product._id as string, {
-                                    name: product.name,
-                                    unitValue: product.unitValue,
-                                    igv: product.igv,
-                                });
+                        // Construir items según la nueva estructura
+                        const items = closeState.saleData.items.map((item) => {
+                            const product = productMap.get(item.productId as string);
+                            if (!product) {
+                                throw new Error(`Producto con ID ${item.productId} no encontrado`);
                             }
+
+                            // Usar el precio del item (puede ser editado) en lugar del precio del producto
+                            const precioConIGV = item.unitPrice;
+                            // Calcular unitValue e igv desde el precio con IGV
+                            const mtoValorUnitario = precioConIGV / (1 + igvPercentage / 100);
+                            const igvUnitario = precioConIGV - mtoValorUnitario;
+                            const mtoBaseIgv = mtoValorUnitario * item.quantity;
+                            const mtoPrecioUnitario = precioConIGV;
+                            const igvTotal = igvUnitario * item.quantity;
+
+                            // Generar código de producto si no existe
+                            let codProducto = product.code;
+                            if (!codProducto) {
+                                // Fallback: usar los últimos 4 caracteres del ID
+                                const productIdStr = product._id as string;
+                                codProducto = `PR${productIdStr.slice(-4).padStart(4, "0")}`;
+                            }
+
+                            return {
+                                codProducto,
+                                descripcion: item.productName || product.name,
+                                unidad: "NIU",
+                                tipoPrecio: "01",
+                                cantidad: item.quantity,
+                                mtoBaseIgv: Math.round(mtoBaseIgv * 100) / 100,
+                                mtoValorUnitario: Math.round(mtoValorUnitario * 100) / 100,
+                                mtoPrecioUnitario: Math.round(mtoPrecioUnitario * 100) / 100,
+                                codeAfectAlt: 10,
+                                codeAfect: 1000,
+                                nameAfect: "IGV",
+                                tipoAfect: "VAT",
+                                igvPorcent: igvPercentage,
+                                igv: Math.round(igvTotal * 100) / 100,
+                                igvOpi: 0,
+                            };
                         });
 
-                        const documentBody = buildDocumentBody({
-                            documentType: "03", // Boleta
+                        // Calcular totales basándose en la suma de los IGV redondeados por línea
+                        // Esto asegura que la suma de IGV por línea coincida exactamente con el IGV total
+                        const mtoIGV = items.reduce((sum, item) => sum + item.igv, 0);
+                        const mtoOperGravadas = total - mtoIGV;
+
+                        // Construir datos del cliente
+                        const cliente = customerData
+                            ? {
+                                  codigoPais: "PE",
+                                  tipoDoc: customerData.documentType === "DNI" ? "1" : "6",
+                                  numDoc: customerData.documentNumber,
+                                  rznSocial: customerData.name,
+                                  direccion: customerData.address || "----",
+                              }
+                            : {
+                                  codigoPais: "PE",
+                                  tipoDoc: "1",
+                                  numDoc: "00000000",
+                                  rznSocial: "CLIENTE VARIOS",
+                                  direccion: "----",
+                              };
+
+                        // PASO 4: Generar XML llamando al servicio del frontend
+                        const request: GenerarXMLComprobanteRequest = {
+                            claveSecreta: currentUser.secretKey,
+                            tipoDoc: "03", // Boleta
                             serie: branch.serieBoleta,
-                            correlativo: lastDocResponse.suggestedNumber,
-                            saleData: {
-                                sale: {
-                                    total: closeState.saleData.sale.total,
+                            correlativo: correlativoStr,
+                            observacion: notes || "",
+                            fechaEmision,
+                            horaEmision,
+                            tipoMoneda: currency,
+                            tipoPago: paymentMethod,
+                            total: Math.round(total * 100) / 100,
+                            mtoIGV: Math.round(mtoIGV * 100) / 100,
+                            igvOp: 0,
+                            mtoOperGravadas: Math.round(mtoOperGravadas * 100) / 100,
+                            totalTexto,
+                            cliente,
+                            items,
+                        };
+                        const xmlResponse = await miapiClient.generarXMLComprobante(request);
+
+                        // PASO 5: Imprimir respuesta de generar XML en consola
+                        console.log("Respuesta del endpoint generarXMLComprobante:", xmlResponse);
+
+                        // PASO 6: Enviar XML a SUNAT
+                        let sunatResponse: EnviarXMLASUNATResponse | null = null;
+                        try {
+                            sunatResponse = await miapiClient.enviarXMLASUNAT({
+                                claveSecreta: currentUser.secretKey,
+                                comprobante: {
+                                    tipoDoc: "03", // Boleta
+                                    serie: branch.serieBoleta,
+                                    correlativo: correlativoStr,
                                 },
-                                items: closeState.saleData.items.map(
-                                    (item) => ({
-                                        productId: item.productId as string,
-                                        productName: item.productName,
-                                        quantity: item.quantity,
-                                        unitPrice: item.unitPrice,
-                                    })
-                                ),
-                            },
-                            customerData: customerData
-                                ? {
-                                      documentType:
-                                          customerData.documentType as
-                                              | "RUC"
-                                              | "DNI",
-                                      documentNumber:
-                                          customerData.documentNumber,
-                                      name: customerData.name,
-                                      address:
-                                          customerData.address || undefined,
-                                  }
-                                : null,
-                            userData: {
-                                ruc: currentUser.ruc!,
-                                companyName: currentUser.companyName,
-                                companyCommercialName:
-                                    currentUser.companyCommercialName,
-                                companyAddress: currentUser.companyAddress,
-                                companyDistrict: currentUser.companyDistrict,
-                                companyProvince: currentUser.companyProvince,
-                                companyDepartment:
-                                    currentUser.companyDepartment,
-                                IGVPercentage: currentUser.IGVPercentage || 18,
-                            },
-                            products: productsMap,
-                            notes: notes,
-                        });
+                            });
 
-                        // PASO 5 - customerEmail ya viene del formulario (opcional)
-                        // Si el usuario marcó "Enviar comprobante por correo" y hay email, se pasa al endpoint
-                        // Si no se marca el checkbox o no hay email, customerEmail será undefined
+                            // PASO 7: Imprimir respuesta de SUNAT en consola
+                            console.log("Respuesta del endpoint enviarXMLASUNAT:", sunatResponse);
 
-                        // PASO 6 - Emitir el documento a SUNAT
-                        const emitResponse = await emitDocument({
-                            personaId: currentUser.personaId,
-                            personaToken: currentUser.personaToken,
-                            fileName,
-                            documentBody,
-                            ...(customerEmail && { customerEmail }),
-                        });
-
-                        if (!emitResponse) {
-                            throw new Error(
-                                "Error al emitir documento en SUNAT"
-                            );
+                            // Verificar si la respuesta es exitosa
+                            if (sunatResponse?.respuesta?.success) {
+                                // Actualizar el correlativo
+                                await updateBranchCorrelativo({
+                                    branchId: selectedBranchId,
+                                    documentType: "03",
+                                    correlativo: correlativoActual + 1,
+                                });
+                            } else {
+                                // Si la respuesta indica error, lanzar excepción con el mensaje
+                                const errorMessage = sunatResponse?.respuesta?.mensaje || "Error al enviar XML a SUNAT";
+                                throw new Error(errorMessage);
+                            }
+                        } catch (error) {
+                            const errorMessage = error instanceof Error ? error.message : "Error desconocido al enviar XML a SUNAT";
+                            console.error("Error al enviar XML a SUNAT:", errorMessage);
+                            throw error; // Re-lanzar el error para que se maneje en el catch externo
                         }
 
-                        // PASO 7 - Guardar el documentId en la venta
-                        await updateSaleDocumentId({
-                            saleId: closeState.saleId,
-                            documentId: emitResponse.documentId,
-                        });
-
-                        // console.log("fileName generado:", fileName);
-                        console.log(
-                            "saleData disponible:",
-                            closeState.saleData
-                        );
-                        // console.log("documentBody:", documentBody);
-                        console.log(
-                            "customerEmail:",
-                            customerEmail || "No se enviará correo"
-                        );
-                        // console.log("Documento emitido:", emitResponse);
-
+                        // Guardar las URLs del documento en la venta
                         await closeSaleMutation({
                             saleId: closeState.saleId,
                             paymentMethod,
                             notes,
                             customerId,
                             documentType: "03", // Boleta
+                            cdr: sunatResponse?.respuesta?.cdr,
+                            pdfA4: sunatResponse?.respuesta?.["pdf-a4"],
+                            pdfTicket: sunatResponse?.respuesta?.["pdf-ticket"],
+                            xmlFirmado: sunatResponse?.respuesta?.["xml-firmado"],
+                            xmlSinFirmar: sunatResponse?.respuesta?.["xml-sin-firmar"],
                         });
 
-                        // Retornar éxito con documentId y fileName
+                        // Retornar éxito
                         return {
                             success: true,
-                            documentId: emitResponse.documentId,
-                            fileName: fileName,
                         };
                     } catch (error) {
                         console.error("Error al emitir boleta:", error);
@@ -828,8 +879,7 @@ const SalesTablesContent = ({
                     customerData,
                     customerMetadata,
                     paymentMethod,
-                    notes,
-                    customerEmail
+                    notes
                 ) => {
                     if (!closeState.saleId || !closeState.saleData) {
                         throw new Error(
@@ -877,149 +927,166 @@ const SalesTablesContent = ({
 
                         // PASO 1: Validar que tenemos los datos necesarios del usuario
                         if (
-                            !currentUser?.personaId ||
-                            !currentUser?.personaToken ||
+                            !currentUser?.secretKey ||
                             !currentUser?.ruc ||
-                            !branch.serieFactura
+                            !currentUser?.currency ||
+                            !branch.serieFactura ||
+                            branch.correlativoFactura === undefined
                         ) {
                             throw new Error(
-                                "Faltan datos de configuración: Persona ID, Persona Token, RUC o Serie Factura de la sucursal"
+                                "Faltan datos de configuración: Secret Key, RUC, Currency, Serie Factura o Correlativo Factura de la sucursal"
                             );
                         }
 
-                        // PASO 2: Obtener el número correlativo desde SUNAT
-                        const lastDocResponse = await getLastDocument({
-                            personaId: currentUser.personaId,
-                            personaToken: currentUser.personaToken,
-                            type: "01", // Factura
-                            serie: branch.serieFactura,
-                        });
+                        // PASO 2: Obtener el número correlativo desde la sucursal
+                        const correlativoActual = branch.correlativoFactura || 1;
+                        const correlativoStr = String(correlativoActual).padStart(8, "0");
 
-                        if (!lastDocResponse) {
-                            throw new Error(
-                                "No se pudo obtener el número correlativo desde SUNAT"
-                            );
-                        }
+                        // PASO 3: Preparar datos para generar XML
+                        const igvPercentage = currentUser.IGVPercentage || 18;
+                        const currency = currentUser.currency;
+                        
+                        // Calcular total
+                        const total = closeState.saleData.sale.total;
+                        const totalTexto = numberToWords(total, currency);
 
-                        // PASO 3: Construir el fileName
-                        const fileName = buildSunatFileName(
-                            currentUser.ruc,
-                            "01", // Factura
-                            branch.serieFactura,
-                            lastDocResponse.suggestedNumber
-                        );
+                        // Obtener fecha y hora actual
+                        const now = new Date();
+                        const fechaEmision = now.toISOString().split("T")[0]; // YYYY-MM-DD
+                        const horaEmision = now.toTimeString().slice(0, 8); // HH:mm:ss
 
-                        // PASO 4 - Construir documentBody (estructura UBL completa)
-                        // Crear mapeo de productos con información completa (productId -> {name, unitValue, igv})
-                        const productsMap = new Map<
-                            string,
-                            { name: string; unitValue: number; igv: number }
-                        >();
-                        (products ?? []).forEach((product) => {
-                            if (
-                                product.unitValue !== undefined &&
-                                product.igv !== undefined
-                            ) {
-                                productsMap.set(product._id as string, {
-                                    name: product.name,
-                                    unitValue: product.unitValue,
-                                    igv: product.igv,
-                                });
+                        // Construir items según la nueva estructura
+                        const items = closeState.saleData.items.map((item) => {
+                            const product = productMap.get(item.productId as string);
+                            if (!product) {
+                                throw new Error(`Producto con ID ${item.productId} no encontrado`);
                             }
+
+                            // Usar el precio del item (puede ser editado) en lugar del precio del producto
+                            const precioConIGV = item.unitPrice;
+                            // Calcular unitValue e igv desde el precio con IGV
+                            const mtoValorUnitario = precioConIGV / (1 + igvPercentage / 100);
+                            const igvUnitario = precioConIGV - mtoValorUnitario;
+                            const mtoBaseIgv = mtoValorUnitario * item.quantity;
+                            const mtoPrecioUnitario = precioConIGV;
+                            const igvTotal = igvUnitario * item.quantity;
+
+                            // Generar código de producto si no existe
+                            let codProducto = product.code;
+                            if (!codProducto) {
+                                // Fallback: usar los últimos 4 caracteres del ID
+                                const productIdStr = product._id as string;
+                                codProducto = `PR${productIdStr.slice(-4).padStart(4, "0")}`;
+                            }
+
+                            return {
+                                codProducto,
+                                descripcion: item.productName || product.name,
+                                unidad: "NIU",
+                                tipoPrecio: "01",
+                                cantidad: item.quantity,
+                                mtoBaseIgv: Math.round(mtoBaseIgv * 100) / 100,
+                                mtoValorUnitario: Math.round(mtoValorUnitario * 100) / 100,
+                                mtoPrecioUnitario: Math.round(mtoPrecioUnitario * 100) / 100,
+                                codeAfectAlt: 10,
+                                codeAfect: 1000,
+                                nameAfect: "IGV",
+                                tipoAfect: "VAT",
+                                igvPorcent: igvPercentage,
+                                igv: Math.round(igvTotal * 100) / 100,
+                                igvOpi: 0,
+                            };
                         });
 
-                        const documentBody = buildDocumentBody({
-                            documentType: "01", // Factura
+                        // Calcular totales basándose en la suma de los IGV redondeados por línea
+                        // Esto asegura que la suma de IGV por línea coincida exactamente con el IGV total
+                        const mtoIGV = items.reduce((sum, item) => sum + item.igv, 0);
+                        const mtoOperGravadas = total - mtoIGV;
+
+                        // Construir datos del cliente (obligatorio para factura)
+                        const cliente = {
+                            codigoPais: "PE",
+                            tipoDoc: customerData.documentType === "DNI" ? "1" : "6",
+                            numDoc: customerData.documentNumber,
+                            rznSocial: customerData.name,
+                            direccion: customerData.address || "----",
+                        };
+
+                        // PASO 4: Generar XML llamando al servicio del frontend
+                        const request: GenerarXMLComprobanteRequest = {
+                            claveSecreta: currentUser.secretKey,
+                            tipoDoc: "01", // Factura
                             serie: branch.serieFactura,
-                            correlativo: lastDocResponse.suggestedNumber,
-                            saleData: {
-                                sale: {
-                                    total: closeState.saleData.sale.total,
+                            correlativo: correlativoStr,
+                            observacion: notes || "",
+                            fechaEmision,
+                            horaEmision,
+                            tipoMoneda: currency,
+                            tipoPago: paymentMethod,
+                            total: Math.round(total * 100) / 100,
+                            mtoIGV: Math.round(mtoIGV * 100) / 100,
+                            igvOp: 0,
+                            mtoOperGravadas: Math.round(mtoOperGravadas * 100) / 100,
+                            totalTexto,
+                            cliente,
+                            items,
+                        };
+                        const xmlResponse = await miapiClient.generarXMLComprobante(request);
+
+                        // PASO 5: Imprimir respuesta de generar XML en consola
+                        console.log("Respuesta del endpoint generarXMLComprobante:", xmlResponse);
+
+                        // PASO 6: Enviar XML a SUNAT
+                        let sunatResponse: EnviarXMLASUNATResponse | null = null;
+                        try {
+                            sunatResponse = await miapiClient.enviarXMLASUNAT({
+                                claveSecreta: currentUser.secretKey,
+                                comprobante: {
+                                    tipoDoc: "01", // Factura
+                                    serie: branch.serieFactura,
+                                    correlativo: correlativoStr,
                                 },
-                                items: closeState.saleData.items.map(
-                                    (item) => ({
-                                        productId: item.productId as string,
-                                        productName: item.productName,
-                                        quantity: item.quantity,
-                                        unitPrice: item.unitPrice,
-                                    })
-                                ),
-                            },
-                            customerData: {
-                                documentType: customerData.documentType as
-                                    | "RUC"
-                                    | "DNI",
-                                documentNumber: customerData.documentNumber,
-                                name: customerData.name,
-                                address: customerData.address || undefined,
-                            },
-                            userData: {
-                                ruc: currentUser.ruc!,
-                                companyName: currentUser.companyName,
-                                companyCommercialName:
-                                    currentUser.companyCommercialName,
-                                companyAddress: currentUser.companyAddress,
-                                companyDistrict: currentUser.companyDistrict,
-                                companyProvince: currentUser.companyProvince,
-                                companyDepartment:
-                                    currentUser.companyDepartment,
-                                IGVPercentage: currentUser.IGVPercentage || 18,
-                            },
-                            products: productsMap,
-                            paymentMethod: paymentMethod,
-                            notes: notes,
-                        });
+                            });
 
-                        // PASO 5 - customerEmail ya viene del formulario (opcional)
-                        // Si el usuario marcó "Enviar comprobante por correo" y hay email, se pasa al endpoint
-                        // Si no se marca el checkbox o no hay email, customerEmail será undefined
+                            // PASO 7: Imprimir respuesta de SUNAT en consola
+                            console.log("Respuesta del endpoint enviarXMLASUNAT:", sunatResponse);
 
-                        // PASO 6 - Emitir el documento a SUNAT
-                        const emitResponse = await emitDocument({
-                            personaId: currentUser.personaId,
-                            personaToken: currentUser.personaToken,
-                            fileName,
-                            documentBody,
-                            ...(customerEmail && { customerEmail }),
-                        });
-
-                        if (!emitResponse) {
-                            throw new Error(
-                                "Error al emitir documento en SUNAT"
-                            );
+                            // Verificar si la respuesta es exitosa
+                            if (sunatResponse?.respuesta?.success) {
+                                // Actualizar el correlativo
+                                await updateBranchCorrelativo({
+                                    branchId: selectedBranchId,
+                                    documentType: "01",
+                                    correlativo: correlativoActual + 1,
+                                });
+                            } else {
+                                // Si la respuesta indica error, lanzar excepción con el mensaje
+                                const errorMessage = sunatResponse?.respuesta?.mensaje || "Error al enviar XML a SUNAT";
+                                throw new Error(errorMessage);
+                            }
+                        } catch (error) {
+                            const errorMessage = error instanceof Error ? error.message : "Error desconocido al enviar XML a SUNAT";
+                            console.error("Error al enviar XML a SUNAT:", errorMessage);
+                            throw error; // Re-lanzar el error para que se maneje en el catch externo
                         }
 
-                        // PASO 7 - Guardar el documentId en la venta
-                        await updateSaleDocumentId({
-                            saleId: closeState.saleId,
-                            documentId: emitResponse.documentId,
-                        });
-
-                        // console.log("fileName generado:", fileName);
-                        console.log(
-                            "saleData disponible:",
-                            closeState.saleData
-                        );
-                        // console.log("documentBody:", documentBody);
-                        console.log(
-                            "customerEmail:",
-                            customerEmail || "No se enviará correo"
-                        );
-                        // console.log("Documento emitido:", emitResponse);
-
+                        // Guardar las URLs del documento en la venta
                         await closeSaleMutation({
                             saleId: closeState.saleId,
                             paymentMethod,
                             notes,
                             customerId,
                             documentType: "01", // Factura
+                            cdr: sunatResponse?.respuesta?.cdr,
+                            pdfA4: sunatResponse?.respuesta?.["pdf-a4"],
+                            pdfTicket: sunatResponse?.respuesta?.["pdf-ticket"],
+                            xmlFirmado: sunatResponse?.respuesta?.["xml-firmado"],
+                            xmlSinFirmar: sunatResponse?.respuesta?.["xml-sin-firmar"],
                         });
 
-                        // Retornar éxito con documentId y fileName
+                        // Retornar éxito
                         return {
                             success: true,
-                            documentId: emitResponse.documentId,
-                            fileName: fileName,
                         };
                     } catch (error) {
                         console.error("Error al emitir factura:", error);
@@ -1033,69 +1100,6 @@ const SalesTablesContent = ({
                         };
                     } finally {
                         setIsProcessingClose(false);
-                    }
-                }}
-                onPrintPDF={async (documentId: string, fileName: string) => {
-             
-                    try {
-                        // Usar el formato del usuario o A4 por defecto
-                        const format =
-                            (currentUser as any)?.printFormat || "A4";
-                        await printPDF(
-                            documentId,
-                            format as "A4" | "A5" | "ticket58mm" | "ticket80mm",
-                            fileName
-                        );
-                    } catch (error) {
-                        console.error("Error al imprimir PDF:", error);
-                        alert(
-                            error instanceof Error
-                                ? error.message
-                                : "Error al imprimir el PDF"
-                        );
-                    }
-                }}
-                onSendPDFToWhatsapp={async (
-                    phoneNumber: string,
-                    documentId: string,
-                    fileName: string
-                ) => {
-                    try {
-                        // Usar el formato del usuario o A4 por defecto
-                        const format =
-                            (currentUser as any)?.printFormat || "A4";
-
-                        // Construir la URL del PDF (misma lógica que downloadPDF)
-                        const fileNameWithExtension = fileName.endsWith(".pdf")
-                            ? fileName
-                            : `${fileName}.pdf`;
-                        const baseUrl =
-                            import.meta.env.VITE_APISUNAT_BASE_URL as string;
-                        const pdfUrl = `${baseUrl}/documents/${documentId}/getPDF/${format}/${fileNameWithExtension}`;
-                        console.log("pdfUrl:", pdfUrl);
-                        // Formatear el número de teléfono (solo números, sin espacios ni caracteres especiales)
-                        const cleanPhone = phoneNumber.replace(/\D/g, "");
-
-                        // Construir el mensaje con el link del PDF
-                        const message = `Hola, te comparto tu comprobante de pago:\n${pdfUrl}`;
-
-                        // Codificar el mensaje para URL
-                        const encodedMessage = encodeURIComponent(message);
-
-                        // Construir la URL de WhatsApp
-                        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
-
-                        // Abrir WhatsApp en una nueva pestaña
-                        window.open(whatsappUrl, "_blank");
-
-                        return { success: true };
-                    } catch (error) {
-                        console.error("Error al enviar por WhatsApp:", error);
-                        const errorMessage =
-                            error instanceof Error
-                                ? error.message
-                                : "Error al enviar por WhatsApp";
-                        return { success: false, error: errorMessage };
                     }
                 }}
             />

@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as ResendOTPPasswordReset from "../ResendOTPPasswordReset.js";
 import type * as access from "../access.js";
 import type * as auth from "../auth.js";
 import type * as branchInventory from "../branchInventory.js";
@@ -39,6 +40,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  ResendOTPPasswordReset: typeof ResendOTPPasswordReset;
   access: typeof access;
   auth: typeof auth;
   branchInventory: typeof branchInventory;

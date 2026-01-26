@@ -1,5 +1,6 @@
 import { Password } from "@convex-dev/auth/providers/Password";
 import type { DataModel } from "./_generated/dataModel";
+import { ResendOTPPasswordReset } from "./ResendOTPPasswordReset";
  
 export default Password<DataModel>({
   profile(params) {
@@ -13,4 +14,5 @@ export default Password<DataModel>({
       subscriptionType: "starter" as const,
     };
   },
+  reset: ResendOTPPasswordReset,
 });
