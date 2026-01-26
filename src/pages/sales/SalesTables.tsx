@@ -272,92 +272,120 @@ const SalesTablesContent = ({
                                     entry.sale.tableId &&
                                     entry.sale.tableId === table._id
                             );
+
+                            const isClickable = 
+                                table.status !== "out_of_service" && hasActiveShift;
+
                             return (
                                 <article
                                     key={table._id}
-                                    className={`flex flex-col gap-4 rounded-lg border p-5 text-slate-900 dark:text-white ${
-                                        activeSale
-                                            ? "border-[#fa7316]/50 bg-[#fa7316]/10"
-                                            : "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60"
+                                    onClick={() => {
+                                        if (!isClickable) return;
+                                        if (activeSale) {
+                                            setSelectedSaleId(activeSale.sale._id);
+                                        } else {
+                                            openCreateModal(table);
+                                        }
+                                    }}
+                                    className={`flex min-h-[280px] flex-col rounded-lg border border-slate-200 bg-slate-50 p-5 text-slate-900 transition-shadow dark:border-slate-800 dark:bg-slate-900/60 dark:text-white ${
+                                        isClickable
+                                            ? "cursor-pointer hover:shadow-md"
+                                            : "cursor-not-allowed opacity-60"
                                     }`}
                                 >
-                                    <header className="flex items-center justify-between">
+                                    {/* Header */}
+                                    <header className="mb-4 flex items-start justify-between">
                                         <div>
-                                            <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
-                                                Mesa
-                                            </p>
-                                            <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">
+                                            <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                                                 {table.label}
                                             </h3>
                                         </div>
-                                        <StatusBadge
-                                            status={table.status ?? "available"}
-                                        />
+                                        {activeSale && (
+                                            <span className="text-sm font-medium text-[#fa7316]">
+                                                {formatDuration(
+                                                    activeSale.sale.openedAt,
+                                                    Date.now()
+                                                )}
+                                            </span>
+                                        )}
                                     </header>
 
-                                    <div className="text-sm text-slate-600 dark:text-slate-300">
-                                        {table.capacity ? (
-                                            <p>
-                                                Capacidad:{" "}
-                                                <span className="font-semibold text-slate-900 dark:text-white">
-                                                    {table.capacity} personas
-                                                </span>
-                                            </p>
-                                        ) : (
-                                            <p>Capacidad no asignada</p>
+                                    {/* Content */}
+                                    <div className="mb-4 flex flex-1 flex-col gap-3">
+                                        {/* Capacity */}
+                                        <div className="text-sm text-slate-600 dark:text-slate-300">
+                                            {table.capacity ? (
+                                                <p>
+                                                    Capacidad:{" "}
+                                                    <span className="font-semibold text-slate-900 dark:text-white">
+                                                        {table.capacity} personas
+                                                    </span>
+                                                </p>
+                                            ) : (
+                                                <p>Capacidad no asignada</p>
+                                            )}
+                                        </div>
+
+                                        {/* Ticket info if active sale */}
+                                        {activeSale && (
+                                            <div className="space-y-2 text-sm">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-slate-600 dark:text-slate-300">
+                                                        Ticket
+                                                    </span>
+                                                    <span className="font-semibold text-slate-900 dark:text-white">
+                                                        {formatCurrency(
+                                                            activeSale.sale.total
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
+                                                    <span>Abierta</span>
+                                                    <span>
+                                                        {formatDuration(
+                                                            activeSale.sale
+                                                                .openedAt,
+                                                            Date.now()
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
 
-                                    {activeSale ? (
-                                        <div className="space-y-2 rounded-lg border border-[#fa7316]/40 bg-[#fa7316]/10 p-4 text-sm text-slate-700 dark:text-slate-200">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-slate-600 dark:text-slate-300">
-                                                    Ticket
-                                                </span>
-                                                <span className="font-semibold text-slate-900 dark:text-white">
-                                                    {formatCurrency(
-                                                        activeSale.sale.total
-                                                    )}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
-                                                <span>Abierta</span>
-                                                <span>
-                                                    {formatDuration(
-                                                        activeSale.sale
-                                                            .openedAt,
-                                                        Date.now()
-                                                    )}
-                                                </span>
-                                            </div>
+                                    {/* Footer with button */}
+                                    <div className="mt-auto flex justify-end">
+                                        {activeSale ? (
                                             <button
                                                 type="button"
-                                                onClick={() =>
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
                                                     setSelectedSaleId(
                                                         activeSale.sale._id
-                                                    )
-                                                }
-                                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#fa7316]/10 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-[#fa7316]/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 cursor-pointer"
+                                                    );
+                                                }}
+                                                className="rounded-lg bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#fa7316]/90 cursor-pointer"
                                             >
                                                 Ver pedido
                                             </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                openCreateModal(table)
-                                            }
-                                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:text-white cursor-pointer"
-                                            disabled={
-                                                table.status ===
-                                                    "out_of_service" ||
-                                                !hasActiveShift
-                                            }
-                                        >
-                                            Abrir pedido
-                                        </button>
-                                    )}
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openCreateModal(table);
+                                                }}
+                                                className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-300 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 cursor-pointer"
+                                                disabled={
+                                                    table.status ===
+                                                        "out_of_service" ||
+                                                    !hasActiveShift
+                                                }
+                                            >
+                                                Abrir pedido
+                                            </button>
+                                        )}
+                                    </div>
                                 </article>
                             );
                         })
@@ -383,9 +411,10 @@ const SalesTablesContent = ({
                         {branchLiveSales.map((entry) => (
                             <article
                                 key={entry.sale._id}
-                                className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50 p-5 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white"
+                                onClick={() => setSelectedSaleId(entry.sale._id)}
+                                className="flex min-h-[280px] cursor-pointer flex-col rounded-lg border border-slate-200 bg-slate-50 p-5 text-slate-900 transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900/60 dark:text-white"
                             >
-                                <header className="flex items-center justify-between">
+                                <header className="mb-4 flex items-start justify-between">
                                     <div>
                                         <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                                             {entry.table?.label ??
@@ -395,7 +424,7 @@ const SalesTablesContent = ({
                                             {formatCurrency(entry.sale.total)}
                                         </h3>
                                     </div>
-                                    <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#fa7316]">
+                                    <span className="text-sm font-medium text-[#fa7316]">
                                         {formatDuration(
                                             entry.sale.openedAt,
                                             Date.now()
@@ -403,94 +432,99 @@ const SalesTablesContent = ({
                                     </span>
                                 </header>
 
-                                <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                                    <div className="flex items-center justify-between">
-                                        <span>Creada</span>
-                                        <span className="font-semibold text-slate-900 dark:text-white">
-                                            {formatDateTime(
-                                                entry.sale.openedAt
-                                            )}
-                                        </span>
+                                <div className="mb-4 flex flex-1 flex-col gap-3">
+                                    <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                                        <div className="flex items-center justify-between">
+                                            <span>Creada</span>
+                                            <span className="font-semibold text-slate-900 dark:text-white">
+                                                {formatDateTime(
+                                                    entry.sale.openedAt
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span>Atiende</span>
+                                            <span className="font-semibold text-slate-900 dark:text-white">
+                                                {entry.sale.staffId
+                                                    ? (entry.staff?.name ??
+                                                      "Personal")
+                                                    : "Sin asignar"}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <span>Atiende</span>
-                                        <span className="font-semibold text-slate-900 dark:text-white">
-                                            {entry.sale.staffId
-                                                ? (entry.staff?.name ??
-                                                  "Personal")
-                                                : "Sin asignar"}
-                                        </span>
-                                    </div>
-                                </div>
 
-                                <div className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
-                                    <h4 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
-                                        Productos
-                                    </h4>
-                                    <ul className="space-y-2">
-                                        {entry.items.length === 0 ? (
-                                            <li className="rounded-lg border border-dashed border-slate-300 px-3 py-2 text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                                                Pendiente de agregar productos
-                                            </li>
-                                        ) : (
-                                            entry.items.map((item) => {
-                                                const product = productMap.get(
-                                                    item.productId as string
-                                                );
-                                                return (
-                                                    <li
-                                                        key={item._id}
-                                                        className="flex items-center justify-between gap-3 rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-950/40"
-                                                    >
-                                                        <div className="flex flex-col">
+                                    <div className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                                        <h4 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                                            Productos
+                                        </h4>
+                                        <ul className="space-y-2">
+                                            {entry.items.length === 0 ? (
+                                                <li className="rounded-lg border border-dashed border-slate-300 px-3 py-2 text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                                                    Pendiente de agregar productos
+                                                </li>
+                                            ) : (
+                                                entry.items.map((item) => {
+                                                    const product = productMap.get(
+                                                        item.productId as string
+                                                    );
+                                                    return (
+                                                        <li
+                                                            key={item._id}
+                                                            className="flex items-center justify-between gap-3 rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-950/40"
+                                                        >
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                                                                    {item.productName? item.productName : (product?.name ?? "Producto")}
+                                                                </span>
+                                                                <span className="text-xs text-slate-500 dark:text-slate-400">
+                                                                    {item.quantity}{" "}
+                                                                    ×{" "}
+                                                                    {formatCurrency(
+                                                                        item.unitPrice
+                                                                    )}
+                                                                </span>
+                                                            </div>
                                                             <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                                                                {item.productName? item.productName : (product?.name ?? "Producto")}
-                                                            </span>
-                                                            <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                                {item.quantity}{" "}
-                                                                ×{" "}
                                                                 {formatCurrency(
-                                                                    item.unitPrice
+                                                                    item.totalPrice
                                                                 )}
                                                             </span>
-                                                        </div>
-                                                        <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                                                            {formatCurrency(
-                                                                item.totalPrice
-                                                            )}
-                                                        </span>
-                                                    </li>
-                                                );
-                                            })
-                                        )}
-                                    </ul>
+                                                        </li>
+                                                    );
+                                                })
+                                            )}
+                                        </ul>
+                                    </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-2">
+                                <div className="mt-auto flex gap-2">
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setSelectedSaleId(entry.sale._id)
-                                        }
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-white/20 dark:text-white cursor-pointer border border-slate-300 dark:border-slate-700"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedSaleId(entry.sale._id);
+                                        }}
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#fa7316] bg-transparent px-3 py-2 text-sm font-semibold text-[#fa7316] transition hover:bg-[#fa7316]/10 cursor-pointer"
                                     >
                                         Gestionar
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            openCloseDialog(entry.sale._id)
-                                        }
-                                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 px-3 py-2 text-sm font-semibold text-emerald-600 transition hover:border-emerald-600 hover:text-emerald-700 dark:text-emerald-300 dark:hover:border-emerald-400 dark:hover:text-emerald-200 cursor-pointer"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            openCloseDialog(entry.sale._id);
+                                        }}
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 cursor-pointer"
                                     >
                                         Concluir
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            openCancelDialog(entry.sale._id)
-                                        }
-                                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/40 px-3 py-2 text-sm font-semibold text-red-600 transition hover:border-red-600 hover:text-red-700 dark:text-red-300 dark:hover:border-red-400 dark:hover:text-red-200 cursor-pointer"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            openCancelDialog(entry.sale._id);
+                                        }}
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 cursor-pointer"
                                     >
                                         Cancelar
                                     </button>
@@ -1162,43 +1196,6 @@ const SalesTablesContent = ({
                 }}
             />
         </div>
-    );
-};
-
-const StatusBadge = ({
-    status,
-}: {
-    status: "available" | "occupied" | "reserved" | "out_of_service";
-}) => {
-    const config: Record<typeof status, { label: string; className: string }> =
-        {
-            available: {
-                label: "Disponible",
-                className:
-                    "border-emerald-500/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200",
-            },
-            occupied: {
-                label: "Ocupada",
-                className: "border-[#fa7316]/40 bg-[#fa7316]/10 text-[#fa7316]",
-            },
-            reserved: {
-                label: "Reservada",
-                className: "border-sky-500/40 bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-200",
-            },
-            out_of_service: {
-                label: "Fuera de servicio",
-                className: "border-red-500/40 bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-200",
-            },
-        };
-
-    const entry = config[status];
-
-    return (
-        <span
-            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] ${entry.className}`}
-        >
-            {entry.label}
-        </span>
     );
 };
 

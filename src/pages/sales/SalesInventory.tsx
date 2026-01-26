@@ -386,7 +386,7 @@ const SalesInventoryContent = ({
                 <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Inventario
                 </h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
                     {categories?.map((item) => {
                         const categoryId = item.category
                             ._id as unknown as string;
@@ -398,23 +398,23 @@ const SalesInventoryContent = ({
                                 onClick={() =>
                                     setSelectedCategoryId(categoryId)
                                 }
-                                className={`flex flex-col gap-1 rounded-lg border p-4 text-left transition ${
+                                className={`flex flex-col gap-1 rounded-lg border p-3 text-left transition ${
                                     isSelected
                                         ? "border-[#fa7316] bg-[#fa7316]/10 text-slate-900 dark:text-white"
-                                        : "border-slate-200 bg-slate-50 text-slate-700 hover:border-[#fa7316]/50 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
+                                        : "border-slate-300 bg-white text-slate-700 hover:border-[#fa7316]/50 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
                                 }`}
                             >
-                                <span className="text-md font-semibold ">
+                                <span className="text-sm font-semibold ">
                                     {item.category.name}
                                 </span>
-                                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
-                                    {item.productCount} productos
+                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                                    {item.productCount} Productos
                                 </span>
                             </button>
                         );
                     })}
                     {(!categories || categories.length === 0) && (
-                        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-6 py-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-400">
+                        <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-400">
                             Crea categorías para comenzar a clasificar productos
                             en esta sucursal.
                         </div>

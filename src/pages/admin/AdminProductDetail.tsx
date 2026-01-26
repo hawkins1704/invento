@@ -833,7 +833,7 @@ const AdminProductDetail = () => {
                             <button
                                 type="button"
                                 onClick={requestRemoveImage}
-                                className="inline-flex items-center gap-2 rounded-lg border border-red-500 bg-red-50 dark:bg-red-500 px-4 py-2 text-xs font-semibold text-red-600 transition hover:border-red-500 hover:bg-red-100 hover:text-red-700 dark:text-red-200 dark:hover:text-red-100 dark:hover:bg-red-500 disabled:opacity-50"
+                                className="inline-flex items-center gap-2 rounded-lg border border-red-500 bg-red-50 dark:bg-red-500 px-4 py-2 text-xs font-semibold text-red-600 transition hover:border-red-500 hover:bg-red-100 hover:text-red-700 dark:text-white dark:hover:text-red-100 dark:hover:bg-red-500 disabled:opacity-50"
                                 disabled={
                                     isSubmitting ||
                                     isDeleting ||
