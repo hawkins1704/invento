@@ -109,11 +109,20 @@ export const useOrderItems = ({
                     (item) => item.productId === product._id
                 );
                 if (existing) {
-                    // Si permite venta en negativo, incrementar sin límite
-                    // Si no permite, verificar que no exceda el stock disponible
+                    // Si el stock disponible es menor que la cantidad actual, significa que estamos
+                    // editando un pedido existente donde el stock ya tiene las unidades restadas.
+                    // En ese caso, necesitamos sumar las unidades ya en el pedido porque se
+                    // liberarán antes de reservar de nuevo.
+                    const isEditingExistingSale = availableStock < existing.quantity;
+                    const effectiveAvailableStock = isEditingExistingSale 
+                        ? availableStock + existing.quantity 
+                        : availableStock;
                     const newQuantity = existing.quantity + 1;
-                    if (!allowNegativeSale && newQuantity > availableStock) {
-                        // No incrementar si excedería el stock disponible
+                    
+                    // Si permite venta en negativo, incrementar sin límite
+                    // Si no permite, verificar que no exceda el stock disponible efectivo
+                    if (!allowNegativeSale && newQuantity > effectiveAvailableStock) {
+                        // No incrementar si excedería el stock disponible efectivo
                         return previous;
                     }
                     return previous.map((item) =>
@@ -187,8 +196,21 @@ export const useOrderItems = ({
             const allowNegativeSale = product.allowNegativeSale ?? false;
             const availableStock = getAvailableStock(product);
 
-            setItems((previous) =>
-                previous
+            setItems((previous) => {
+                // Encontrar el item actual para obtener su cantidad actual
+                const currentItem = previous.find((item) => item.productId === productId);
+                const currentQuantity = currentItem?.quantity ?? 0;
+                
+                // Si el stock disponible es menor que la cantidad actual, significa que estamos
+                // editando un pedido existente donde el stock ya tiene las unidades restadas.
+                // En ese caso, necesitamos sumar las unidades ya en el pedido porque se
+                // liberarán antes de reservar de nuevo.
+                const isEditingExistingSale = currentQuantity > 0 && availableStock < currentQuantity;
+                const effectiveAvailableStock = isEditingExistingSale 
+                    ? availableStock + currentQuantity 
+                    : availableStock;
+
+                return previous
                     .map((item) => {
                         if (item.productId !== productId) {
                             return item;
@@ -197,15 +219,15 @@ export const useOrderItems = ({
                         const minQuantity = 1;
                         let newQuantity = Math.max(minQuantity, quantity);
 
-                        // Si no permite venta en negativo, limitar al stock disponible
-                        if (!allowNegativeSale && newQuantity > availableStock) {
-                            newQuantity = availableStock;
+                        // Si no permite venta en negativo, limitar al stock disponible efectivo
+                        if (!allowNegativeSale && newQuantity > effectiveAvailableStock) {
+                            newQuantity = effectiveAvailableStock;
                         }
 
                         return { ...item, quantity: newQuantity };
                     })
-                    .filter((item) => item.quantity > 0)
-            );
+                    .filter((item) => item.quantity > 0);
+            });
         },
         [products, setItems, getAvailableStock, showInventoryCheck]
     );

@@ -69,14 +69,22 @@ const OrderItemsList = ({
                         let canIncrement = true;
                         if (product) {
                             if (!showInventoryCheck) {
-                                // Si no se verifica inventoryActivated, solo verificar stock
-                                canIncrement = allowNegativeSale || item.quantity < availableStock;
+                                // Si no se verifica inventoryActivated, permitir incrementar siempre
+                                canIncrement = true;
                             } else {
                                 // Si se verifica inventoryActivated
                                 if (!inventoryActivated) {
                                     canIncrement = true;
                                 } else {
-                                    canIncrement = allowNegativeSale || item.quantity < availableStock;
+                                    // Si el stock disponible es menor que la cantidad actual, significa que estamos
+                                    // editando un pedido existente donde el stock ya tiene las unidades restadas.
+                                    // En ese caso, necesitamos sumar las unidades ya en el pedido porque se
+                                    // liberarán antes de reservar de nuevo.
+                                    const isEditingExistingSale = availableStock < item.quantity;
+                                    const effectiveAvailableStock = isEditingExistingSale 
+                                        ? availableStock + item.quantity 
+                                        : availableStock;
+                                    canIncrement = allowNegativeSale || (item.quantity + 1) <= effectiveAvailableStock;
                                 }
                             }
                         }

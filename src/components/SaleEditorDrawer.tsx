@@ -104,6 +104,8 @@ const SaleEditorDrawer = ({
     const previousItemsRef = useRef<EditableItem[]>([]);
     const isInitialMountRef = useRef(true);
     const saleIdRef = useRef<Id<"sales"> | null>(null);
+    const isSavingRef = useRef(false);
+    const lastSyncedSaleIdRef = useRef<Id<"sales"> | null>(null);
 
     useEffect(() => {
         // Inicializar items desde sale
@@ -120,9 +122,26 @@ const SaleEditorDrawer = ({
             };
         });
 
-        setItems(initialItems);
-        previousItemsRef.current = initialItems;
-        saleIdRef.current = sale.sale._id;
+        const currentSaleId = sale.sale._id;
+        const isNewSale = lastSyncedSaleIdRef.current !== currentSaleId;
+        const hasPendingChanges = saveTimeoutRef.current !== null || isSavingRef.current;
+        
+        // Solo sincronizar si:
+        // 1. Es la carga inicial (isInitialMountRef.current), O
+        // 2. Es una nueva venta seleccionada (isNewSale), O
+        // 3. No hay cambios pendientes Y los items del servidor son diferentes a los locales
+        const shouldSync = 
+            isInitialMountRef.current || 
+            isNewSale ||
+            (!hasPendingChanges && JSON.stringify(initialItems) !== JSON.stringify(previousItemsRef.current));
+
+        if (shouldSync) {
+            setItems(initialItems);
+            previousItemsRef.current = initialItems;
+            lastSyncedSaleIdRef.current = currentSaleId;
+        }
+        
+        saleIdRef.current = currentSaleId;
         setSaleNotes(sale.sale.notes ?? "");
         setSelectedTableId(
             sale.sale.tableId ? (sale.sale.tableId as Id<"branchTables">) : ""
@@ -167,6 +186,7 @@ const SaleEditorDrawer = ({
         saveTimeoutRef.current = setTimeout(async () => {
             if (!saleIdRef.current) return;
             
+            isSavingRef.current = true;
             try {
                 await onSaveItems(
                     saleIdRef.current,
@@ -181,6 +201,9 @@ const SaleEditorDrawer = ({
                 previousItemsRef.current = items;
             } catch (error) {
                 console.error("Error al guardar items automáticamente:", error);
+            } finally {
+                isSavingRef.current = false;
+                saveTimeoutRef.current = null;
             }
         }, 500);
 
