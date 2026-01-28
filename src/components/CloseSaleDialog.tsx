@@ -8,6 +8,7 @@ import { HiOutlineReceiptTax } from "react-icons/hi";
 import { MdErrorOutline } from "react-icons/md";
 import { BiBadgeCheck } from "react-icons/bi";
 import CloseButton from "./CloseButton";
+import {  FaWhatsapp } from "react-icons/fa6";
 
 type CustomerFormState = {
     documentType: "RUC" | "DNI" | "";
@@ -40,6 +41,9 @@ type CloseSaleDialogProps = {
     notes: string;
     isProcessing: boolean;
     onClose: () => void;
+    onPrint?: () => void;
+    companyName?: string;
+    pdfTicketUrl?: string;
     onCloseWithoutEmit: (
         customerData: CustomerFormState | null,
         customerMetadata: CustomerMetadata,
@@ -73,6 +77,9 @@ const CloseSaleDialog = ({
     notes: initialNotes,
     isProcessing,
     onClose,
+    onPrint,
+    companyName = "",
+    pdfTicketUrl = "",
     onCloseWithoutEmit,
     onEmitBoleta,
     onEmitFactura,
@@ -95,6 +102,10 @@ const CloseSaleDialog = ({
     const [customerIdFromConvex, setCustomerIdFromConvex] =
         useState<Id<"customers"> | null>(null);
     const [isDocumentEmitted, setIsDocumentEmitted] = useState(false);
+    const [showWhatsAppForm, setShowWhatsAppForm] = useState(false);
+    const [whatsAppPrefix, setWhatsAppPrefix] = useState("51");
+    const [whatsAppNumber, setWhatsAppNumber] = useState("");
+    const [whatsAppNumberError, setWhatsAppNumberError] = useState<string | null>(null);
 
     const { consultarRUC, consultarDNI } = useMiAPIDoc();
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -414,6 +425,10 @@ const CloseSaleDialog = ({
         setEmissionStatus("idle");
         setEmissionError(null);
         setIsDocumentEmitted(false);
+        setShowWhatsAppForm(false);
+        setWhatsAppPrefix("51");
+        setWhatsAppNumber("");
+        setWhatsAppNumberError(null);
         setOriginalCustomerData(null);
         setCustomerIdFromConvex(null);
         lastQueriedRef.current = "";
@@ -976,13 +991,113 @@ const CloseSaleDialog = ({
                                     ? "El documento se emitió de manera satisfactoria"
                                     : "La venta se cerró correctamente"}
                             </p>
-                            <button
-                                type="button"
-                                onClick={handleClose}
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
-                            >
-                                CERRAR
-                            </button>
+                            {isDocumentEmitted ? (
+                                <div className="flex w-full flex-col gap-3">
+                                    <div className="flex w-full flex-col gap-2 sm:flex-row">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowWhatsAppForm((prev) => !prev)}
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
+                                        >
+                                            <FaWhatsapp className="h-5 w-5"/>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => onPrint?.()}
+                                            disabled={!onPrint}
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
+                                        >
+                                            IMPRIMIR
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleClose}
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
+                                        >
+                                            CERRAR
+                                        </button>
+                                    </div>
+                                    {showWhatsAppForm && (
+                                        <div className="flex w-full flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+                                            <div className="flex flex-wrap items-end gap-2">
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                        Prefijo
+                                                    </label>
+                                                    <div className="flex items-center rounded-lg border border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900">
+                                                        <span className="pl-3 text-sm text-slate-600 dark:text-slate-300">+</span>
+                                                        <input
+                                                            type="text"
+                                                            inputMode="numeric"
+                                                            pattern="[0-9]*"
+                                                            value={whatsAppPrefix}
+                                                            onChange={(e) => {
+                                                                const v = e.target.value.replace(/\D/g, "");
+                                                                setWhatsAppPrefix(v);
+                                                                setWhatsAppNumberError(null);
+                                                            }}
+                                                            className="w-14 border-0 bg-transparent py-2 pr-2 text-sm text-slate-900 outline-none dark:text-white"
+                                                            placeholder="51"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-1 min-w-[120px] flex-col gap-1">
+                                                    <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                        Número
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        pattern="[0-9]*"
+                                                        value={whatsAppNumber}
+                                                        onChange={(e) => {
+                                                            const v = e.target.value.replace(/\D/g, "");
+                                                            setWhatsAppNumber(v);
+                                                            setWhatsAppNumberError(null);
+                                                        }}
+                                                        className={`rounded-lg border bg-white py-2 px-3 text-sm text-slate-900 outline-none dark:bg-slate-900 dark:text-white ${
+                                                            whatsAppNumberError
+                                                                ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/30"
+                                                                : "border-slate-300 dark:border-slate-700 focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30"
+                                                        }`}
+                                                        placeholder="999 999 999"
+                                                    />
+                                                    {whatsAppNumberError && (
+                                                        <p className="text-xs text-red-600 dark:text-red-400">
+                                                            {whatsAppNumberError}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const digits = whatsAppNumber.replace(/\D/g, "");
+                                                        if (digits.length < 9) {
+                                                            setWhatsAppNumberError("El número debe tener al menos 9 dígitos.");
+                                                            return;
+                                                        }
+                                                        const fullNumber = whatsAppPrefix.replace(/\D/g, "") + digits;
+                                                        const message = `Hola! Aquí te envío tu comprobante electrónico de tu compra en ${companyName || "nuestra tienda"}. Haz click en el siguiente enlace: ${pdfTicketUrl || ""}`;
+                                                        const url = `https://wa.me/${fullNumber}?text=${encodeURIComponent(message)}`;
+                                                        window.open(url, "_blank", "noopener,noreferrer");
+                                                    }}
+                                                    className="rounded-lg border border-[#fa7316] bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e86a12] dark:border-[#fa7316] dark:bg-[#fa7316] dark:hover:bg-[#e86a12]"
+                                                >
+                                                    ENVIAR
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={handleClose}
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
+                                >
+                                    CERRAR
+                                </button>
+                            )}
                         </div>
                     </>
                 ) : null}
