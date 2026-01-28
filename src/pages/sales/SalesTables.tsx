@@ -8,6 +8,10 @@ import {
     formatDateTime,
     formatDuration,
 } from "../../utils/format";
+import {
+    fetchPdfBlobFromUrl,
+    printPdfBlobInHiddenIframe,
+} from "../../utils/pdfPrint";
 import { miapiClient } from "../../services/miapi";
 import type { GenerarXMLComprobanteRequest, EnviarXMLASUNATResponse } from "../../services/miapi";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -121,64 +125,6 @@ const SalesTablesContent = ({
 
     const [emittedPdfBlob, setEmittedPdfBlob] = useState<Blob | null>(null);
     const [emittedPdfTicketUrl, setEmittedPdfTicketUrl] = useState<string | null>(null);
-
-    const fetchPdfTicketBlob = async (pdfTicketUrl?: string): Promise<Blob | null> => {
-        if (!pdfTicketUrl) {
-            return null;
-        }
-
-        const pdfResponse = await fetch(pdfTicketUrl);
-        if (!pdfResponse.ok) {
-            throw new Error("No se pudo descargar el PDF ticket.");
-        }
-        return await pdfResponse.blob();
-    };
-
-    const handlePrintPdfBlob = (pdfBlob: Blob) => {
-        const objectUrl = URL.createObjectURL(pdfBlob);
-        const iframe = document.createElement("iframe");
-        iframe.style.position = "fixed";
-        iframe.style.right = "0";
-        iframe.style.bottom = "0";
-        iframe.style.width = "0";
-        iframe.style.height = "0";
-        iframe.style.border = "0";
-        iframe.style.visibility = "hidden";
-        iframe.src = objectUrl;
-
-        const cleanup = () => {
-            try {
-                URL.revokeObjectURL(objectUrl);
-            } finally {
-                iframe.remove();
-            }
-        };
-
-        iframe.onload = () => {
-            const win = iframe.contentWindow;
-            if (win) {
-                // Enfocar e imprimir el contenido del iframe (PDF)
-                win.focus();
-                // Cleanup con afterprint cuando sea posible
-                try {
-                    win.addEventListener("afterprint", cleanup, { once: true });
-                } catch {
-                    // Ignorar si el browser no lo soporta
-                }
-                win.print();
-                // Fallback de limpieza
-                window.setTimeout(cleanup, 15000);
-                return;
-            }
-
-            // Fallback (imprime la página, no el PDF)
-            window.focus();
-            window.print();
-            window.setTimeout(cleanup, 15000);
-        };
-
-        document.body.appendChild(iframe);
-    };
     const [cancelState, setCancelState] = useState<{
         saleId: Id<"sales"> | null;
         reason: string;
@@ -652,9 +598,9 @@ const SalesTablesContent = ({
                     if (!emittedPdfBlob) {
                         return;
                     }
-                    handlePrintPdfBlob(emittedPdfBlob);
+                    printPdfBlobInHiddenIframe(emittedPdfBlob);
                 }}
-                companyName={currentUser?.companyCommercialName ?? ""}
+                companyName={currentUser?.companyName ?? ""}
                 pdfTicketUrl={emittedPdfTicketUrl ?? ""}
                 onClose={() => {
                     setIsClosingSale(false);
@@ -947,7 +893,9 @@ const SalesTablesContent = ({
                         if (pdfTicketUrl) {
                             setEmittedPdfTicketUrl(pdfTicketUrl);
                         }
-                        const pdfBlob = await fetchPdfTicketBlob(pdfTicketUrl);
+                        const pdfBlob = pdfTicketUrl
+                            ? await fetchPdfBlobFromUrl(pdfTicketUrl)
+                            : null;
                         if (pdfBlob) {
                             setEmittedPdfBlob(pdfBlob);
                         }
@@ -1165,7 +1113,9 @@ const SalesTablesContent = ({
                         if (pdfTicketUrl) {
                             setEmittedPdfTicketUrl(pdfTicketUrl);
                         }
-                        const pdfBlob = await fetchPdfTicketBlob(pdfTicketUrl);
+                        const pdfBlob = pdfTicketUrl
+                            ? await fetchPdfBlobFromUrl(pdfTicketUrl)
+                            : null;
                         if (pdfBlob) {
                             setEmittedPdfBlob(pdfBlob);
                         }

@@ -997,7 +997,7 @@ const CloseSaleDialog = ({
                                         <button
                                             type="button"
                                             onClick={() => setShowWhatsAppForm((prev) => !prev)}
-                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white cursor-pointer"
                                         >
                                             <FaWhatsapp className="h-5 w-5"/>
                                         </button>
@@ -1005,14 +1005,14 @@ const CloseSaleDialog = ({
                                             type="button"
                                             onClick={() => onPrint?.()}
                                             disabled={!onPrint}
-                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white cursor-pointer"
                                         >
                                             IMPRIMIR
                                         </button>
                                         <button
                                             type="button"
                                             onClick={handleClose}
-                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white cursor-pointer"
                                         >
                                             CERRAR
                                         </button>
@@ -1081,7 +1081,7 @@ const CloseSaleDialog = ({
                                                         const url = `https://wa.me/${fullNumber}?text=${encodeURIComponent(message)}`;
                                                         window.open(url, "_blank", "noopener,noreferrer");
                                                     }}
-                                                    className="rounded-lg border border-[#fa7316] bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e86a12] dark:border-[#fa7316] dark:bg-[#fa7316] dark:hover:bg-[#e86a12]"
+                                                    className="rounded-lg border border-[#fa7316] bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e86a12] dark:border-[#fa7316] dark:bg-[#fa7316] dark:hover:bg-[#e86a12] cursor-pointer"
                                                 >
                                                     ENVIAR
                                                 </button>

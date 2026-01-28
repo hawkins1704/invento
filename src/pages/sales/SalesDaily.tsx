@@ -10,6 +10,7 @@ import DataTable from "../../components/table/DataTable";
 import TableRow from "../../components/table/TableRow";
 import { FaRegSadTear } from "react-icons/fa";
 import Chip from "../../components/Chip";
+import { printPdfFromUrl } from "../../utils/pdfPrint";
 
 type LiveSale = {
     sale: Doc<"sales">;
@@ -188,13 +189,37 @@ const SalesDailyContent = ({
                                                 : "No registrado"}
                                         </td>
                                         <td className="px-6 py-4 text-sm">
-                                            {entry.sale.documentId &&
-                                            entry.sale.documentType ? (
-                                                <span className="font-semibold text-[#fa7316]">
-                                                    {getDocumentTypeLabel(
-                                                        entry.sale.documentType
-                                                    )}
-                                                </span>
+                                            {entry.sale.documentType ? (
+                                                entry.sale.pdfTicket ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            void printPdfFromUrl(
+                                                                entry.sale.pdfTicket as string
+                                                            ).catch((error) => {
+                                                                console.error(
+                                                                    "Error al imprimir PDF:",
+                                                                    error
+                                                                );
+                                                            });
+                                                        }}
+                                                        className="font-semibold text-[#fa7316] hover:underline cursor-pointer"
+                                                        title="Imprimir documento"
+                                                    >
+                                                        {getDocumentTypeLabel(
+                                                            entry.sale.documentType
+                                                        )}
+                                                    </button>
+                                                ) : (
+                                                    <span
+                                                        className="font-semibold text-[#fa7316] opacity-60"
+                                                        title="Documento sin PDF disponible"
+                                                    >
+                                                        {getDocumentTypeLabel(
+                                                            entry.sale.documentType
+                                                        )}
+                                                    </span>
+                                                )
                                             ) : (
                                                 <span className="text-slate-500 dark:text-slate-500">
                                                     SIN DOC

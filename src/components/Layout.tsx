@@ -16,7 +16,6 @@ import { FaRegClock } from "react-icons/fa";
 import { MdOutlineDinnerDining } from "react-icons/md";
 import { IoLogInOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
-import { FaFileInvoice } from "react-icons/fa6";
 import { FaCreditCard } from "react-icons/fa";
 import { LuStore } from "react-icons/lu";
 import { FaCheck } from "react-icons/fa";

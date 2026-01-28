@@ -17,6 +17,7 @@ import TableRow from "../../components/table/TableRow";
 import Pagination from "../../components/pagination/Pagination";
 import DateRangePicker from "../../components/date-range-picker/DateRangePicker";
 import InfoCard from "../../components/InfoCard";
+import { printPdfFromUrl } from "../../utils/pdfPrint";
 
 type PeriodKey = "day" | "month" | "custom";
 
@@ -131,6 +132,11 @@ const summarizeLive = (data: LiveSale[]) => {
             totalSales: 0,
         }
     );
+};
+
+const getDocumentTypeLabel = (documentType?: "01" | "03") => {
+    if (!documentType) return null;
+    return documentType === "01" ? "FACTURA" : "BOLETA";
 };
 
 const AdminSales = () => {
@@ -935,6 +941,7 @@ const HistoryView = ({
                                         { label: "Mesa", key: "table" },
                                         { label: "Atiende", key: "staff" },
                                         { label: "Método", key: "method" },
+                                        { label: "Documento", key: "document" },
                                         {
                                             label: "Total",
                                             key: "total",
@@ -989,6 +996,49 @@ const HistoryView = ({
                                                               .paymentMethod as "Contado" | "Credito"
                                                       )
                                                     : "No registrado"}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                {entry.sale.documentType ? (
+                                                    entry.sale.pdfTicket ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                void printPdfFromUrl(
+                                                                    entry.sale
+                                                                        .pdfTicket as string
+                                                                ).catch(
+                                                                    (error) => {
+                                                                        console.error(
+                                                                            "Error al imprimir PDF:",
+                                                                            error
+                                                                        );
+                                                                    }
+                                                                );
+                                                            }}
+                                                            className="font-semibold text-[#fa7316] hover:underline cursor-pointer"
+                                                            title="Imprimir documento"
+                                                        >
+                                                            {getDocumentTypeLabel(
+                                                                entry.sale
+                                                                    .documentType
+                                                            )}
+                                                        </button>
+                                                    ) : (
+                                                        <span
+                                                            className="font-semibold text-[#fa7316] opacity-60"
+                                                            title="Documento sin PDF disponible"
+                                                        >
+                                                            {getDocumentTypeLabel(
+                                                                entry.sale
+                                                                    .documentType
+                                                            )}
+                                                        </span>
+                                                    )
+                                                ) : (
+                                                    <span className="text-slate-500 dark:text-slate-500">
+                                                        SIN DOC
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">
                                                 {formatCurrency(
