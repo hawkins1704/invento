@@ -8,7 +8,6 @@ import {
     formatDateTime,
     formatDuration,
 } from "../../utils/format";
-import { numberToWords } from "../../utils/format";
 import { miapiClient } from "../../services/miapi";
 import type { GenerarXMLComprobanteRequest, EnviarXMLASUNATResponse } from "../../services/miapi";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -407,7 +406,7 @@ const SalesTablesContent = ({
                         </p>
                     </div>
                 ) : (
-                    <div className="grid gap-4 lg:grid-cols-2">
+                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                         {branchLiveSales.map((entry) => (
                             <article
                                 key={entry.sale._id}
@@ -744,10 +743,6 @@ const SalesTablesContent = ({
                         // PASO 3: Preparar datos para generar XML
                         const igvPercentage = currentUser.IGVPercentage || 18;
                         const currency = currentUser.currency;
-                        
-                        // Calcular total
-                        const total = closeState.saleData.sale.total;
-                        const totalTexto = numberToWords(total, currency);
 
                         // Obtener fecha y hora actual
                         const now = new Date();
@@ -778,29 +773,20 @@ const SalesTablesContent = ({
                                 codProducto = `PR${productIdStr.slice(-4).padStart(4, "0")}`;
                             }
 
+                            const igvRedondeado = Math.round(igvTotal * 100) / 100;
                             return {
                                 codProducto,
                                 descripcion: item.productName || product.name,
                                 unidad: "NIU",
-                                tipoPrecio: "01",
                                 cantidad: item.quantity,
                                 mtoBaseIgv: Math.round(mtoBaseIgv * 100) / 100,
                                 mtoValorUnitario: Math.round(mtoValorUnitario * 100) / 100,
                                 mtoPrecioUnitario: Math.round(mtoPrecioUnitario * 100) / 100,
-                                codeAfectAlt: 10,
-                                codeAfect: 1000,
-                                nameAfect: "IGV",
-                                tipoAfect: "VAT",
+                                codeAfect: "10",
                                 igvPorcent: igvPercentage,
-                                igv: Math.round(igvTotal * 100) / 100,
-                                igvOpi: 0,
+                                igv: igvRedondeado,
                             };
                         });
-
-                        // Calcular totales basándose en la suma de los IGV redondeados por línea
-                        // Esto asegura que la suma de IGV por línea coincida exactamente con el IGV total
-                        const mtoIGV = items.reduce((sum, item) => sum + item.igv, 0);
-                        const mtoOperGravadas = total - mtoIGV;
 
                         // Construir datos del cliente
                         const cliente = customerData
@@ -830,11 +816,6 @@ const SalesTablesContent = ({
                             horaEmision,
                             tipoMoneda: currency,
                             tipoPago: paymentMethod,
-                            total: Math.round(total * 100) / 100,
-                            mtoIGV: Math.round(mtoIGV * 100) / 100,
-                            igvOp: 0,
-                            mtoOperGravadas: Math.round(mtoOperGravadas * 100) / 100,
-                            totalTexto,
                             cliente,
                             items,
                         };
@@ -979,10 +960,6 @@ const SalesTablesContent = ({
                         // PASO 3: Preparar datos para generar XML
                         const igvPercentage = currentUser.IGVPercentage || 18;
                         const currency = currentUser.currency;
-                        
-                        // Calcular total
-                        const total = closeState.saleData.sale.total;
-                        const totalTexto = numberToWords(total, currency);
 
                         // Obtener fecha y hora actual
                         const now = new Date();
@@ -1013,29 +990,20 @@ const SalesTablesContent = ({
                                 codProducto = `PR${productIdStr.slice(-4).padStart(4, "0")}`;
                             }
 
+                            const igvRedondeado = Math.round(igvTotal * 100) / 100;
                             return {
                                 codProducto,
                                 descripcion: item.productName || product.name,
                                 unidad: "NIU",
-                                tipoPrecio: "01",
                                 cantidad: item.quantity,
                                 mtoBaseIgv: Math.round(mtoBaseIgv * 100) / 100,
                                 mtoValorUnitario: Math.round(mtoValorUnitario * 100) / 100,
                                 mtoPrecioUnitario: Math.round(mtoPrecioUnitario * 100) / 100,
-                                codeAfectAlt: 10,
-                                codeAfect: 1000,
-                                nameAfect: "IGV",
-                                tipoAfect: "VAT",
+                                codeAfect: "10",
                                 igvPorcent: igvPercentage,
-                                igv: Math.round(igvTotal * 100) / 100,
-                                igvOpi: 0,
+                                igv: igvRedondeado,
                             };
                         });
-
-                        // Calcular totales basándose en la suma de los IGV redondeados por línea
-                        // Esto asegura que la suma de IGV por línea coincida exactamente con el IGV total
-                        const mtoIGV = items.reduce((sum, item) => sum + item.igv, 0);
-                        const mtoOperGravadas = total - mtoIGV;
 
                         // Construir datos del cliente (obligatorio para factura)
                         const cliente = {
@@ -1057,11 +1025,6 @@ const SalesTablesContent = ({
                             horaEmision,
                             tipoMoneda: currency,
                             tipoPago: paymentMethod,
-                            total: Math.round(total * 100) / 100,
-                            mtoIGV: Math.round(mtoIGV * 100) / 100,
-                            igvOp: 0,
-                            mtoOperGravadas: Math.round(mtoOperGravadas * 100) / 100,
-                            totalTexto,
                             cliente,
                             items,
                         };

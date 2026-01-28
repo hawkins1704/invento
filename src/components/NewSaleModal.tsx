@@ -336,7 +336,7 @@ const NewSaleModal = ({
                 </div>
 
                 {/* Layout para pantallas pequeñas (<1024px) - Sistema de Tabs */}
-                <div className="lg:hidden flex flex-1 flex-col gap-4 lg:gap-6 overflow-hidden min-h-0 overflow-y-auto pb-40">
+                <div className="lg:hidden flex flex-1 flex-col gap-4 lg:gap-6 overflow-hidden min-h-0 overflow-y-auto">
                     {activeTab === "catalogo" && (
                         <div className="flex flex-1 flex-col gap-4 min-h-0">
                             <ProductGrid
@@ -344,7 +344,7 @@ const NewSaleModal = ({
                                 categories={categories}
                                 branchId={branchId}
                                 onAddProduct={addProduct}
-                                gridClassName="grid grid-cols-1 md:grid-cols-2 gap-3"
+                                gridClassName="grid grid-cols-2 md:grid-cols-2 gap-3"
                                 showInventoryCheck={true}
                             />
                         </div>

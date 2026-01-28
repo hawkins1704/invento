@@ -18,11 +18,10 @@ export interface GenerarXMLComprobanteRequest {
   horaEmision?: string; // HH:mm:ss
   tipoMoneda: "PEN" | "USD";
   tipoPago: "Contado" | "Credito";
-  total: number;
-  mtoIGV: number;
-  igvOp: number;
-  mtoOperGravadas: number;
-  totalTexto: string;
+  total?: number;
+  mtoIGV?: number;
+  igvOp?: number;
+  mtoOperGravadas?: number;
   cliente: {
     codigoPais: string;
     tipoDoc: string; // "1" para DNI, "6" para RUC
@@ -34,18 +33,13 @@ export interface GenerarXMLComprobanteRequest {
     codProducto: string;
     descripcion: string;
     unidad: string;
-    tipoPrecio: string;
     cantidad: number;
     mtoBaseIgv: number;
     mtoValorUnitario: number;
     mtoPrecioUnitario: number;
-    codeAfectAlt: number;
-    codeAfect: number;
-    nameAfect: string;
-    tipoAfect: string;
+    codeAfect: string;
     igvPorcent: number;
     igv: number;
-    igvOpi: number;
   }>;
 }
 
@@ -119,16 +113,11 @@ class MiAPIClient {
           tipoDoc: request.tipoDoc,
           serie: request.serie,
           correlativo: request.correlativo,
-          observacion: request.observacion || "",
           fechaEmision: request.fechaEmision,
           horaEmision: request.horaEmision || new Date().toTimeString().slice(0, 8),
           tipoMoneda: request.tipoMoneda,
           tipoPago: request.tipoPago,
-          total: request.total,
-          mtoIGV: request.mtoIGV,
-          igvOp: request.igvOp,
-          mtoOperGravadas: request.mtoOperGravadas,
-          totalTexto: request.totalTexto,
+          observacion: request.observacion || "",
         },
         cliente: request.cliente,
         items: request.items,

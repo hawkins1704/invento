@@ -545,7 +545,7 @@ const SaleEditorDrawer = ({
                     </div>
                 </div>
 
-                <div className="lg:hidden flex flex-1 flex-col gap-4 lg:gap-6 overflow-hidden p-4 lg:p-6 min-h-0 overflow-y-auto pb-40">
+                <div className="lg:hidden flex flex-1 flex-col gap-4 lg:gap-6 overflow-hidden p-4 lg:p-6 min-h-0 overflow-y-auto ">
                     {/* Layout para pantallas pequeñas (<1024px) - Sistema de Tabs */}
                     {/* Tabs solo visibles en pantallas menores a 1024px */}
                     <div className="lg:hidden flex gap-2 mt-2">
@@ -584,7 +584,7 @@ const SaleEditorDrawer = ({
                                 categories={categories}
                                 branchId={branchId}
                                 onAddProduct={addItem}
-                                gridClassName="grid grid-cols-1 md:grid-cols-2 gap-3"
+                                gridClassName="grid grid-cols-2 md:grid-cols-2 gap-3"
                                 showInventoryCheck={true}
                             />
                         </div>

@@ -121,7 +121,7 @@ const ProductGrid = ({
                 </span>
             </div>
 
-            <div className="flex-1 rounded-lg overflow-y-auto min-h-0 bg-slate-50 p-4 border border-slate-200 dark:bg-slate-950/50 dark:border-slate-800">
+            <div className="flex-1 rounded-lg overflow-y-auto min-h-0 ">
                 {filteredProducts.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
                         <FaMagnifyingGlass className="w-8 h-8" />
@@ -151,7 +151,7 @@ const ProductGrid = ({
                             return (
                                 <div
                                     key={product._id}
-                                    className={`group relative flex flex-col cursor-pointer  rounded-xl ${productButtonPadding} border border-slate-200 dark:border-slate-800 hover:shadow-lg ${
+                                    className={`group relative flex flex-col cursor-pointer  rounded-lg ${productButtonPadding} border border-slate-200 dark:border-slate-800  ${
                                         isOutOfStock
                                             ? "bg-red-50 dark:bg-red-500/10"
                                             : "bg-slate-100 dark:bg-slate-800/50"
@@ -163,7 +163,6 @@ const ProductGrid = ({
                                 >
                                     {/* Texto superior - alineado a la izquierda */}
                                     <div className="flex flex-col gap-1 mb-3 text-left">
-                                        
                                         <p
                                             className={`text-base font-bold ${isOutOfStock ? "text-red-800 dark:text-red-100" : "text-slate-900 dark:text-white"}`}
                                         >
@@ -220,7 +219,7 @@ const ProductGrid = ({
                                                 e.stopPropagation();
                                                 onAddProduct(product);
                                             }}
-                                            className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white flex items-center justify-center text-slate-900 hover:bg-slate-50 transition transform hover:scale-110 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600"
+                                            className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white flex items-center justify-center text-slate-900   dark:bg-slate-700 dark:text-white cursor-pointer"
                                             aria-label="Agregar producto"
                                         >
                                             <FaPlus
