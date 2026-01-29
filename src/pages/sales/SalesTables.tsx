@@ -875,13 +875,15 @@ const SalesTablesContent = ({
                             throw error; // Re-lanzar el error para que se maneje en el catch externo
                         }
 
-                        // Guardar las URLs del documento en la venta
+                        // Guardar las URLs del documento en la venta (serie y correlativo antes de incrementar)
                         await closeSaleMutation({
                             saleId: closeState.saleId,
                             paymentMethod,
                             notes,
                             customerId,
                             documentType: "03", // Boleta
+                            serie: branch.serieBoleta,
+                            correlativo: correlativoActual,
                             cdr: sunatResponse?.respuesta?.cdr,
                             pdfA4: sunatResponse?.respuesta?.["pdf-a4"],
                             pdfTicket: sunatResponse?.respuesta?.["pdf-ticket"],
@@ -1095,13 +1097,15 @@ const SalesTablesContent = ({
                             throw error; // Re-lanzar el error para que se maneje en el catch externo
                         }
 
-                        // Guardar las URLs del documento en la venta
+                        // Guardar las URLs del documento en la venta (serie y correlativo antes de incrementar)
                         await closeSaleMutation({
                             saleId: closeState.saleId,
                             paymentMethod,
                             notes,
                             customerId,
                             documentType: "01", // Factura
+                            serie: branch.serieFactura,
+                            correlativo: correlativoActual,
                             cdr: sunatResponse?.respuesta?.cdr,
                             pdfA4: sunatResponse?.respuesta?.["pdf-a4"],
                             pdfTicket: sunatResponse?.respuesta?.["pdf-ticket"],

@@ -71,6 +71,7 @@ export const create = mutation({
       address: args.address.trim(),
       correlativoBoleta: 1,
       correlativoFactura: 1,
+      correlativoRA: 1,
     });
   },
 });
@@ -148,3 +149,45 @@ export const updateCorrelativo = mutation({
   },
 });
 
+/**
+ * Obtiene el siguiente correlativo RA para la sucursal y actualiza el contador.
+ * El correlativo RA se reinicia cada día. Pasa `clientDate` en formato YYYY-MM-DD
+ * según la fecha local del usuario (ej. new Date().toLocaleDateString("en-CA"))
+ * para que el reinicio sea a medianoche local. Si no se pasa, se usa la fecha UTC.
+ * Se usará al emitir una nota de anulación; el valor devuelto debe guardarse en sale.correlativoRA.
+ */
+export const getNextCorrelativoRA = mutation({
+  args: {
+    branchId: v.id("branches"),
+    /** Fecha del día actual en zona del usuario (YYYY-MM-DD). Si no se pasa, se usa UTC. */
+    clientDate: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new ConvexError("No autenticado");
+    }
+
+    const branch = await ctx.db.get(args.branchId);
+    if (!branch) {
+      throw new ConvexError("La sucursal no existe.");
+    }
+
+    const today = args.clientDate ?? new Date().toISOString().slice(0, 10);
+
+    const lastDate = branch.correlativoRALastDate;
+    let nextValue: number;
+    if (lastDate !== today) {
+      nextValue = 1;
+    } else {
+      nextValue = (branch.correlativoRA ?? 0) + 1;
+    }
+
+    await ctx.db.patch(args.branchId, {
+      correlativoRA: nextValue,
+      correlativoRALastDate: today,
+    });
+
+    return nextValue;
+  },
+});

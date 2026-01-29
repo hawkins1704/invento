@@ -780,6 +780,11 @@ const AdminBranchDetails = () => {
                                 value={branch?.correlativoFactura?.toString() ?? "—"}
                                 helper="Próximo número de factura a emitir."
                             />
+                            <SummaryStatCard
+                                title="Correlativo RA"
+                                value={branch?.correlativoRA?.toString() ?? "—"}
+                                helper="Próximo número para nota de anulación (se reinicia cada día)."
+                            />
                         </div>
                     </>
                 )}

@@ -556,6 +556,10 @@ export const close = mutation({
     notes: v.optional(v.string()),
     customerId: v.optional(v.id("customers")),
     documentType: v.optional(v.union(v.literal("01"), v.literal("03"))),
+    /** Serie usada en el comprobante (ej. B001, F001). Se guarda antes de incrementar en la sucursal. */
+    serie: v.optional(v.string()),
+    /** Correlativo usado en el comprobante. Se guarda antes de incrementar en la sucursal. */
+    correlativo: v.optional(v.number()),
     cdr: v.optional(v.string()),
     pdfA4: v.optional(v.string()),
     pdfTicket: v.optional(v.string()),
@@ -595,6 +599,8 @@ export const close = mutation({
       total: totals.total,
       customerId: args.customerId,
       documentType: args.documentType,
+      serie: args.serie,
+      correlativo: args.correlativo,
       cdr: args.cdr,
       pdfA4: args.pdfA4,
       pdfTicket: args.pdfTicket,

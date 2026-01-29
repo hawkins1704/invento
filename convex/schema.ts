@@ -50,6 +50,10 @@ export default defineSchema({
     serieFactura: v.optional(v.string()),
     correlativoBoleta: v.optional(v.number()),
     correlativoFactura: v.optional(v.number()),
+    /** Correlativo para documento de anulación (RA). Se reinicia cada día. */
+    correlativoRA: v.optional(v.number()),
+    /** Última fecha en que se usó correlativoRA (YYYY-MM-DD). Si cambia el día, se resetea a 1. */
+    correlativoRALastDate: v.optional(v.string()),
   }).index("name", ["name"]),
   branchInventories: defineTable({
     branchId: v.id("branches"),
@@ -108,6 +112,12 @@ export default defineSchema({
     ),
     notes: v.optional(v.string()),
     documentType: v.optional(v.union(v.literal("01"), v.literal("03"))),
+    /** Serie del comprobante emitido (ej. B001, F001). */
+    serie: v.optional(v.string()),
+    /** Número correlativo del comprobante en la sucursal. */
+    correlativo: v.optional(v.number()),
+    /** Si el documento fue anulado, aquí va el correlativo RA usado en la nota de anulación. */
+    correlativoRA: v.optional(v.number()),
     cdr: v.optional(v.string()),
     pdfA4: v.optional(v.string()),
     pdfTicket: v.optional(v.string()),
