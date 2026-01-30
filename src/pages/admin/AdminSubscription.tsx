@@ -78,7 +78,7 @@ const AdminSubscription = () => {
     const getWhatsAppUrl = (planName: string): string => {
         const message = `Hola! Soy cliente de Fudi! Tengo el plan ${currentUser?.subscriptionType} y quiero cambiar mi plan al Plan ${planName}`;
         const encodedMessage = encodeURIComponent(message);
-        return `https://wa.me/51999122784?text=${encodedMessage}`;
+        return `https://wa.me/51992095138?text=${encodedMessage}`;
     };
 
     if (currentUser === undefined) {

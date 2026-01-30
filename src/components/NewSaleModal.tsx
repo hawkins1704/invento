@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "convex/react";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
+import { api } from "../../convex/_generated/api";
 import type { ProductListItem } from "../types/products";
+import { useToast } from "../contexts/ToastContext";
 import EditItemModal, { type EditableItem } from "./EditItemModal";
 import ProductGrid from "./ProductGrid";
 import OrderSummary from "./OrderSummary";
@@ -58,6 +61,25 @@ const NewSaleModal = ({
     const [activeTab, setActiveTab] = useState<"catalogo" | "pedido">("catalogo");
     const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
+    const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
+    const totalSalesData = useQuery(api.sales.getTotalSalesCount) as
+        | { total: number }
+        | undefined;
+    const totalSales = totalSalesData?.total ?? 0;
+    const { error: toastError } = useToast();
+
+    const getSaleLimit = (subscriptionType: string | undefined): number | null => {
+        if (!subscriptionType) return 2000;
+        if (subscriptionType === "starter") return 2000;
+        return null;
+    };
+    const saleLimit = getSaleLimit(currentUser?.subscriptionType);
+    const atSaleLimit = saleLimit !== null && totalSales >= saleLimit;
+    const planLabel =
+        { starter: "Starter", negocio: "Negocio", pro: "Pro" }[
+            currentUser?.subscriptionType ?? "starter"
+        ] ?? "Starter";
+
     const editingItem = useMemo(() => {
         if (!editingItemId) return null;
         return items.find((i) => i.productId === editingItemId) ?? null;
@@ -93,6 +115,13 @@ const NewSaleModal = ({
     });
 
     const handleSubmit = async () => {
+        if (atSaleLimit && saleLimit !== null) {
+            toastError(
+                `Has alcanzado el límite de ${saleLimit} ventas de tu plan ${planLabel}. Actualiza tu plan para crear más.`
+            );
+            return;
+        }
+
         if (items.length === 0) {
             setIsSubmitting(true);
             try {
@@ -102,6 +131,12 @@ const NewSaleModal = ({
                     ...(staffId ? { staffId } : {}),
                     notes: notes.trim() || undefined,
                 });
+            } catch (error) {
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : "No se pudo crear la venta. Inténtalo de nuevo.";
+                toastError(message);
             } finally {
                 setIsSubmitting(false);
             }
@@ -134,6 +169,12 @@ const NewSaleModal = ({
                 notes: notes.trim() || undefined,
                 items: payloadItems,
             });
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo crear la venta. Inténtalo de nuevo.";
+            toastError(message);
         } finally {
             setIsSubmitting(false);
         }

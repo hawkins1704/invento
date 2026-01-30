@@ -15,6 +15,7 @@ import Pagination from "../../components/pagination/Pagination";
 import EmptyState from "../../components/empty-state/EmptyState";
 import PageHeader from "../../components/page-header/PageHeader";
 import CloseButton from "../../components/CloseButton";
+import { useToast } from "../../contexts/ToastContext";
 
 type ProductFormState = {
   name: string;
@@ -45,6 +46,29 @@ const formatCurrency = (value: number) =>
 
 const ITEMS_PER_PAGE = 10;
 
+/** Límite de productos por plan: starter 100, negocio 300, pro ilimitado. */
+const getProductLimit = (
+  subscriptionType: string | undefined
+): number | null => {
+  if (!subscriptionType) return 100;
+  switch (subscriptionType) {
+    case "starter":
+      return 100;
+    case "negocio":
+      return 300;
+    case "pro":
+      return null;
+    default:
+      return 100;
+  }
+};
+
+const PLAN_LABELS: Record<string, string> = {
+  starter: "Starter",
+  negocio: "Negocio",
+  pro: "Pro",
+};
+
 const AdminInventory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   // Para el formulario, necesitamos todas las categorías y sucursales (sin paginación)
@@ -70,6 +94,7 @@ const AdminInventory = () => {
   const generateUploadUrl = useMutation(api.products.generateUploadUrl);
   const createProduct = useMutation(api.products.create);
   const navigate = useNavigate();
+  const { error: toastError } = useToast();
 
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   const productsData = useQuery(api.products.list, {
@@ -80,6 +105,12 @@ const AdminInventory = () => {
   const products = productsData?.products ?? [];
   const totalProducts = productsData?.total ?? 0;
   const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
+
+  const productLimit = getProductLimit(currentUser?.subscriptionType);
+  const atProductLimit =
+    productLimit !== null && totalProducts >= productLimit;
+  const planLabel =
+    PLAN_LABELS[currentUser?.subscriptionType ?? "starter"] ?? "Starter";
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -193,6 +224,13 @@ const updateStockField = (branchId: string, value: string) => {
     event.preventDefault();
     setFormError(null);
 
+    if (atProductLimit && productLimit !== null) {
+      const limitMessage = `Has alcanzado el límite de ${productLimit} productos de tu plan ${planLabel}. Actualiza tu plan para agregar más.`;
+      setFormError(limitMessage);
+      toastError(limitMessage);
+      return;
+    }
+
     if (!formState.categoryId) {
       setFormError("Selecciona una categoría para el producto.");
       return;
@@ -290,7 +328,23 @@ const updateStockField = (branchId: string, value: string) => {
     }
   };
 
-  const canCreateProducts = Boolean(categories && categories.length > 0 && branches && branches.length > 0);
+  const hasCategoriesAndBranches = Boolean(
+    categories &&
+      categories.length > 0 &&
+      branches &&
+      branches.length > 0
+  );
+
+  const handleOpenCreateProduct = () => {
+    if (atProductLimit && productLimit !== null) {
+      toastError(
+        `Has alcanzado el límite de ${productLimit} productos de tu plan ${planLabel}. Actualiza tu plan para agregar más.`
+      );
+      return;
+    }
+    setIsFormOpen(true);
+    initializeForm();
+  };
 
   return (
     <div className="space-y-8">
@@ -302,17 +356,14 @@ const updateStockField = (branchId: string, value: string) => {
           <>
             <button
               type="button"
-              onClick={() => {
-                setIsFormOpen(true);
-                initializeForm();
-              }}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
-              disabled={!canCreateProducts}
+              onClick={handleOpenCreateProduct}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={!hasCategoriesAndBranches}
             >
               <IoMdAdd />
               <span>Agregar producto</span>
             </button>
-            {!canCreateProducts && (
+            {!hasCategoriesAndBranches && (
               <span className="text-xs text-[#fa7316]">
                 Crea al menos una categoría y una sucursal para habilitar este flujo.
               </span>

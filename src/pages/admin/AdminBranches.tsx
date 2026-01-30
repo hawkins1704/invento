@@ -12,6 +12,7 @@ import TableRow from "../../components/table/TableRow";
 import Pagination from "../../components/pagination/Pagination";
 import EmptyState from "../../components/empty-state/EmptyState";
 import PageHeader from "../../components/page-header/PageHeader";
+import { useToast } from "../../contexts/ToastContext";
 
 type BranchFormState = {
     name: string;
@@ -24,6 +25,27 @@ const DEFAULT_FORM: BranchFormState = {
 };
 
 const ITEMS_PER_PAGE = 10;
+
+/** Límite de sucursales por plan: starter 1, negocio 5, pro ilimitado. */
+const getBranchLimit = (subscriptionType: string | undefined): number | null => {
+    if (!subscriptionType) return 1;
+    switch (subscriptionType) {
+        case "starter":
+            return 1;
+        case "negocio":
+            return 5;
+        case "pro":
+            return null;
+        default:
+            return 1;
+    }
+};
+
+const PLAN_LABELS: Record<string, string> = {
+    starter: "Starter",
+    negocio: "Negocio",
+    pro: "Pro",
+};
 
 const AdminBranches = () => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -39,6 +61,14 @@ const AdminBranches = () => {
 
     const createBranch = useMutation(api.branches.create);
     const navigate = useNavigate();
+    const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
+    const { error: toastError } = useToast();
+
+    const branchLimit = getBranchLimit(currentUser?.subscriptionType);
+    const atBranchLimit =
+        branchLimit !== null && totalBranches >= branchLimit;
+    const planLabel =
+        PLAN_LABELS[currentUser?.subscriptionType ?? "starter"] ?? "Starter";
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
@@ -70,6 +100,16 @@ const AdminBranches = () => {
         setFormError(null);
     };
 
+    const handleOpenForm = () => {
+        if (atBranchLimit && branchLimit !== null) {
+            toastError(
+                `Has alcanzado el límite de ${branchLimit} sucursal${branchLimit === 1 ? "" : "es"} de tu plan ${planLabel}. Actualiza tu plan para agregar más.`
+            );
+            return;
+        }
+        openForm();
+    };
+
     const resetForm = () => {
         setFormState(DEFAULT_FORM);
         setFormError(null);
@@ -79,6 +119,13 @@ const AdminBranches = () => {
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setFormError(null);
+
+        if (atBranchLimit && branchLimit !== null) {
+            const limitMessage = `Has alcanzado el límite de ${branchLimit} sucursal${branchLimit === 1 ? "" : "es"} de tu plan ${planLabel}. Actualiza tu plan para agregar más.`;
+            setFormError(limitMessage);
+            toastError(limitMessage);
+            return;
+        }
 
         if (!formState.name.trim() || !formState.address.trim()) {
             setFormError("Completa el nombre y la dirección de la sucursal.");
@@ -101,6 +148,7 @@ const AdminBranches = () => {
                     ? error.message
                     : "No se pudo crear la sucursal. Inténtalo de nuevo.";
             setFormError(message);
+            toastError(message);
             setIsSubmitting(false);
         }
     };
@@ -114,7 +162,7 @@ const AdminBranches = () => {
                 actionButton={
                     <button
                         type="button"
-                        onClick={openForm}
+                        onClick={handleOpenForm}
                         className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
                     >
                         <IoMdAdd />

@@ -1,4 +1,4 @@
-
+import { ToastProvider } from './contexts/ToastContext'
 import { SignIn } from './pages/SignIn'
 import { PasswordReset } from './pages/PasswordReset'
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
@@ -27,6 +27,7 @@ import AdminSubscription from './pages/admin/AdminSubscription'
 function App() {
 
   return (
+    <ToastProvider>
     <>
     <AuthLoading>
         <LoadingSpinner />
@@ -91,6 +92,7 @@ function App() {
         </Router>
     </Authenticated>
 </>
+    </ToastProvider>
   )
 }
 

@@ -153,6 +153,24 @@ export const create = mutation({
       throw new ConvexError("Usuario no encontrado.");
     }
 
+    // Límite de productos según plan (starter: 100, negocio: 300, pro: ilimitado)
+    const productLimitByPlan: Record<string, number | null> = {
+      starter: 100,
+      negocio: 300,
+      pro: null,
+    };
+    const productLimit = user.subscriptionType
+      ? productLimitByPlan[user.subscriptionType] ?? 100
+      : 100;
+    if (productLimit !== null) {
+      const currentCount = await ctx.db.query("products").collect();
+      if (currentCount.length >= productLimit) {
+        throw new ConvexError(
+          `Has alcanzado el límite de ${productLimit} productos de tu plan. Actualiza tu plan para agregar más.`
+        );
+      }
+    }
+
     const IGVPercentage = user.IGVPercentage ?? 18; // Default a 18% si no está configurado
     
     // Función para redondear a 2 decimales (centavos)

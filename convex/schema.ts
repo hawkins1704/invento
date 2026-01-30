@@ -118,6 +118,8 @@ export default defineSchema({
     correlativo: v.optional(v.number()),
     /** Si el documento fue anulado, aquí va el correlativo RA usado en la nota de anulación. */
     correlativoRA: v.optional(v.number()),
+    /** URL o contenido del XML del documento RA (anulación), solo cuando la anulación fue exitosa. */
+    xmlRA: v.optional(v.string()),
     cdr: v.optional(v.string()),
     pdfA4: v.optional(v.string()),
     pdfTicket: v.optional(v.string()),

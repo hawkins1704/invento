@@ -79,6 +79,40 @@ export interface EnviarXMLASUNATResponse {
 }
 
 /**
+ * Request para anular un comprobante (RA)
+ * Endpoint: POST /apifact/voided/send
+ */
+export interface AnularComprobanteRequest {
+  claveSecreta: string;
+  cabecera: {
+    tipodoc: "RA";
+    serie: string; // YYYYMMDD
+    correlativo: string;
+    fechaEmision: string; // YYYY-MM-DD
+    fechaEnvio: string; // YYYY-MM-DD
+  };
+  items: Array<{
+    tipodoc: "01" | "03";
+    serie: string;
+    correlativo: string; // string con 8 dígitos (padStart(8, "0"))
+    motivo: string;
+  }>;
+}
+
+/**
+ * Respuesta al anular comprobante
+ */
+export interface AnularComprobanteResponseData {
+  success: boolean;
+  status: number;
+  mensaje: string;
+}
+
+export interface AnularComprobanteResponse {
+  respuesta: AnularComprobanteResponseData;
+}
+
+/**
  * Cliente HTTP para interactuar con la API de MiAPI para facturación
  */
 class MiAPIClient {
@@ -180,6 +214,41 @@ class MiAPIClient {
             errorData?.error ||
             error.message ||
             "Error al enviar XML a SUNAT"
+        );
+      }
+      throw new Error("Error de conexión con MiAPI");
+    }
+  }
+
+  /**
+   * Anula un comprobante emitido (envía documento RA a SUNAT).
+   * Endpoint: POST /apifact/voided/send
+   *
+   * @param request claveSecreta, cabecera (tipodoc RA, serie YYYYMMDD, correlativo RA, fechas), items (tipodoc, serie, correlativo del documento original como string 8 dígitos, motivo)
+   * @returns Respuesta con success y mensaje; si success es true la anulación fue aceptada.
+   */
+  async anularComprobante(
+    request: AnularComprobanteRequest
+  ): Promise<AnularComprobanteResponse> {
+    try {
+      const { data } = await this.axiosInstance.post<AnularComprobanteResponse>(
+        "/apifact/voided/send",
+        request
+      );
+      return data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data as
+          | { message?: string; error?: string; respuesta?: AnularComprobanteResponseData }
+          | undefined;
+        if (errorData?.respuesta?.mensaje) {
+          throw new Error(errorData.respuesta.mensaje);
+        }
+        throw new Error(
+          errorData?.message ??
+            errorData?.error ??
+            error.message ??
+            "Error al anular comprobante"
         );
       }
       throw new Error("Error de conexión con MiAPI");

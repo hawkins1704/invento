@@ -920,7 +920,7 @@ const CloseSaleDialog = ({
                                         disabled={isProcessing}
                                         className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
                                     >
-                                        CERRAR SIN EMITIR
+                                        REGISTRAR Y CERRAR
                                     </button>
                                 </div>
                             </div>

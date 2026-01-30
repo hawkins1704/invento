@@ -600,7 +600,7 @@ const SalesTablesContent = ({
                     }
                     printPdfBlobInHiddenIframe(emittedPdfBlob);
                 }}
-                companyName={currentUser?.companyName ?? ""}
+                companyName={currentUser?.companyCommercialName ?? ""}
                 pdfTicketUrl={emittedPdfTicketUrl ?? ""}
                 onClose={() => {
                     setIsClosingSale(false);

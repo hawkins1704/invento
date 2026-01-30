@@ -33,7 +33,7 @@ const ConfirmDialog = ({
       : "bg-[#fa7316] text-white hover:bg-[#e86811] border border-[#fa7316]/60 ";
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center px-4 py-8">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center px-4 py-8 h-full">
       <div className="absolute inset-0 bg-black/40 backdrop-blur dark:bg-slate-950/70" />
       <div className="relative w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/90 p-6 text-slate-900 dark:text-white shadow-2xl shadow-black/60">
         <div className="space-y-3">

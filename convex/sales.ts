@@ -270,6 +270,18 @@ export const listLiveByBranch = query({
   },
 })
 
+export const getTotalSalesCount = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+    const allSales = await ctx.db.query("sales").collect()
+    return { total: allSales.length }
+  },
+})
+
 export const listHistory = query({
   args: {
     branchId: v.optional(v.id("branches")),
@@ -375,6 +387,29 @@ export const create = mutation({
     const userId = await getAuthUserId(ctx)
     if (userId === null) {
       throw new ConvexError("No autenticado")
+    }
+
+    const user = await ctx.db.get(userId)
+    if (!user) {
+      throw new ConvexError("Usuario no encontrado.")
+    }
+
+    // Límite de ventas por plan: starter 2000, negocio y pro ilimitado
+    const saleLimitByPlan: Record<string, number | null> = {
+      starter: 2000,
+      negocio: null,
+      pro: null,
+    }
+    const saleLimit = user.subscriptionType
+      ? saleLimitByPlan[user.subscriptionType] ?? 2000
+      : 2000
+    if (saleLimit !== null) {
+      const currentSales = await ctx.db.query("sales").collect()
+      if (currentSales.length >= saleLimit) {
+        throw new ConvexError(
+          `Has alcanzado el límite de ${saleLimit} ventas de tu plan. Actualiza tu plan para crear más.`
+        )
+      }
     }
 
     const branch = await ctx.db.get(args.branchId)
@@ -612,6 +647,45 @@ export const close = mutation({
     if (sale.tableId) {
       await releaseTable(ctx, sale.tableId, sale._id)
     }
+  },
+})
+
+/**
+ * Marca una venta cerrada como anulada (documento RA emitido correctamente).
+ * Solo se llama después de que la API de anulación retorne success.
+ */
+export const markAsAnulado = mutation({
+  args: {
+    saleId: v.id("sales"),
+    correlativoRA: v.number(),
+    /** URL o contenido del XML RA (respuesta.mensaje) cuando la anulación fue exitosa. */
+    xmlRA: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+
+    const sale = await ctx.db.get(args.saleId)
+    if (!sale) {
+      throw new ConvexError("La venta no existe.")
+    }
+    if (sale.status !== "closed") {
+      throw new ConvexError("Solo se puede anular una venta cerrada.")
+    }
+    if (!sale.documentType) {
+      throw new ConvexError("La venta no tiene documento emitido para anular.")
+    }
+    if (sale.correlativoRA != null) {
+      throw new ConvexError("El documento de esta venta ya fue anulado.")
+    }
+
+    await ctx.db.patch(args.saleId, {
+      correlativoRA: args.correlativoRA,
+      xmlRA: args.xmlRA,
+      updatedAt: now(),
+    })
   },
 })
 

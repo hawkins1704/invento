@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "convex/react";
+import { Link } from "react-router-dom";
+import { useMutation, useQuery } from "convex/react";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { api } from "../../../convex/_generated/api";
 import {
@@ -18,6 +19,7 @@ import Pagination from "../../components/pagination/Pagination";
 import DateRangePicker from "../../components/date-range-picker/DateRangePicker";
 import InfoCard from "../../components/InfoCard";
 import { printPdfFromUrl } from "../../utils/pdfPrint";
+import { miapiClient } from "../../services/miapi";
 
 type PeriodKey = "day" | "month" | "custom";
 
@@ -36,7 +38,7 @@ const computePeriodRange = (
     period: PeriodKey,
     customRange?: { from: Date | null; to: Date | null },
     selectedMonth?: number,
-    selectedYear?: number
+    selectedYear?: number,
 ): { from: number; to: number } | null => {
     if (period === "custom") {
         if (customRange?.from && customRange?.to) {
@@ -100,11 +102,11 @@ const summarizeHistory = (data: HistorySale[]) => {
             accumulator.totalSales += 1;
             accumulator.paymentBreakdown.set(
                 paymentMethod,
-                (accumulator.paymentBreakdown.get(paymentMethod) ?? 0) + total
+                (accumulator.paymentBreakdown.get(paymentMethod) ?? 0) + total,
             );
             accumulator.salesByStaff.set(
                 staffId,
-                (accumulator.salesByStaff.get(staffId) ?? 0) + total
+                (accumulator.salesByStaff.get(staffId) ?? 0) + total,
             );
 
             return accumulator;
@@ -114,7 +116,7 @@ const summarizeHistory = (data: HistorySale[]) => {
             totalSales: 0,
             paymentBreakdown: new Map<string, number>(),
             salesByStaff: new Map<string, number>(),
-        }
+        },
     );
 
     return totals;
@@ -130,7 +132,7 @@ const summarizeLive = (data: LiveSale[]) => {
         {
             totalAmount: 0,
             totalSales: 0,
-        }
+        },
     );
 };
 
@@ -154,12 +156,21 @@ const AdminSales = () => {
 
     const branches = useMemo(
         () => allBranchesData?.branches ?? [],
-        [allBranchesData]
+        [allBranchesData],
     );
     const staffMembers = useMemo(
         () => allStaffData?.staff ?? [],
-        [allStaffData]
+        [allStaffData],
     );
+
+    const currentUser = useQuery(api.users.getCurrent) as
+        | Doc<"users">
+        | undefined;
+    const getNextCorrelativoRA = useMutation(api.branches.getNextCorrelativoRA);
+    const rollbackCorrelativoRA = useMutation(
+        api.branches.rollbackCorrelativoRA,
+    );
+    const markAsAnulado = useMutation(api.sales.markAsAnulado);
 
     const [viewMode, setViewMode] = useState<"history" | "live">("history");
     const [period, setPeriod] = useState<PeriodKey>("day");
@@ -168,10 +179,10 @@ const AdminSales = () => {
         to: Date | null;
     }>({ from: null, to: null });
     const [selectedMonth, setSelectedMonth] = useState<number | undefined>(
-        undefined
+        undefined,
     );
     const [selectedYear, setSelectedYear] = useState<number | undefined>(
-        undefined
+        undefined,
     );
     const [historyBranchFilter, setHistoryBranchFilter] = useState<
         "all" | Id<"branches">
@@ -180,7 +191,7 @@ const AdminSales = () => {
         "all" | Id<"staff">
     >("all");
     const [liveBranchId, setLiveBranchId] = useState<Id<"branches"> | null>(
-        null
+        null,
     );
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -218,7 +229,7 @@ const AdminSales = () => {
                 period,
                 undefined,
                 selectedMonth,
-                selectedYear
+                selectedYear,
             );
         }
         // Modo "day" (Hoy)
@@ -279,12 +290,12 @@ const AdminSales = () => {
 
     const historyDataResult = useQuery(
         api.sales.listHistory,
-        historyArgs === "skip" ? "skip" : historyArgs
+        historyArgs === "skip" ? "skip" : historyArgs,
     ) as { sales: HistorySale[]; total: number } | undefined;
 
     const historyData = useMemo(
         () => historyDataResult?.sales ?? [],
-        [historyDataResult]
+        [historyDataResult],
     );
     const totalHistorySales = historyDataResult?.total ?? 0;
     const totalPages = Math.ceil(totalHistorySales / ITEMS_PER_PAGE);
@@ -314,7 +325,7 @@ const AdminSales = () => {
 
     const paymentBreakdown = useQuery(
         api.sales.getPaymentMethodBreakdown,
-        paymentBreakdownArgs === "skip" ? "skip" : paymentBreakdownArgs
+        paymentBreakdownArgs === "skip" ? "skip" : paymentBreakdownArgs,
     ) as
         | Array<{
               method: string;
@@ -349,7 +360,7 @@ const AdminSales = () => {
 
     const topProducts = useQuery(
         api.sales.getTopProducts,
-        topProductsArgs === "skip" ? "skip" : topProductsArgs
+        topProductsArgs === "skip" ? "skip" : topProductsArgs,
     ) as
         | Array<{
               productId: Id<"products">;
@@ -385,7 +396,7 @@ const AdminSales = () => {
 
     const topStaff = useQuery(
         api.sales.getTopStaff,
-        topStaffArgs === "skip" ? "skip" : topStaffArgs
+        topStaffArgs === "skip" ? "skip" : topStaffArgs,
     ) as
         | Array<{
               staffId: Id<"staff"> | "sinStaff";
@@ -418,7 +429,7 @@ const AdminSales = () => {
 
     const salesByHour = useQuery(
         api.sales.getSalesByHour,
-        salesByHourArgs === "skip" ? "skip" : salesByHourArgs
+        salesByHourArgs === "skip" ? "skip" : salesByHourArgs,
     ) as
         | Array<{
               hour: number;
@@ -439,16 +450,16 @@ const AdminSales = () => {
 
     const liveData = useQuery(
         api.sales.listLiveByBranch,
-        liveArgs === "skip" ? "skip" : liveArgs
+        liveArgs === "skip" ? "skip" : liveArgs,
     ) as LiveSale[] | undefined;
 
     const historySummary = useMemo(
         () => summarizeHistory(historyData ?? []),
-        [historyData]
+        [historyData],
     );
     const liveSummary = useMemo(
         () => summarizeLive(liveData ?? []),
-        [liveData]
+        [liveData],
     );
 
     const staffOptions = useMemo(() => {
@@ -546,6 +557,10 @@ const AdminSales = () => {
                     totalPages={totalPages}
                     totalItems={totalHistorySales}
                     onPageChange={handlePageChange}
+                    currentUser={currentUser}
+                    getNextCorrelativoRA={getNextCorrelativoRA}
+                    rollbackCorrelativoRA={rollbackCorrelativoRA}
+                    markAsAnulado={markAsAnulado}
                 />
             ) : (
                 <LiveView
@@ -615,6 +630,31 @@ type HistoryViewProps = {
     totalPages: number;
     totalItems: number;
     onPageChange: (page: number) => void;
+    currentUser: Doc<"users"> | undefined;
+    getNextCorrelativoRA: (args: {
+        branchId: Id<"branches">;
+        clientDate?: string;
+    }) => Promise<number>;
+    rollbackCorrelativoRA: (args: {
+        branchId: Id<"branches">;
+        valueUsed: number;
+    }) => Promise<unknown>;
+    markAsAnulado: (args: {
+        saleId: Id<"sales">;
+        correlativoRA: number;
+        xmlRA?: string;
+    }) => Promise<unknown>;
+};
+
+const canAnularSale = (entry: HistorySale): boolean => {
+    const s = entry.sale;
+    return (
+        s.status === "closed" &&
+        (s.documentType === "01" || s.documentType === "03") &&
+        s.correlativoRA == null &&
+        s.serie != null &&
+        s.correlativo != null
+    );
 };
 
 const HistoryView = ({
@@ -644,7 +684,25 @@ const HistoryView = ({
     totalPages,
     totalItems,
     onPageChange,
+    currentUser,
+    getNextCorrelativoRA,
+    rollbackCorrelativoRA,
+    markAsAnulado,
 }: HistoryViewProps) => {
+    const [anulacionEntry, setAnulacionEntry] = useState<HistorySale | null>(
+        null,
+    );
+    const [anulacionMotivo, setAnulacionMotivo] = useState("");
+    const [anulacionLoading, setAnulacionLoading] = useState(false);
+    const [anulacionResult, setAnulacionResult] = useState<{
+        success: boolean;
+        message: string;
+    } | null>(null);
+
+    const isStarterPlan =
+        currentUser?.subscriptionType === "starter" ||
+        currentUser?.subscriptionType === undefined;
+
     const getPaymentMethodLabel = (method: string) => {
         const labels: Record<string, string> = {
             Contado: "Efectivo",
@@ -652,6 +710,107 @@ const HistoryView = ({
             "Sin registrar": "Sin registrar",
         };
         return labels[method] || method;
+    };
+
+    const handleAnularSubmit = async () => {
+        if (
+            !anulacionEntry ||
+            !anulacionMotivo.trim() ||
+            !currentUser?.secretKey
+        ) {
+            setAnulacionResult({
+                success: false,
+                message:
+                    "Ingresa el motivo y verifica tu configuración (clave secreta).",
+            });
+            return;
+        }
+        setAnulacionLoading(true);
+        setAnulacionResult(null);
+        let correlativoRAUsed: number | null = null;
+        try {
+            const clientDate = new Date().toLocaleDateString("en-CA");
+            correlativoRAUsed = await getNextCorrelativoRA({
+                branchId: anulacionEntry.sale.branchId,
+                clientDate,
+            });
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const day = String(now.getDate()).padStart(2, "0");
+            const serie = `${year}${month}${day}`;
+            const fecha = `${year}-${month}-${day}`;
+            const response = await miapiClient.anularComprobante({
+                claveSecreta: currentUser.secretKey,
+                cabecera: {
+                    tipodoc: "RA",
+                    serie,
+                    correlativo: String(correlativoRAUsed),
+                    fechaEmision: fecha,
+                    fechaEnvio: fecha,
+                },
+                items: [
+                    {
+                        tipodoc: anulacionEntry.sale.documentType!,
+                        serie: anulacionEntry.sale.serie!,
+                        correlativo: String(
+                            anulacionEntry.sale.correlativo!,
+                        ).padStart(8, "0"),
+                        motivo: anulacionMotivo.trim(),
+                    },
+                ],
+            });
+            if (response.respuesta.success) {
+                await markAsAnulado({
+                    saleId: anulacionEntry.sale._id,
+                    correlativoRA: correlativoRAUsed,
+                    xmlRA: response.respuesta.mensaje || undefined,
+                });
+                setAnulacionResult({
+                    success: true,
+                    message:
+                        response.respuesta.mensaje ||
+                        "Documento anulado correctamente.",
+                });
+            } else {
+                await rollbackCorrelativoRA({
+                    branchId: anulacionEntry.sale.branchId,
+                    valueUsed: correlativoRAUsed,
+                });
+                setAnulacionResult({
+                    success: false,
+                    message:
+                        response.respuesta.mensaje ||
+                        "La anulación no fue aceptada.",
+                });
+            }
+        } catch (error) {
+            if (correlativoRAUsed != null) {
+                try {
+                    await rollbackCorrelativoRA({
+                        branchId: anulacionEntry.sale.branchId,
+                        valueUsed: correlativoRAUsed,
+                    });
+                } catch {
+                    // ignore rollback error
+                }
+            }
+            setAnulacionResult({
+                success: false,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : "Error al anular el comprobante.",
+            });
+        } finally {
+            setAnulacionLoading(false);
+        }
+    };
+
+    const closeAnulacionModal = () => {
+        setAnulacionEntry(null);
+        setAnulacionMotivo("");
+        setAnulacionResult(null);
     };
 
     // Generar opciones de meses
@@ -676,6 +835,103 @@ const HistoryView = ({
 
     return (
         <div className="space-y-6">
+            {/* Modal anulación */}
+            {anulacionEntry && (
+                <div
+                    className="fixed h-full inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="anulacion-modal-title"
+                >
+                    <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                        <h2
+                            id="anulacion-modal-title"
+                            className="text-lg font-semibold text-slate-900 dark:text-white"
+                        >
+                            Anular documento
+                        </h2>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                            {getDocumentTypeLabel(
+                                anulacionEntry.sale.documentType ?? undefined,
+                            )}{" "}
+                            {anulacionEntry.sale.serie}-
+                            {String(anulacionEntry.sale.correlativo).padStart(
+                                8,
+                                "0",
+                            )}
+                        </p>
+                        {anulacionResult === null ? (
+                            <>
+                                <label
+                                    htmlFor="anulacion-motivo"
+                                    className="mt-4 block text-sm font-medium text-slate-700 dark:text-slate-300"
+                                >
+                                    Motivo
+                                </label>
+                                <textarea
+                                    id="anulacion-motivo"
+                                    value={anulacionMotivo}
+                                    onChange={(e) =>
+                                        setAnulacionMotivo(e.target.value)
+                                    }
+                                    placeholder="Ej: Error en datos del cliente"
+                                    rows={3}
+                                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-500 focus:border-[#fa7316] focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400"
+                                    disabled={anulacionLoading}
+                                />
+                                <div className="mt-6 flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={closeAnulacionModal}
+                                        disabled={anulacionLoading}
+                                        className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleAnularSubmit}
+                                        disabled={
+                                            anulacionLoading ||
+                                            !anulacionMotivo.trim()
+                                        }
+                                        className="flex-1 rounded-lg bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e56810] disabled:opacity-50"
+                                    >
+                                        {anulacionLoading
+                                            ? "Enviando…"
+                                            : "Anular"}
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="mt-4">
+                                <p
+                                    className={
+                                        anulacionResult.success
+                                            ? "text-sm font-medium text-green-700 dark:text-green-400"
+                                            : "text-sm font-medium text-red-700 dark:text-red-400"
+                                    }
+                                >
+                                    {anulacionResult.success
+                                        ? "Anulación exitosa"
+                                        : "Error al anular"}
+                                </p>
+                                {/* <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                                    {anulacionResult.message}
+                                </p> */}
+                                <button
+                                    type="button"
+                                    onClick={closeAnulacionModal}
+                                    className="mt-4 w-full rounded-lg bg-[#fa7316] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e56810]"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <section className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50 p-5 text-slate-900 dark:text-white">
                 <div className="flex flex-col gap-2">
                     <span className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
@@ -883,7 +1139,7 @@ const HistoryView = ({
                         summary.totalSales === 0
                             ? "S/ 0.00"
                             : formatCurrency(
-                                  summary.totalAmount / summary.totalSales
+                                  summary.totalAmount / summary.totalSales,
                               )
                     }
                     description="Promedio del valor de cada ticket."
@@ -928,6 +1184,18 @@ const HistoryView = ({
                                         entry={entry}
                                         branchNameById={branchNameById}
                                         staffNameById={staffNameById}
+                                        onAnular={
+                                            canAnularSale(entry)
+                                                ? () => {
+                                                      setAnulacionEntry(entry);
+                                                      setAnulacionMotivo("");
+                                                      setAnulacionResult(null);
+                                                  }
+                                                : undefined
+                                        }
+                                        isAnulado={
+                                            entry.sale.correlativoRA != null
+                                        }
                                     />
                                 ))}
                             </div>
@@ -947,6 +1215,7 @@ const HistoryView = ({
                                             key: "total",
                                             align: "right",
                                         },
+                                        { label: "Acciones", key: "actions" },
                                     ]}
                                 >
                                     {data.map((entry) => (
@@ -958,7 +1227,7 @@ const HistoryView = ({
                                                             entry.sale
                                                                 .closedAt ??
                                                                 entry.sale
-                                                                    .openedAt
+                                                                    .openedAt,
                                                         )}
                                                     </span>
                                                     <span className="text-xs text-slate-600 dark:text-slate-400">
@@ -966,7 +1235,7 @@ const HistoryView = ({
                                                             entry.sale
                                                                 .closedAt ??
                                                                 entry.sale
-                                                                    .openedAt
+                                                                    .openedAt,
                                                         )}
                                                     </span>
                                                 </div>
@@ -974,7 +1243,7 @@ const HistoryView = ({
                                             <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-200">
                                                 {branchNameById.get(
                                                     entry.sale
-                                                        .branchId as string
+                                                        .branchId as string,
                                                 ) ?? "Sucursal"}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
@@ -985,7 +1254,7 @@ const HistoryView = ({
                                                 {entry.sale.staffId
                                                     ? (staffNameById.get(
                                                           entry.sale
-                                                              .staffId as string
+                                                              .staffId as string,
                                                       ) ?? "Personal")
                                                     : "Sin asignar"}
                                             </td>
@@ -993,7 +1262,9 @@ const HistoryView = ({
                                                 {entry.sale.paymentMethod
                                                     ? methodLabel(
                                                           entry.sale
-                                                              .paymentMethod as "Contado" | "Credito"
+                                                              .paymentMethod as
+                                                              | "Contado"
+                                                              | "Credito",
                                                       )
                                                     : "No registrado"}
                                             </td>
@@ -1005,14 +1276,14 @@ const HistoryView = ({
                                                             onClick={() => {
                                                                 void printPdfFromUrl(
                                                                     entry.sale
-                                                                        .pdfTicket as string
+                                                                        .pdfTicket as string,
                                                                 ).catch(
                                                                     (error) => {
                                                                         console.error(
                                                                             "Error al imprimir PDF:",
-                                                                            error
+                                                                            error,
                                                                         );
-                                                                    }
+                                                                    },
                                                                 );
                                                             }}
                                                             className="font-semibold text-[#fa7316] hover:underline cursor-pointer"
@@ -1020,7 +1291,7 @@ const HistoryView = ({
                                                         >
                                                             {getDocumentTypeLabel(
                                                                 entry.sale
-                                                                    .documentType
+                                                                    .documentType,
                                                             )}
                                                         </button>
                                                     ) : (
@@ -1030,7 +1301,7 @@ const HistoryView = ({
                                                         >
                                                             {getDocumentTypeLabel(
                                                                 entry.sale
-                                                                    .documentType
+                                                                    .documentType,
                                                             )}
                                                         </span>
                                                     )
@@ -1042,8 +1313,34 @@ const HistoryView = ({
                                             </td>
                                             <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">
                                                 {formatCurrency(
-                                                    entry.sale.total
+                                                    entry.sale.total,
                                                 )}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                {canAnularSale(entry) ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setAnulacionEntry(
+                                                                entry,
+                                                            );
+                                                            setAnulacionMotivo(
+                                                                "",
+                                                            );
+                                                            setAnulacionResult(
+                                                                null,
+                                                            );
+                                                        }}
+                                                        className="font-semibold text-red-600 hover:underline dark:text-red-400"
+                                                    >
+                                                        Anular
+                                                    </button>
+                                                ) : entry.sale.correlativoRA !=
+                                                  null ? (
+                                                    <span className="text-slate-500 dark:text-slate-400">
+                                                        Anulado
+                                                    </span>
+                                                ) : null}
                                             </td>
                                         </TableRow>
                                     ))}
@@ -1064,250 +1361,290 @@ const HistoryView = ({
                     </div>
                 </div>
 
-                <div className="grid gap-4 lg:grid-cols-3">
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4 text-slate-900 dark:text-white">
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">
-                            Métodos de pago
-                        </h3>
-                        <ul className="mt-4 space-y-3 text-sm">
-                            {!paymentBreakdownData ||
-                            paymentBreakdownData.length === 0 ? (
-                                <li className="rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3 text-slate-600 dark:text-slate-400">
-                                    Aún no se registran métodos de pago en este
-                                    periodo.
-                                </li>
-                            ) : (
-                                paymentBreakdownData.map((item) => (
-                                    <li
-                                        key={item.method}
-                                        className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3"
-                                    >
-                                        <div className="flex-1">
-                                            <span className="text-slate-700 dark:text-slate-200">
-                                                {getPaymentMethodLabel(
-                                                    item.method
-                                                )}
-                                            </span>
-                                            <span className="ml-2 text-xs text-slate-500 dark:text-slate-500">
-                                                {item.percentage.toFixed(1)}%
-                                            </span>
-                                        </div>
-                                        <span className="font-semibold text-slate-900 dark:text-white">
-                                            {formatCurrency(item.amount)}
-                                        </span>
+                <div className="relative space-y-6">
+                    <div
+                        className={`grid gap-4 lg:grid-cols-3 ${isStarterPlan ? "pointer-events-none" : ""}`}
+                    >
+                        <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4 text-slate-900 dark:text-white">
+                            <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">
+                                Métodos de pago
+                            </h3>
+                            <ul className="mt-4 space-y-3 text-sm">
+                                {!paymentBreakdownData ||
+                                paymentBreakdownData.length === 0 ? (
+                                    <li className="rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3 text-slate-600 dark:text-slate-400">
+                                        Aún no se registran métodos de pago en
+                                        este periodo.
                                     </li>
-                                ))
-                            )}
-                        </ul>
-                    </div>
+                                ) : (
+                                    paymentBreakdownData.map((item) => (
+                                        <li
+                                            key={item.method}
+                                            className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3"
+                                        >
+                                            <div className="flex-1">
+                                                <span className="text-slate-700 dark:text-slate-200">
+                                                    {getPaymentMethodLabel(
+                                                        item.method,
+                                                    )}
+                                                </span>
+                                                <span className="ml-2 text-xs text-slate-500 dark:text-slate-500">
+                                                    {item.percentage.toFixed(1)}
+                                                    %
+                                                </span>
+                                            </div>
+                                            <span className="font-semibold text-slate-900 dark:text-white">
+                                                {formatCurrency(item.amount)}
+                                            </span>
+                                        </li>
+                                    ))
+                                )}
+                            </ul>
+                        </div>
 
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4 text-slate-900 dark:text-white">
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">
-                            Productos más vendidos
-                        </h3>
-                        <ul className="mt-4 space-y-3 text-sm">
-                            {!topProducts || topProducts.length === 0 ? (
-                                <li className="rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3 text-slate-600 dark:text-slate-400">
-                                    Aún no se registran productos vendidos en
-                                    este periodo.
-                                </li>
-                            ) : (
-                                topProducts.map((product) => (
-                                    <li
-                                        key={product.productId as string}
-                                        className="flex flex-col gap-1 rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3"
-                                    >
-                                        <div className="flex items-center justify-between">
+                        <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4 text-slate-900 dark:text-white">
+                            <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">
+                                Productos más vendidos
+                            </h3>
+                            <ul className="mt-4 space-y-3 text-sm">
+                                {!topProducts || topProducts.length === 0 ? (
+                                    <li className="rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3 text-slate-600 dark:text-slate-400">
+                                        Aún no se registran productos vendidos
+                                        en este periodo.
+                                    </li>
+                                ) : (
+                                    topProducts.map((product) => (
+                                        <li
+                                            key={product.productId as string}
+                                            className="flex flex-col gap-1 rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-slate-700 dark:text-slate-200">
+                                                    {product.productName}
+                                                </span>
+                                                <span className="font-semibold text-slate-900 dark:text-white">
+                                                    {formatCurrency(
+                                                        product.revenue,
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs text-slate-500 dark:text-slate-500">
+                                                {product.quantity} unidades
+                                            </span>
+                                        </li>
+                                    ))
+                                )}
+                            </ul>
+                        </div>
+
+                        <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4 text-slate-900 dark:text-white">
+                            <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">
+                                Top personal
+                            </h3>
+                            <ul className="mt-4 space-y-3 text-sm">
+                                {!topStaffData || topStaffData.length === 0 ? (
+                                    <li className="rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3 text-slate-600 dark:text-slate-400">
+                                        Aún no se registran ventas por personal
+                                        en este periodo.
+                                    </li>
+                                ) : (
+                                    topStaffData.map((staff) => (
+                                        <li
+                                            key={staff.staffId}
+                                            className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3"
+                                        >
                                             <span className="text-slate-700 dark:text-slate-200">
-                                                {product.productName}
+                                                {staff.staffName}
                                             </span>
                                             <span className="font-semibold text-slate-900 dark:text-white">
                                                 {formatCurrency(
-                                                    product.revenue
+                                                    staff.totalAmount,
                                                 )}
                                             </span>
+                                        </li>
+                                    ))
+                                )}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <section
+                        className={`rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-6 text-slate-900 dark:text-white ${isStarterPlan ? "pointer-events-none" : ""}`}
+                    >
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400 mb-6">
+                            Mapa de ventas por hora
+                        </h2>
+                        {!salesByHourData ||
+                        salesByHourData.length === 0 ||
+                        salesByHourData.every((h) => h.amount === 0) ? (
+                            <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-600 dark:text-slate-400">
+                                <HiOutlineReceiptTax size={40} />
+                                <p className="text-sm">
+                                    Aún no hay ventas registradas en el periodo
+                                    seleccionado.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {(() => {
+                                    const maxHourlyAmount = Math.max(
+                                        ...salesByHourData.map((h) => h.amount),
+                                        1,
+                                    );
+                                    const formatHour = (hour: number) => {
+                                        return `${hour.toString().padStart(2, "0")}:00`;
+                                    };
+
+                                    return (
+                                        <div className="flex flex-col gap-2">
+                                            {/* Gráfico vertical en móvil, horizontal en pantallas grandes */}
+                                            {/* Móvil: barras horizontales apiladas verticalmente */}
+                                            <div className="flex flex-col gap-2 md:hidden">
+                                                {salesByHourData.map(
+                                                    (hourData) => {
+                                                        const barWidth =
+                                                            (hourData.amount /
+                                                                maxHourlyAmount) *
+                                                            100;
+
+                                                        const intensity =
+                                                            hourData.amount > 0
+                                                                ? Math.max(
+                                                                      0.3,
+                                                                      barWidth /
+                                                                          100,
+                                                                  )
+                                                                : 0;
+
+                                                        return (
+                                                            <div
+                                                                key={
+                                                                    hourData.hour
+                                                                }
+                                                                className="flex items-center gap-3"
+                                                            >
+                                                                <div className="w-16 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                                                    {formatHour(
+                                                                        hourData.hour,
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex-1 relative">
+                                                                    <div className="h-8 rounded-lg bg-slate-200 dark:bg-slate-950/60 overflow-hidden">
+                                                                        <div
+                                                                            className="h-full rounded-lg transition-all bg-[#fa7316]"
+                                                                            style={{
+                                                                                width: `${Math.max(
+                                                                                    barWidth,
+                                                                                    hourData.amount >
+                                                                                        0
+                                                                                        ? 2
+                                                                                        : 0,
+                                                                                )}%`,
+                                                                                opacity:
+                                                                                    intensity,
+                                                                                minWidth:
+                                                                                    hourData.amount >
+                                                                                    0
+                                                                                        ? "2px"
+                                                                                        : "0",
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    },
+                                                )}
+                                            </div>
+
+                                            {/* Desktop: barras verticales en horizontal */}
+                                            <div className="hidden md:flex items-end justify-between gap-1 h-64 px-2 overflow-x-auto">
+                                                {salesByHourData.map(
+                                                    (hourData) => {
+                                                        const barHeight =
+                                                            (hourData.amount /
+                                                                maxHourlyAmount) *
+                                                            100;
+
+                                                        const intensity =
+                                                            hourData.amount > 0
+                                                                ? Math.max(
+                                                                      0.3,
+                                                                      barHeight /
+                                                                          100,
+                                                                  )
+                                                                : 0;
+
+                                                        return (
+                                                            <div
+                                                                key={
+                                                                    hourData.hour
+                                                                }
+                                                                className="flex-1 flex flex-col items-center gap-1 h-full"
+                                                            >
+                                                                {/* Barra vertical */}
+                                                                <div className="w-full flex-1 flex items-end relative">
+                                                                    <div className="w-full rounded-t-lg bg-slate-200 dark:bg-slate-950/60 overflow-hidden h-full flex items-end">
+                                                                        <div
+                                                                            className="w-full rounded-t-lg transition-all bg-[#fa7316]"
+                                                                            style={{
+                                                                                height: `${Math.max(
+                                                                                    barHeight,
+                                                                                    hourData.amount >
+                                                                                        0
+                                                                                        ? 2
+                                                                                        : 0,
+                                                                                )}%`,
+                                                                                opacity:
+                                                                                    intensity,
+                                                                                minHeight:
+                                                                                    hourData.amount >
+                                                                                    0
+                                                                                        ? "2px"
+                                                                                        : "0",
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Hora en el eje X */}
+                                                                <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mt-1">
+                                                                    {formatHour(
+                                                                        hourData.hour,
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    },
+                                                )}
+                                            </div>
                                         </div>
-                                        <span className="text-xs text-slate-500 dark:text-slate-500">
-                                            {product.quantity} unidades
-                                        </span>
-                                    </li>
-                                ))
-                            )}
-                        </ul>
-                    </div>
+                                    );
+                                })()}
+                            </div>
+                        )}
+                    </section>
 
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-4 text-slate-900 dark:text-white">
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">
-                            Top personal
-                        </h3>
-                        <ul className="mt-4 space-y-3 text-sm">
-                            {!topStaffData || topStaffData.length === 0 ? (
-                                <li className="rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3 text-slate-600 dark:text-slate-400">
-                                    Aún no se registran ventas por personal en
-                                    este periodo.
-                                </li>
-                            ) : (
-                                topStaffData.map((staff) => (
-                                    <li
-                                        key={staff.staffId}
-                                        className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-950/60 px-4 py-3"
-                                    >
-                                        <span className="text-slate-700 dark:text-slate-200">
-                                            {staff.staffName}
-                                        </span>
-                                        <span className="font-semibold text-slate-900 dark:text-white">
-                                            {formatCurrency(staff.totalAmount)}
-                                        </span>
-                                    </li>
-                                ))
-                            )}
-                        </ul>
-                    </div>
+                    {isStarterPlan && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/75 backdrop-blur-xs dark:bg-slate-900/75">
+                            <div className="mx-4 flex max-w-md flex-col items-center gap-5 rounded-2xl border border-slate-200 bg-white/95 px-8 py-8 text-center shadow-xl dark:border-slate-700 dark:bg-slate-800/95">
+                                <p className="text-base font-semibold text-slate-800 dark:text-slate-100">
+                                    Esta sección es solo para planes Negocio y Pro
+                                </p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                    Mejora tu plan para ver métodos de pago,
+                                    productos más vendidos, top personal y mapa
+                                    de ventas por hora.
+                                </p>
+                                <Link
+                                    to="/admin/suscription"
+                                    className="inline-flex items-center justify-center rounded-lg bg-[#fa7316] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811]"
+                                >
+                                    Mejorar mi plan!
+                                </Link>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            </section>
-
-            <section className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-6 text-slate-900 dark:text-white">
-                <h2 className="text-lg font-semibold mb-6 text-slate-900 dark:text-white">
-                    Mapa de ventas por hora
-                </h2>
-                {!salesByHourData ||
-                salesByHourData.length === 0 ||
-                salesByHourData.every((h) => h.amount === 0) ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-600 dark:text-slate-400">
-                        <HiOutlineReceiptTax size={40} />
-                        <p className="text-sm">
-                            Aún no hay ventas registradas en el periodo
-                            seleccionado.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {(() => {
-                            const maxHourlyAmount = Math.max(
-                                ...salesByHourData.map((h) => h.amount),
-                                1
-                            );
-                            const formatHour = (hour: number) => {
-                                return `${hour.toString().padStart(2, "0")}:00`;
-                            };
-
-                            return (
-                                <div className="flex flex-col gap-2">
-                                    {/* Gráfico vertical en móvil, horizontal en pantallas grandes */}
-                                    {/* Móvil: barras horizontales apiladas verticalmente */}
-                                    <div className="flex flex-col gap-2 md:hidden">
-                                        {salesByHourData.map((hourData) => {
-                                            const barWidth =
-                                                (hourData.amount /
-                                                    maxHourlyAmount) *
-                                                100;
-
-                                            const intensity =
-                                                hourData.amount > 0
-                                                    ? Math.max(
-                                                          0.3,
-                                                          barWidth / 100
-                                                      )
-                                                    : 0;
-
-                                            return (
-                                                <div
-                                                    key={hourData.hour}
-                                                    className="flex items-center gap-3"
-                                                >
-                                                    <div className="w-16 text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                                        {formatHour(
-                                                            hourData.hour
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-1 relative">
-                                                        <div className="h-8 rounded-lg bg-slate-200 dark:bg-slate-950/60 overflow-hidden">
-                                                            <div
-                                                                className="h-full rounded-lg transition-all bg-[#fa7316]"
-                                                                style={{
-                                                                    width: `${Math.max(
-                                                                        barWidth,
-                                                                        hourData.amount >
-                                                                            0
-                                                                            ? 2
-                                                                            : 0
-                                                                    )}%`,
-                                                                    opacity:
-                                                                        intensity,
-                                                                    minWidth:
-                                                                        hourData.amount >
-                                                                        0
-                                                                            ? "2px"
-                                                                            : "0",
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {/* Desktop: barras verticales en horizontal */}
-                                    <div className="hidden md:flex items-end justify-between gap-1 h-64 px-2 overflow-x-auto">
-                                        {salesByHourData.map((hourData) => {
-                                            const barHeight =
-                                                (hourData.amount /
-                                                    maxHourlyAmount) *
-                                                100;
-
-                                            const intensity =
-                                                hourData.amount > 0
-                                                    ? Math.max(
-                                                          0.3,
-                                                          barHeight / 100
-                                                      )
-                                                    : 0;
-
-                                            return (
-                                                <div
-                                                    key={hourData.hour}
-                                                    className="flex-1 flex flex-col items-center gap-1 h-full"
-                                                >
-                                                    {/* Barra vertical */}
-                                                    <div className="w-full flex-1 flex items-end relative">
-                                                        <div className="w-full rounded-t-lg bg-slate-200 dark:bg-slate-950/60 overflow-hidden h-full flex items-end">
-                                                            <div
-                                                                className="w-full rounded-t-lg transition-all bg-[#fa7316]"
-                                                                style={{
-                                                                    height: `${Math.max(
-                                                                        barHeight,
-                                                                        hourData.amount >
-                                                                            0
-                                                                            ? 2
-                                                                            : 0
-                                                                    )}%`,
-                                                                    opacity:
-                                                                        intensity,
-                                                                    minHeight:
-                                                                        hourData.amount >
-                                                                        0
-                                                                            ? "2px"
-                                                                            : "0",
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    {/* Hora en el eje X */}
-                                                    <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mt-1">
-                                                        {formatHour(
-                                                            hourData.hour
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            );
-                        })()}
-                    </div>
-                )}
             </section>
         </div>
     );
@@ -1370,7 +1707,9 @@ const LiveView = ({
 
             <section className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 text-slate-900 dark:text-white">
                 <header className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4">
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Pedidos en vivo</h2>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                        Pedidos en vivo
+                    </h2>
                     <Chip label={data.length.toString() + " activos"} />
                 </header>
 
@@ -1411,7 +1750,7 @@ const LiveView = ({
                                     <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#fa7316]">
                                         {formatDuration(
                                             entry.sale.openedAt,
-                                            Date.now()
+                                            Date.now(),
                                         )}
                                     </span>
                                 </header>
@@ -1425,7 +1764,7 @@ const LiveView = ({
                                             {entry.sale.staffId
                                                 ? (staffNameById.get(
                                                       entry.sale
-                                                          .staffId as string
+                                                          .staffId as string,
                                                   ) ?? "Personal")
                                                 : "Sin asignar"}
                                         </span>
@@ -1436,7 +1775,7 @@ const LiveView = ({
                                         </span>
                                         <span className="font-semibold">
                                             {formatDateTime(
-                                                entry.sale.openedAt
+                                                entry.sale.openedAt,
                                             )}
                                         </span>
                                     </div>
@@ -1461,12 +1800,12 @@ const LiveView = ({
                                                     <span className="text-slate-600 dark:text-slate-300">
                                                         {item.quantity} ×{" "}
                                                         {formatCurrency(
-                                                            item.unitPrice
+                                                            item.unitPrice,
                                                         )}
                                                     </span>
                                                     <span className="font-semibold text-slate-900 dark:text-white">
                                                         {formatCurrency(
-                                                            item.totalPrice
+                                                            item.totalPrice,
                                                         )}
                                                     </span>
                                                 </li>
@@ -1490,9 +1829,7 @@ const LiveView = ({
 };
 
 // Función helper para obtener etiqueta de método de pago
-const methodLabel = (
-    method: "Contado" | "Credito"
-) => {
+const methodLabel = (method: "Contado" | "Credito") => {
     switch (method) {
         case "Contado":
             return "Efectivo";
@@ -1515,10 +1852,14 @@ const SaleCard = ({
     entry,
     branchNameById,
     staffNameById,
+    onAnular,
+    isAnulado,
 }: {
     entry: HistorySale;
     branchNameById: Map<string, string>;
     staffNameById: Map<string, string>;
+    onAnular?: () => void;
+    isAnulado?: boolean;
 }) => {
     return (
         <div className="rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/40 p-4 transition hover:bg-slate-100 dark:hover:bg-slate-900/60">
@@ -1532,34 +1873,58 @@ const SaleCard = ({
                         {formatTime(entry.sale.closedAt ?? entry.sale.openedAt)}
                     </p>
                 </div>
-                <div className="flex-shrink-0">
+                <div className="flex flex-shrink-0 items-center gap-2">
+                    {onAnular && (
+                        <button
+                            type="button"
+                            onClick={onAnular}
+                            className="rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-700 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-red-950/50"
+                        >
+                            Anular
+                        </button>
+                    )}
+                    {isAnulado && (
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                            Anulado
+                        </span>
+                    )}
                     <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/60 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
                         {entry.sale.paymentMethod
-                            ? methodLabel(entry.sale.paymentMethod as "Contado" | "Credito")
+                            ? methodLabel(
+                                  entry.sale.paymentMethod as
+                                      | "Contado"
+                                      | "Credito",
+                              )
                             : "No registrado"}
                     </span>
                 </div>
             </div>
             <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500 dark:text-slate-500">Sucursal:</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-500">
+                        Sucursal:
+                    </span>
                     <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         {branchNameById.get(entry.sale.branchId as string) ??
                             "Sucursal"}
                     </p>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500 dark:text-slate-500">Mesa:</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-500">
+                        Mesa:
+                    </span>
                     <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                         {entry.table?.label ?? "Sin mesa"}
                     </p>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500 dark:text-slate-500">Atiende:</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-500">
+                        Atiende:
+                    </span>
                     <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                         {entry.sale.staffId
                             ? (staffNameById.get(
-                                  entry.sale.staffId as string
+                                  entry.sale.staffId as string,
                               ) ?? "Personal")
                             : "Sin asignar"}
                     </p>
