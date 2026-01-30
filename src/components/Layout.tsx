@@ -17,6 +17,7 @@ import { MdOutlineDinnerDining } from "react-icons/md";
 import { IoLogInOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
 import { FaCreditCard } from "react-icons/fa";
+import { FaChartBar } from "react-icons/fa";
 import { LuStore } from "react-icons/lu";
 import { FaCheck } from "react-icons/fa";
 import CloseButton from "./CloseButton";
@@ -669,6 +670,21 @@ const Layout = () => {
                                         Editar perfil
                                     </span>
                                             <FaRegUser color={PRIMARY_COLOR} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/80 cursor-pointer"
+                                            onClick={() => {
+                                                handleCloseProfileMenu();
+                                                setTimeout(() => {
+                                                    navigate("/admin/consumo");
+                                                }, 300);
+                                            }}
+                                        >
+                                    <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
+                                        Mi Consumo
+                                    </span>
+                                            <FaChartBar color={PRIMARY_COLOR} />
                                         </button>
                                         <button
                                             type="button"

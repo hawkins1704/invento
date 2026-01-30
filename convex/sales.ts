@@ -270,6 +270,13 @@ export const listLiveByBranch = query({
   },
 })
 
+const getStartOfCurrentMonthUTC = () => {
+  const d = new Date()
+  d.setUTCDate(1)
+  d.setUTCHours(0, 0, 0, 0)
+  return d.getTime()
+}
+
 export const getTotalSalesCount = query({
   args: {},
   handler: async (ctx) => {
@@ -279,6 +286,67 @@ export const getTotalSalesCount = query({
     }
     const allSales = await ctx.db.query("sales").collect()
     return { total: allSales.length }
+  },
+})
+
+export const getSalesCountThisMonth = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+    const startOfMonth = getStartOfCurrentMonthUTC()
+    const endOfNow = now()
+    const allSales = await ctx.db.query("sales").collect()
+    const count = allSales.filter(
+      (s) => s.openedAt >= startOfMonth && s.openedAt <= endOfNow
+    ).length
+    return { count }
+  },
+})
+
+export const getSalesByMonth = query({
+  args: {
+    monthsBack: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) {
+      throw new ConvexError("No autenticado")
+    }
+    const monthsBack = args.monthsBack ?? 12
+    const allSales = await ctx.db.query("sales").collect()
+    const byMonth = new Map<string, number>()
+    const nowDate = new Date()
+    for (let i = 0; i < monthsBack; i++) {
+      const d = new Date(nowDate.getFullYear(), nowDate.getMonth() - i, 1)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+      byMonth.set(key, 0)
+    }
+    for (const sale of allSales) {
+      const d = new Date(sale.openedAt)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+      if (byMonth.has(key)) {
+        byMonth.set(key, (byMonth.get(key) ?? 0) + 1)
+      }
+    }
+    const months = Array.from(byMonth.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([monthKey]) => {
+        const [y, m] = monthKey.split("-").map(Number)
+        const date = new Date(y, m - 1, 1)
+        const monthLabel = date.toLocaleDateString("es-PE", {
+          month: "short",
+          year: "2-digit",
+        })
+        return {
+          month: monthKey,
+          count: byMonth.get(monthKey) ?? 0,
+          label: monthLabel,
+        }
+      })
+    return { months }
   },
 })
 
@@ -394,7 +462,7 @@ export const create = mutation({
       throw new ConvexError("Usuario no encontrado.")
     }
 
-    // Límite de ventas por plan: starter 2000, negocio y pro ilimitado
+    // Límite de ventas por mes por plan: starter 2000/mes, negocio y pro ilimitado
     const saleLimitByPlan: Record<string, number | null> = {
       starter: 2000,
       negocio: null,
@@ -404,10 +472,15 @@ export const create = mutation({
       ? saleLimitByPlan[user.subscriptionType] ?? 2000
       : 2000
     if (saleLimit !== null) {
-      const currentSales = await ctx.db.query("sales").collect()
-      if (currentSales.length >= saleLimit) {
+      const startOfMonth = getStartOfCurrentMonthUTC()
+      const endOfNow = now()
+      const allSales = await ctx.db.query("sales").collect()
+      const salesThisMonth = allSales.filter(
+        (s) => s.openedAt >= startOfMonth && s.openedAt <= endOfNow
+      ).length
+      if (salesThisMonth >= saleLimit) {
         throw new ConvexError(
-          `Has alcanzado el límite de ${saleLimit} ventas de tu plan. Actualiza tu plan para crear más.`
+          `Has alcanzado el límite de ${saleLimit} ventas del mes de tu plan. Actualiza tu plan o espera al próximo mes.`
         )
       }
     }

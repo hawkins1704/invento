@@ -1,11 +1,9 @@
-
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
-import {  FaCheck } from "react-icons/fa";
+import { FaCheck } from "react-icons/fa";
 import { FaCrown, FaStore, FaRocket } from "react-icons/fa";
 import PageHeader from "../../components/page-header/PageHeader";
-
 type SubscriptionType = "starter" | "negocio" | "pro";
 
 const SUBSCRIPTION_INFO: Record<
@@ -23,7 +21,8 @@ const SUBSCRIPTION_INFO: Record<
         icon: <FaRocket className="text-xl" />,
         features: [
             "Hasta 1 sucursal",
-            "Productos ilimitados",
+            "Hasta 100 productos",
+            "Hasta 2.000 ventas/mes",
             "Gestión básica de inventario",
             "Reportes de ventas",
         ],
@@ -33,8 +32,9 @@ const SUBSCRIPTION_INFO: Record<
         description: "Para empresas en crecimiento",
         icon: <FaStore className="text-xl" />,
         features: [
-            "Hasta 3 sucursales",
-            "Productos ilimitados",
+            "Hasta 5 sucursales",
+            "Hasta 300 productos",
+            "Ventas ilimitadas",
             "Gestión avanzada de inventario",
             "Reportes detallados",
             "Soporte prioritario",
@@ -91,7 +91,6 @@ const AdminSubscription = () => {
 
     return (
         <div className="space-y-8">
-          
             <PageHeader
                 chipLabel="Suscripciones"
                 title="Gestionar suscripciones"

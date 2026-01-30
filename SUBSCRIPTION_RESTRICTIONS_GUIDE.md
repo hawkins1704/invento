@@ -200,7 +200,7 @@ El ejemplo actual (Inventario) duplica los valores en backend y frontend; es vá
 |----------|---------|---------|-------|-----------------------|-------------------------|
 | Productos| 100     | 300     | ∞     | `convex/products.ts`  | `AdminInventory.tsx`    |
 | Sucursales | 1     | 5       | ∞     | `convex/branches.ts`  | `AdminBranches.tsx`     |
-| Ventas   | 2000    | ∞       | ∞     | `convex/sales.ts`     | `NewSaleModal.tsx`      |
+| Ventas (por mes) | 2000/mes | ∞ | ∞ | `convex/sales.ts` | `NewSaleModal.tsx` |
 | (futuro) | …       | …       | …     | mutación correspond.  | página correspondiente  |
 
 Usa esta tabla (o una similar en el repo) para ir anotando cada nueva restricción que implementes.

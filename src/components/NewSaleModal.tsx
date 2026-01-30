@@ -62,10 +62,10 @@ const NewSaleModal = ({
     const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
     const currentUser = useQuery(api.users.getCurrent) as Doc<"users"> | undefined;
-    const totalSalesData = useQuery(api.sales.getTotalSalesCount) as
-        | { total: number }
+    const salesThisMonthData = useQuery(api.sales.getSalesCountThisMonth) as
+        | { count: number }
         | undefined;
-    const totalSales = totalSalesData?.total ?? 0;
+    const salesThisMonth = salesThisMonthData?.count ?? 0;
     const { error: toastError } = useToast();
 
     const getSaleLimit = (subscriptionType: string | undefined): number | null => {
@@ -74,7 +74,7 @@ const NewSaleModal = ({
         return null;
     };
     const saleLimit = getSaleLimit(currentUser?.subscriptionType);
-    const atSaleLimit = saleLimit !== null && totalSales >= saleLimit;
+    const atSaleLimit = saleLimit !== null && salesThisMonth >= saleLimit;
     const planLabel =
         { starter: "Starter", negocio: "Negocio", pro: "Pro" }[
             currentUser?.subscriptionType ?? "starter"
@@ -117,7 +117,7 @@ const NewSaleModal = ({
     const handleSubmit = async () => {
         if (atSaleLimit && saleLimit !== null) {
             toastError(
-                `Has alcanzado el límite de ${saleLimit} ventas de tu plan ${planLabel}. Actualiza tu plan para crear más.`
+                `Has alcanzado el límite de ${saleLimit} ventas del mes de tu plan ${planLabel}. Actualiza tu plan o espera al próximo mes.`
             );
             return;
         }
