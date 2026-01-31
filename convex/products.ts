@@ -54,6 +54,7 @@ export const list = query({
   args: {
     limit: v.optional(v.number()),
     offset: v.optional(v.number()),
+    onlyActive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -61,7 +62,13 @@ export const list = query({
       throw new ConvexError("No autenticado");
     }
 
-    const allProducts = await ctx.db.query("products").collect();
+    let allProducts = await ctx.db.query("products").collect();
+    
+    // Filtrar solo productos activos si se solicita
+    if (args.onlyActive === true) {
+      allProducts = allProducts.filter((product) => product.active !== false);
+    }
+    
     const sorted = allProducts.sort((a, b) => b._creationTime - a._creationTime);
 
     // Obtener el total antes de paginar
@@ -141,6 +148,7 @@ export const create = mutation({
     image: v.optional(v.id("_storage")),
     inventoryActivated: v.optional(v.boolean()),
     allowNegativeSale: v.optional(v.boolean()),
+    active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -229,6 +237,7 @@ export const create = mutation({
       ...(image ? { image } : {}),
       inventoryActivated,
       allowNegativeSale: args.allowNegativeSale,
+      active: args.active ?? true, // Default a true si no se especifica
     });
 
     // Solo crear inventario si está activado
@@ -263,6 +272,7 @@ export const update = mutation({
     removeImage: v.optional(v.boolean()),
     inventoryActivated: v.optional(v.boolean()),
     allowNegativeSale: v.optional(v.boolean()),
+    active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -333,6 +343,7 @@ export const update = mutation({
       ...(imageField !== undefined ? { image: imageField } : { image: undefined }),
       inventoryActivated,
       allowNegativeSale: args.allowNegativeSale,
+      ...(args.active !== undefined ? { active: args.active } : {}),
     });
 
     const existingInventories = await ctx.db
@@ -394,6 +405,20 @@ export const remove = mutation({
     const product = await ctx.db.get(args.productId);
     if (!product) {
       throw new ConvexError("Producto no encontrado.");
+    }
+
+    // Verificar si el producto tiene ventas asociadas
+    // Buscar al menos un saleItem que use este producto
+    const saleItems = await ctx.db
+      .query("saleItems")
+      .collect();
+    
+    const hasSales = saleItems.some((item) => item.productId === args.productId);
+    
+    if (hasSales) {
+      throw new ConvexError(
+        "No se puede eliminar el producto porque ya tiene ventas asociadas. Desactívalo del catálogo en su lugar."
+      );
     }
 
     const inventories = await ctx.db

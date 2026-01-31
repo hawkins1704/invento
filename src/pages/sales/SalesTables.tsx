@@ -55,10 +55,11 @@ const SalesTablesContent = ({
         selectedBranchId ? { branchId: selectedBranchId } : "skip"
     ) as LiveSale[] | undefined;
 
-    // Necesitamos todos los productos para el mapa, usamos un límite alto
+    // Necesitamos todos los productos activos para el mapa, usamos un límite alto
     const productsData = useQuery(api.products.list, {
         limit: 1000, // Límite alto para obtener todos los productos
         offset: 0,
+        onlyActive: true, // Solo productos activos en el catálogo
     }) as { products: ProductListItem[]; total: number } | undefined;
 
     const products = productsData?.products;

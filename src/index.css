@@ -92,3 +92,20 @@ textarea {
 .animate-toast-out {
   animation: toastOut 0.25s ease-in forwards;
 }
+
+/* WhatsApp floating button - transiciones suaves */
+.whatsapp-float-btn {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.whatsapp-float-btn:hover {
+  transform: scale(1.1);
+}
+.whatsapp-float-tooltip {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.whatsapp-float-btn:hover .whatsapp-float-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}

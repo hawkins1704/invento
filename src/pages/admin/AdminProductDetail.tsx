@@ -10,6 +10,7 @@ import type { ProductListItem } from "../../types/products";
 import { MdDeleteOutline } from "react-icons/md";
 import { FaArrowLeft } from "react-icons/fa";
 import { BiDish } from "react-icons/bi";
+import { useToast } from "../../contexts/ToastContext";
 
 type ProductEditFormState = {
     name: string;
@@ -21,6 +22,7 @@ type ProductEditFormState = {
     imageFile: File | null;
     inventoryActivated: boolean;
     allowNegativeSale: boolean;
+    active: boolean;
 };
 
 const DEFAULT_FORM: ProductEditFormState = {
@@ -33,6 +35,7 @@ const DEFAULT_FORM: ProductEditFormState = {
     imageFile: null,
     inventoryActivated: false,
     allowNegativeSale: false,
+    active: true,
 };
 
 const formatCurrency = (value: number) =>
@@ -77,6 +80,7 @@ const AdminProductDetail = () => {
     const generateUploadUrl = useMutation(api.products.generateUploadUrl);
     const updateProduct = useMutation(api.products.update);
     const removeProduct = useMutation(api.products.remove);
+    const { error: toastError } = useToast();
 
     const [formState, setFormState] =
         useState<ProductEditFormState>(DEFAULT_FORM);
@@ -170,6 +174,7 @@ const AdminProductDetail = () => {
 
             const productInventoryActivated = product.inventoryActivated ?? false;
             const productAllowNegativeSale = product.allowNegativeSale ?? false;
+            const productActive = product.active ?? true;
             
             // Si los valores son diferentes, actualizar
             if (
@@ -180,7 +185,8 @@ const AdminProductDetail = () => {
                 previous.categoryId !==
                     (product.categoryId as unknown as string) ||
                 previous.inventoryActivated !== productInventoryActivated ||
-                previous.allowNegativeSale !== productAllowNegativeSale
+                previous.allowNegativeSale !== productAllowNegativeSale ||
+                previous.active !== productActive
             ) {
                 return {
                     name: product.name,
@@ -192,6 +198,7 @@ const AdminProductDetail = () => {
                     imageFile: previous.imageFile, // Mantener el archivo si existe
                     inventoryActivated: productInventoryActivated,
                     allowNegativeSale: productAllowNegativeSale,
+                    active: productActive,
                 };
             }
             // Si no hay cambios, mantener el estado actual (incluyendo stocks si no cambiaron)
@@ -434,6 +441,7 @@ const AdminProductDetail = () => {
                 removeImage: shouldRemoveImage ? true : undefined,
                 inventoryActivated: formState.inventoryActivated,
                 allowNegativeSale: formState.allowNegativeSale,
+                active: formState.active,
             });
 
             setSuccessMessage("Producto actualizado correctamente.");
@@ -480,11 +488,25 @@ const AdminProductDetail = () => {
 
             navigate("/admin/inventory");
         } catch (error) {
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : "No fue posible eliminar el producto.";
-            setFormError(message);
+            let message = "No fue posible eliminar el producto.";
+            
+            if (error instanceof Error) {
+                // Detectar si es el error específico de ventas asociadas
+                if (error.message.includes("ventas asociadas") || 
+                    error.message.includes("ya tiene ventas")) {
+                    message = "No se puede eliminar el producto porque ya tiene ventas registradas. Desactívalo del catálogo usando el toggle 'Activo en catálogo' si ya no deseas que aparezca en el catálogo.";
+                } else {
+                    message = error.message;
+                }
+            }
+            
+            // Solo mostrar el mensaje en el Toast, no en el formulario para este error específico
+            if (message.includes("ventas registradas")) {
+                toastError(message);
+            } else {
+                setFormError(message);
+                toastError(message);
+            }
         } finally {
             setIsDeleting(false);
         }
@@ -859,6 +881,37 @@ const AdminProductDetail = () => {
                                 </p>
                             </div>
                             <div className="w-full space-y-3 pt-2">
+                                <div className="flex items-center justify-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setFormState((previous) => ({
+                                                ...previous,
+                                                active: !previous.active,
+                                            }))
+                                        }
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                                            formState.active
+                                                ? "bg-[#fa7316]"
+                                                : "bg-slate-300 dark:bg-slate-700"
+                                        }`}
+                                        role="switch"
+                                        aria-checked={formState.active}
+                                        aria-label="Activo en catálogo"
+                                        disabled={isSubmitting || isDeleting}
+                                    >
+                                        <span
+                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                formState.active
+                                                    ? "translate-x-6"
+                                                    : "translate-x-1"
+                                            }`}
+                                        />
+                                    </button>
+                                    <span className="text-sm text-slate-600 dark:text-slate-300">
+                                        Activo en catálogo
+                                    </span>
+                                </div>
                                 <div className="flex items-center justify-center gap-3">
                                     <button
                                         type="button"

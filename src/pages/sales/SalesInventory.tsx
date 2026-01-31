@@ -195,7 +195,7 @@ const InventoryCodeVerification = ({
                         />
 
                         {error && (
-                            <div className="rounded-lg border border-red-500/40 bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-500/10 dark:text-red-300">
+                            <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300">
                                 {error}
                             </div>
                         )}
@@ -288,6 +288,7 @@ const SalesInventoryContent = ({
                   categoryId: selectedCategoryId as Id<"categories">,
                   limit: ITEMS_PER_PAGE,
                   offset,
+                  onlyActive: true, // Solo productos activos en el catálogo
               }
             : "skip"
     ) as { products: InventoryProduct[]; total: number } | undefined;

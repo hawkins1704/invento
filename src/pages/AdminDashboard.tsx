@@ -194,7 +194,7 @@ const AdminDashboard = () => {
             </header>
 
             {/* Sección 1: Métricas de ventas del día */}
-            <section className="grid gap-6 grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
+            <section className="grid gap-6 grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
                 <InfoCard
                     label="Total vendido"
                     value={
@@ -227,16 +227,7 @@ const AdminDashboard = () => {
                     description="Mesas activas en todas las sucursales"
                 />
 
-                <InfoCard
-                    label="Sucursales activas"
-                    value={
-                        summaryByBranch
-                            ? summaryByBranch.filter((b) => b.hasActiveShift)
-                                  .length
-                            : 0
-                    }
-                    description="Con turnos abiertos"
-                />
+               
             </section>
 
             {/* Sección 2: Resumen por sucursal */}
@@ -512,16 +503,16 @@ const AdminDashboard = () => {
                                 key={`${alert.productId}-${alert.branchId}`}
                                 className={`flex items-center justify-between rounded-lg border p-4 ${
                                     alert.isOutOfStock
-                                        ? "border-red-500/40 bg-red-500/10"
-                                        : "border-yellow-500/40 bg-yellow-500/10"
+                                        ? "border-red-300 bg-red-50 dark:border-red-500/40 dark:bg-red-500/10"
+                                        : "border-yellow-300 bg-yellow-50 dark:border-yellow-500/40 dark:bg-yellow-500/10"
                                 }`}
                             >
                                 <div className="flex items-center gap-3">
                                     <div
                                         className={`flex h-10 w-10 items-center justify-center rounded-full ${
                                             alert.isOutOfStock
-                                                ? "bg-red-500/20 text-red-400"
-                                                : "bg-yellow-500/20 text-yellow-400"
+                                                ? "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400"
+                                                : "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400"
                                         }`}
                                     >
                                         <FaExclamationTriangle className="w-5 h-5" />
@@ -537,11 +528,11 @@ const AdminDashboard = () => {
                                 </div>
                                 <div className="text-right">
                                     {alert.isOutOfStock ? (
-                                        <span className="inline-flex items-center rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
+                                        <span className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-400">
                                             Sin stock
                                         </span>
                                     ) : (
-                                        <span className="inline-flex items-center rounded-full border border-yellow-500/40 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-400">
+                                        <span className="inline-flex items-center rounded-full border border-yellow-300 bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700 dark:border-yellow-500/40 dark:bg-yellow-500/10 dark:text-yellow-400">
                                             Stock bajo: {alert.stock}
                                         </span>
                                     )}

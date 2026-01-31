@@ -39,6 +39,7 @@ export default defineSchema({
     categoryId: v.id("categories"),
     inventoryActivated: v.optional(v.boolean()),
     allowNegativeSale: v.optional(v.boolean()),
+    active: v.optional(v.boolean()),
   }).index("categoryId", ["categoryId"]),
   categories: defineTable({
     name: v.string(),

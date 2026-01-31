@@ -27,6 +27,7 @@ type ProductFormState = {
   imageFile: File | null;
   inventoryActivated: boolean;
   allowNegativeSale: boolean;
+  active: boolean;
 };
 
 const DEFAULT_FORM: ProductFormState = {
@@ -39,6 +40,7 @@ const DEFAULT_FORM: ProductFormState = {
   imageFile: null,
   inventoryActivated: true,
   allowNegativeSale: false,
+  active: true,
 };
 
 const formatCurrency = (value: number) =>
@@ -215,6 +217,7 @@ const updateStockField = (branchId: string, value: string) => {
       stocks: initialStocks,
       inventoryActivated: true,
       allowNegativeSale: false,
+      active: true,
     });
     setLastEditedField(null);
     setFormError(null);
@@ -313,6 +316,7 @@ const updateStockField = (branchId: string, value: string) => {
         ...(storageId ? { image: storageId } : {}),
         inventoryActivated: formState.inventoryActivated,
         allowNegativeSale: formState.allowNegativeSale,
+        active: formState.active,
       });
 
       // Reset to first page to see the new product
@@ -587,6 +591,43 @@ const updateStockField = (branchId: string, value: string) => {
 
               <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-6">
                 <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <label className="text-sm font-semibold text-slate-900 dark:text-white">
+                      Activo en catálogo
+                    </label>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                      El producto aparecerá en el catálogo de ventas
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormState((previous) => ({
+                        ...previous,
+                        active: !previous.active,
+                      }))
+                    }
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                      formState.active
+                        ? "bg-[#fa7316]"
+                        : "bg-slate-300 dark:bg-slate-700"
+                    }`}
+                    role="switch"
+                    aria-checked={formState.active}
+                    aria-label="Activo en catálogo"
+                    disabled={isSubmitting}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        formState.active
+                          ? "translate-x-6"
+                          : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-4">
                   <div className="space-y-1">
                     <label className="text-sm font-semibold text-slate-900 dark:text-white">
                       Control de inventario

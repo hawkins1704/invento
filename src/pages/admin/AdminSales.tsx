@@ -1155,7 +1155,7 @@ const HistoryView = ({
                 />
             </section>
 
-            <section className="grid gap-4">
+            <section className="">
                 <div className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 text-slate-900 dark:text-white">
                     <header className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4">
                         <h2 className="text-lg font-semibold text-slate-900 dark:text-white">

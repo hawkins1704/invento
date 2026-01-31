@@ -16,41 +16,41 @@ const SUBSCRIPTION_INFO: Record<
     }
 > = {
     starter: {
-        name: "Starter",
+        name: "Plan Starter",
         description: "Perfecto para comenzar",
         icon: <FaRocket className="text-xl" />,
         features: [
-            "Hasta 1 sucursal",
-            "Hasta 100 productos",
-            "Hasta 2.000 ventas/mes",
-            "Gestión básica de inventario",
-            "Reportes de ventas",
+            "1 Sucursal",
+            "Trabajadores ilimitados",
+            "Facturación electrónica integrada",
+            "Hasta 2000 ventas/mes",
         ],
     },
     negocio: {
-        name: "Negocio",
+        name: "Plan Negocio",
         description: "Para empresas en crecimiento",
         icon: <FaStore className="text-xl" />,
         features: [
             "Hasta 5 sucursales",
-            "Hasta 300 productos",
+            "Trabajadores ilimitados",
+            "Facturación electrónica integrada",
             "Ventas ilimitadas",
-            "Gestión avanzada de inventario",
-            "Reportes detallados",
-            "Soporte prioritario",
+            "Gráficos y reportes avanzados",
+            "Soporte 24/7",
         ],
     },
     pro: {
-        name: "Pro",
+        name: "Plan Pro",
         description: "Máxima funcionalidad",
         icon: <FaCrown className="text-xl" />,
         features: [
             "Sucursales ilimitadas",
-            "Productos ilimitados",
-            "Gestión completa de inventario",
-            "Reportes avanzados y analytics",
+            "Trabajadores ilimitados",
+            "Facturación electrónica integrada",
+            "Ventas ilimitadas",
+            "Gráficos y reportes avanzados",
+            "Secciones hechas a medida",
             "Soporte 24/7",
-            "Integraciones personalizadas",
         ],
     },
 };
@@ -76,7 +76,7 @@ const AdminSubscription = () => {
     };
 
     const getWhatsAppUrl = (planName: string): string => {
-        const message = `Hola! Soy cliente de Fudi! Tengo el plan ${currentUser?.subscriptionType} y quiero cambiar mi plan al Plan ${planName}`;
+        const message = `Hola! Soy cliente de Fudi! Mi usuario es ${currentUser?.email}, tengo el plan ${currentUser?.subscriptionType} y quiero cambiar mi plan al ${planName}`;
         const encodedMessage = encodeURIComponent(message);
         return `https://wa.me/51992095138?text=${encodedMessage}`;
     };

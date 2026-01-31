@@ -43,6 +43,7 @@ export const productsByCategory = query({
     categoryId: v.id("categories"),
     limit: v.optional(v.number()),
     offset: v.optional(v.number()),
+    onlyActive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -62,10 +63,15 @@ export const productsByCategory = query({
       throw new ConvexError("Categoría no encontrada.");
     }
 
-    const allProducts = await ctx.db
+    let allProducts = await ctx.db
       .query("products")
       .withIndex("categoryId", (q) => q.eq("categoryId", args.categoryId))
       .collect();
+
+    // Filtrar solo productos activos si se solicita
+    if (args.onlyActive === true) {
+      allProducts = allProducts.filter((product) => product.active !== false);
+    }
 
     // Obtener el total antes de paginar
     const total = allProducts.length;
