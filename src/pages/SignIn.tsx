@@ -224,7 +224,7 @@ export function SignIn() {
                         )}
 
                         {error && (
-                            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                            <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                                Ups! Tal vez tus credenciales no son correctas. Intenta de nuevo.
                             </div>
                         )}
