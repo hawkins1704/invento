@@ -1,6 +1,7 @@
 import { ToastProvider } from './contexts/ToastContext'
 import { SignIn } from './pages/SignIn'
 import { PasswordReset } from './pages/PasswordReset'
+import LandingPage from './pages/LandingPage'
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { Authenticated, AuthLoading, Unauthenticated } from 'convex/react'
 import Layout from './components/Layout'
@@ -38,14 +39,14 @@ function App() {
             <Routes>
                 <Route
                     index
-                    element={<Navigate to="/login" replace />}
+                    element={<LandingPage />}
                 />
                 <Route path="/login" element={<SignIn />} />
                 <Route path="/sign-in" element={<SignIn />} />
                 <Route path="/password-reset" element={<PasswordReset />} />
                 <Route
                     path="*"
-                    element={<Navigate to="/login" replace />}
+                    element={<Navigate to="/" replace />}
                 />
             </Routes>
         </Router>

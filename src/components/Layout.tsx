@@ -427,7 +427,7 @@ const Layout = () => {
     const handleSignOut = async () => {
         await signOut();
         handleCloseProfileMenu();
-        navigate("/login");
+        navigate("/");
     };
 
     const areaNavLabel = location.pathname.startsWith("/admin")

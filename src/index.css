@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Scroll suave para enlaces de ancla */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Configuración de dark mode para Tailwind CSS v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
