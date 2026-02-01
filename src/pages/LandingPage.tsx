@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { FaCheck, FaChevronLeft, FaChevronRight, FaWhatsapp } from "react-icons/fa";
+import {
+    FaCheck,
+    FaChevronLeft,
+    FaChevronRight,
+    FaWhatsapp,
+} from "react-icons/fa";
 import { FaTwitter, FaLinkedin, FaFacebook, FaInstagram } from "react-icons/fa";
 
 const WHATSAPP_PHONE = "51992095138";
@@ -171,7 +176,6 @@ export default function LandingPage() {
                             >
                                 Inicia sesión
                             </Link>
-                          
                         </div>
                     </div>
                 </div>
@@ -261,10 +265,11 @@ export default function LandingPage() {
                         {/* Feature 3 */}
                         <div className="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-lg">
                             <h3 className="text-2xl font-bold text-[#fa7316] mb-4">
-                            Gestión de productos, sucursales y equipo
+                                Gestión de productos, sucursales y equipo
                             </h3>
                             <p className="text-slate-600 dark:text-slate-400 mb-6">
-                            Administra productos, precios, sucursales y trabajadores desde un solo lugar.
+                                Administra productos, precios, sucursales y
+                                trabajadores desde un solo lugar.
                             </p>
                             <div className="mt-6 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
                                 <img
@@ -278,10 +283,12 @@ export default function LandingPage() {
                         {/* Feature 4 - Placeholder */}
                         <div className="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-lg">
                             <h3 className="text-2xl font-bold text-[#fa7316] mb-4">
-                            Decisiones basadas en datos, no en suposiciones
+                                Decisiones basadas en datos, no en suposiciones
                             </h3>
                             <p className="text-slate-600 dark:text-slate-400 mb-6">
-                            Analiza qué vendes más, cuándo vendes mejor y en qué horas generas más ingresos con reportes y mapas de calor.
+                                Analiza qué vendes más, cuándo vendes mejor y en
+                                qué horas generas más ingresos con reportes y
+                                mapas de calor.
                             </p>
                             <div className="mt-6 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
                                 <img
@@ -313,7 +320,7 @@ export default function LandingPage() {
             >
                 <div className="max-w-7xl mx-auto">
                     <p className="text-center text-slate-400  grayscale dark:text-slate-400 text-md font-medium tracking-wider mb-8 uppercase">
-                    Restaurantes que ya confían en Fudi
+                        Restaurantes que ya confían en Fudi
                     </p>
                     <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 grayscale">
                         <div className="text-slate-400 font-semibold text-lg">
@@ -547,7 +554,8 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                         <h2 className="flex items-center gap-2 text-3xl md:text-4xl font-bold text-white text-center md:text-left flex-1">
-                        Empieza a gestionar tu restaurante como un negocio moderno!
+                            Empieza a gestionar tu restaurante como un negocio
+                            moderno!
                         </h2>
                         <div className="flex justify-end  flex-col sm:flex-row gap-4 flex-1">
                             <a
@@ -558,7 +566,6 @@ export default function LandingPage() {
                             >
                                 Solicitar Demo
                             </a>
-                          
                         </div>
                     </div>
                 </div>
@@ -568,7 +575,7 @@ export default function LandingPage() {
             <footer className="bg-slate-900 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
-                        <div className="col-span-2 md:col-span-1">
+                        <div className="col-span-2">
                             <div className="flex items-center mb-4">
                                 <img
                                     src="/logo-main.svg"
@@ -577,163 +584,17 @@ export default function LandingPage() {
                                 />
                             </div>
 
-                            <p className="text-slate-400 text-sm">Lima, Perú</p>
+                            <p className="text-slate-400 text-sm mb-2">Lima, Perú</p>
                             <p className="text-slate-400 text-sm mb-4">
-                                Versículo
+                                El que habita al abrigo del Altísimo Morará bajo
+                                la sombra del Omnipotente. Diré yo a Jehová:
+                                Esperanza mía, y castillo mío; Mi Dios, en quien
+                                confiaré.
+                                Salmos 91:1-2
                             </p>
                         </div>
 
-                        <div>
-                            <h4 className="text-white font-semibold mb-4">
-                                Soluciones
-                            </h4>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Gestión de Inventario
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Ventas
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Reportes
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Equipo
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
 
-                        <div>
-                            <h4 className="text-white font-semibold mb-4">
-                                Empresa
-                            </h4>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Acerca de
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Carreras
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Contacto
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Blog
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="text-white font-semibold mb-4">
-                                Recursos
-                            </h4>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Documentación
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        API
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Soporte
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Comunidad
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="text-white font-semibold mb-4">
-                                Legal
-                            </h4>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Privacidad
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Términos
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-slate-400 hover:text-[#fa7316] transition-colors text-sm"
-                                    >
-                                        Cookies
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
                     </div>
 
                     <div className="border-t border-slate-800 pt-8 flex items-center justify-between">
