@@ -541,7 +541,7 @@ const Layout = () => {
                                                 </span>
                                                 {!isCollapsed && (
                                                     <span className="flex flex-col">
-                                                        <span                                                         className="font-semibold text-slate-900 dark:text-white">
+                                                        <span className="font-semibold text-slate-900 dark:text-white">
                                                             {isAreaLink
                                                                 ? areaNavLabel
                                                                 : item.label}
@@ -666,9 +666,9 @@ const Layout = () => {
                                                 }, 300);
                                             }}
                                         >
-                                    <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
-                                        Editar perfil
-                                    </span>
+                                            <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
+                                                Editar perfil
+                                            </span>
                                             <FaRegUser color={PRIMARY_COLOR} />
                                         </button>
                                         <button
@@ -681,9 +681,9 @@ const Layout = () => {
                                                 }, 300);
                                             }}
                                         >
-                                    <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
-                                        Mi Consumo
-                                    </span>
+                                            <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
+                                                Mi Consumo
+                                            </span>
                                             <FaChartBar color={PRIMARY_COLOR} />
                                         </button>
                                         <button
@@ -698,9 +698,9 @@ const Layout = () => {
                                                 }, 300);
                                             }}
                                         >
-                                    <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
-                                        Mi suscripción
-                                    </span>
+                                            <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
+                                                Mi suscripción
+                                            </span>
                                             <FaCreditCard
                                                 color={PRIMARY_COLOR}
                                             />
@@ -709,9 +709,7 @@ const Layout = () => {
                                 )}
                                 <button
                                     type="button"
-                                    className={`flex w-full items-center justify-between rounded-lg bg-[#fa7316]/10 px-3 py-2 text-sm font-semibold text-[#fa7316] transition hover:bg-[#fa7316]/20 cursor-pointer ${
-                                        currentArea === "admin" ? "mt-2" : ""
-                                    }`}
+                                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/80 cursor-pointer"
                                     onClick={handleSignOut}
                                 >
                                     <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
@@ -1060,7 +1058,6 @@ const Layout = () => {
                     />
                 )}
 
-               
                 <div className="flex flex-1 flex-col overflow-x-auto">
                     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 dark:border-slate-800 dark:bg-slate-950/90 px-5 backdrop-blur">
                         <div className="flex items-center gap-3">
@@ -1085,104 +1082,107 @@ const Layout = () => {
                             <ThemeToggle />
                             {currentArea === "sales" && selectedShiftBranch && (
                                 <div className="relative">
-                                <button
-                                    type="button"
-                                    ref={branchButtonRef}
-                                    onClick={() => {
-                                        if (isBranchMenuOpen) {
-                                            handleCloseBranchMenu();
-                                        } else {
-                                            setIsBranchMenuOpen(true);
-                                        }
-                                    }}
-                                    className="flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-100/60 dark:border-slate-700 dark:bg-slate-900/60 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white transition hover:border-[#fa7316] hover:bg-slate-200/80 dark:hover:bg-slate-800/80 cursor-pointer"
-                                >
-                                    <LuStore color={PRIMARY_COLOR} />
-                                    <span>{selectedShiftBranch.name}</span>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth={2}
-                                        stroke="currentColor"
-                                        className={`h-4 w-4 transition-transform ${isBranchMenuOpen ? "rotate-180" : ""}`}
+                                    <button
+                                        type="button"
+                                        ref={branchButtonRef}
+                                        onClick={() => {
+                                            if (isBranchMenuOpen) {
+                                                handleCloseBranchMenu();
+                                            } else {
+                                                setIsBranchMenuOpen(true);
+                                            }
+                                        }}
+                                        className="flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-100/60 dark:border-slate-700 dark:bg-slate-900/60 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white transition hover:border-[#fa7316] hover:bg-slate-200/80 dark:hover:bg-slate-800/80 cursor-pointer"
                                     >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                                        />
-                                    </svg>
-                                </button>
-
-                                {(isBranchMenuOpen || isBranchMenuClosing) &&
-                                    branches &&
-                                    branches.length > 0 && (
-                                        <div
-                                            ref={branchMenuRef}
-                                            className={`absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-3 shadow-xl ${isBranchMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+                                        <LuStore color={PRIMARY_COLOR} />
+                                        <span>{selectedShiftBranch.name}</span>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={2}
+                                            stroke="currentColor"
+                                            className={`h-4 w-4 transition-transform ${isBranchMenuOpen ? "rotate-180" : ""}`}
                                         >
-                                            <div className="mb-2 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
-                                                Seleccionar sucursal
-                                            </div>
-                                            {branches
-                                                .sort((a, b) =>
-                                                    a.name.localeCompare(b.name)
-                                                )
-                                                .map((branch) => {
-                                                    const isSelected =
-                                                        (branch._id as string) ===
-                                                        shiftBranchId;
-                                                    return (
-                                                        <button
-                                                            key={
-                                                                branch._id as string
-                                                            }
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setBranchId(
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                            />
+                                        </svg>
+                                    </button>
+
+                                    {(isBranchMenuOpen ||
+                                        isBranchMenuClosing) &&
+                                        branches &&
+                                        branches.length > 0 && (
+                                            <div
+                                                ref={branchMenuRef}
+                                                className={`absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-3 shadow-xl ${isBranchMenuClosing ? "animate-[fadeOutScale_0.3s_ease-out]" : "animate-[fadeInScale_0.3s_ease-out]"}`}
+                                            >
+                                                <div className="mb-2 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-500">
+                                                    Seleccionar sucursal
+                                                </div>
+                                                {branches
+                                                    .sort((a, b) =>
+                                                        a.name.localeCompare(
+                                                            b.name
+                                                        )
+                                                    )
+                                                    .map((branch) => {
+                                                        const isSelected =
+                                                            (branch._id as string) ===
+                                                            shiftBranchId;
+                                                        return (
+                                                            <button
+                                                                key={
                                                                     branch._id as string
-                                                                );
-                                                                handleCloseBranchMenu();
-                                                            }}
-                                                            className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition ${
-                                                                isSelected
-                                                                    ? "bg-[#fa7316]/10 text-[#fa7316] border border-[#fa7316]/30"
-                                                                    : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
-                                                            }`}
-                                                        >
-                                                            <LuStore
-                                                                color={
-                                                                    isSelected
-                                                                        ? PRIMARY_COLOR
-                                                                        : undefined
                                                                 }
-                                                                className="mt-0.5 flex-shrink-0"
-                                                            />
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-semibold">
-                                                                    {
-                                                                        branch.name
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setBranchId(
+                                                                        branch._id as string
+                                                                    );
+                                                                    handleCloseBranchMenu();
+                                                                }}
+                                                                className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition ${
+                                                                    isSelected
+                                                                        ? "bg-[#fa7316]/10 text-[#fa7316] border border-[#fa7316]/30"
+                                                                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                                                                }`}
+                                                            >
+                                                                <LuStore
+                                                                    color={
+                                                                        isSelected
+                                                                            ? PRIMARY_COLOR
+                                                                            : undefined
                                                                     }
-                                                                </div>
-                                                                {branch.address && (
-                                                                    <div
-                                                                        className={`mt-0.5 text-xs ${isSelected ? "text-[#fa7316]/80" : "text-slate-500 dark:text-slate-400"}`}
-                                                                    >
+                                                                    className="mt-0.5 flex-shrink-0"
+                                                                />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="font-semibold">
                                                                         {
-                                                                            branch.address
+                                                                            branch.name
                                                                         }
                                                                     </div>
+                                                                    {branch.address && (
+                                                                        <div
+                                                                            className={`mt-0.5 text-xs ${isSelected ? "text-[#fa7316]/80" : "text-slate-500 dark:text-slate-400"}`}
+                                                                        >
+                                                                            {
+                                                                                branch.address
+                                                                            }
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                {isSelected && (
+                                                                    <FaCheck />
                                                                 )}
-                                                            </div>
-                                                            {isSelected && (
-                                                                <FaCheck />
-                                                            )}
-                                                        </button>
-                                                    );
-                                                })}
-                                        </div>
-                                    )}
+                                                            </button>
+                                                        );
+                                                    })}
+                                            </div>
+                                        )}
                                 </div>
                             )}
                         </div>

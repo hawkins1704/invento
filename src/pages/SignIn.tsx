@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import CodePinInput from "../components/CodePinInput";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 
 type Step = "signIn" | "signUp";
@@ -22,9 +23,15 @@ export function SignIn() {
     const [inventoryCode, setInventoryCode] = useState<string[]>(() =>
         Array(4).fill("")
     );
+    const [showPassword, setShowPassword] = useState(false);
+    const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+    const [repeatPassword, setRepeatPassword] = useState("");
 
     useEffect(() => {
         setError(null);
+        setRepeatPassword("");
+        setShowPassword(false);
+        setShowRepeatPassword(false);
     }, [step]);
 
     const resetCodes = useCallback(() => {
@@ -71,6 +78,14 @@ export function SignIn() {
                 setError(
                     "Ingresa los códigos completos de 4 dígitos para cada área."
                 );
+                return;
+            }
+
+            const formData = new FormData(event.currentTarget);
+            const password = formData.get("password") as string;
+            
+            if (password !== repeatPassword) {
+                setError("Las contraseñas no coinciden. Por favor, verifica que ambas sean iguales.");
                 return;
             }
         }
@@ -176,20 +191,75 @@ export function SignIn() {
                                     Mínimo 8 caracteres
                                 </span>
                             </div>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                placeholder="••••••••"
-                                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
-                                autoComplete={
-                                    step === "signIn"
-                                        ? "current-password"
-                                        : "new-password"
-                                }
-                                required
-                            />
+                            <div className="relative">
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 pr-10 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                                    autoComplete={
+                                        step === "signIn"
+                                            ? "current-password"
+                                            : "new-password"
+                                    }
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                >
+                                    {showPassword ? (
+                                        <FaEyeSlash className="h-5 w-5" />
+                                    ) : (
+                                        <FaEye className="h-5 w-5" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
+
+                        {step === "signUp" && (
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <label
+                                        className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                                        htmlFor="repeatPassword"
+                                    >
+                                        Repetir contraseña
+                                    </label>
+                                    <span className="text-xs text-slate-500 dark:text-slate-500">
+                                        Mínimo 8 caracteres
+                                    </span>
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        id="repeatPassword"
+                                        name="repeatPassword"
+                                        type={showRepeatPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        value={repeatPassword}
+                                        onChange={(e) => setRepeatPassword(e.target.value)}
+                                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 pr-10 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                                        autoComplete="new-password"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowRepeatPassword(!showRepeatPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                        aria-label={showRepeatPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                    >
+                                        {showRepeatPassword ? (
+                                            <FaEyeSlash className="h-5 w-5" />
+                                        ) : (
+                                            <FaEye className="h-5 w-5" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {step === "signUp" && (
                             <div className="space-y-6 rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50 p-5">
