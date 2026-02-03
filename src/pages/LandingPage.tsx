@@ -9,8 +9,12 @@ import {
 import { FaTwitter, FaLinkedin, FaFacebook, FaInstagram } from "react-icons/fa";
 
 // Helper type para acceso seguro a document
+type ScrollableElement = {
+    scrollIntoView(options?: { behavior?: 'auto' | 'smooth'; block?: 'start' | 'center' | 'end' | 'nearest'; inline?: 'start' | 'center' | 'end' | 'nearest' }): void;
+};
+
 type BrowserDocument = {
-    getElementById(elementId: string): HTMLElement | null;
+    getElementById(elementId: string): (HTMLElement & ScrollableElement) | null;
 };
 
 // Helper para obtener document de forma segura
@@ -142,8 +146,8 @@ export default function LandingPage() {
         if (!doc) return;
         
         const element = doc.getElementById(id);
-        if (element && 'scrollIntoView' in element) {
-            (element as HTMLElement).scrollIntoView({ behavior: 'smooth' });
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
         }
     };
 
