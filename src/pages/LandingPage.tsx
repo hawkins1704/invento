@@ -8,6 +8,21 @@ import {
 } from "react-icons/fa";
 import { FaTwitter, FaLinkedin, FaFacebook, FaInstagram } from "react-icons/fa";
 
+// Helper type para acceso seguro a document
+type BrowserDocument = {
+    getElementById(elementId: string): HTMLElement | null;
+};
+
+// Helper para obtener document de forma segura
+const getBrowserDocument = (): BrowserDocument | null => {
+    // Esta verificación evita errores durante el prerender
+    if (typeof globalThis === 'undefined') return null;
+    
+    // Type assertion segura - solo accedemos si estamos en el navegador
+    const win = globalThis as unknown as { document?: BrowserDocument };
+    return win?.document || null;
+};
+
 const WHATSAPP_PHONE = "51992095138";
 const WHATSAPP_CONTACT_URL = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent("Hola Fudi! Vengo desde tu website y quisiera recibir más información! ")}`;
 
@@ -120,13 +135,15 @@ function TestimonialsSlider() {
 
 export default function LandingPage() {
     // Helper function para scroll seguro (solo en cliente)
+    // Esta función solo se ejecuta cuando el usuario hace click (en el navegador)
+    // Durante el prerender, esta función nunca se ejecuta
     const scrollToSection = (id: string) => {
-        // Verificación explícita para TypeScript - solo ejecuta en el navegador
-        if (typeof window === 'undefined') return;
+        const doc = getBrowserDocument();
+        if (!doc) return;
         
-        const element = window.document.getElementById(id);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
+        const element = doc.getElementById(id);
+        if (element && 'scrollIntoView' in element) {
+            (element as HTMLElement).scrollIntoView({ behavior: 'smooth' });
         }
     };
 
