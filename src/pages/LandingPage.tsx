@@ -121,8 +121,12 @@ function TestimonialsSlider() {
 export default function LandingPage() {
     // Helper function para scroll seguro (solo en cliente)
     const scrollToSection = (id: string) => {
-        if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        // Verificación explícita para TypeScript - solo ejecuta en el navegador
+        if (typeof window === 'undefined') return;
+        
+        const element = window.document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
         }
     };
 
