@@ -109,11 +109,9 @@ export function SignIn() {
     };
 
     return (
-        <div className=" flex min-h-screen w-full  flex-col overflow-hidden rounded-none  lg:flex-row">
-            <aside className="relative hidden w-full flex-1 items-end justify-between overflow-hidden  px-12 py-14 text-white lg:flex bg-cover bg-center bg-no-repeat " style={{ backgroundImage: "url('/background.png')" }}>
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 to-slate-950/90" />
-               
-                <div className="relative z-10 flex flex-col gap-6">
+        <div className=" flex min-h-screen  flex-col lg:flex-row">
+            <aside className="flex-1 hidden items-end justify-between text-white lg:flex" style={{ backgroundImage: "url('/background-2.jpg')" }}>
+                <div className="relative w-full z-10 flex flex-col justify-end gap-6 p-12 h-full" style={{ backdropFilter: "blur(6px)" }}>
                     <h2 className="text-4xl font-semibold leading-tight text-white">
                         Gestiona tus productos, ventas y caja en un solo lugar
                     </h2>
@@ -124,7 +122,7 @@ export function SignIn() {
                     </p>
                 </div>
             </aside>
-            <main className="flex flex-1 items-center justify-center bg-white dark:bg-slate-950 px-6 py-16 sm:px-10">
+            <main className="flex-1 flex items-center justify-center bg-white dark:bg-slate-950 px-6 py-16">
                 <div className="w-full max-w-md">
                     <header className="mb-10 flex flex-col gap-3 text-center">
                         <img src="/logo-main.svg" alt="Logo" className="w-full h-10 object-contain" />

@@ -6,7 +6,7 @@ import {
     FaChevronRight,
     FaWhatsapp,
 } from "react-icons/fa";
-import { FaTwitter, FaLinkedin, FaFacebook, FaInstagram } from "react-icons/fa";
+import { FaFacebook, FaInstagram } from "react-icons/fa";
 
 const WHATSAPP_PHONE = "51992095138";
 const WHATSAPP_CONTACT_URL = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent("Hola Fudi! Vengo desde tu website y quisiera recibir más información! ")}`;
@@ -200,13 +200,13 @@ export default function LandingPage() {
                             rel="noopener noreferrer"
                             className="px-8 py-3 bg-[#fa7316] text-white rounded-lg hover:bg-[#e86514] transition-colors font-semibold"
                         >
-                            Comienza Ya!
+                            Despegar Ya!
                         </a>
                         <a
                             href="#funciones"
                             className="px-8 py-3 border border-[#fa7316] text-[#fa7316] rounded-lg hover:bg-[#fa7316] hover:text-white transition-colors font-semibold"
                         >
-                            Saber Más
+                            Probar demo
                         </a>
                     </div>
                 </div>
@@ -215,7 +215,7 @@ export default function LandingPage() {
             {/* Features Section */}
             <section
                 id="funciones"
-                className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-800 scroll-mt-20"
+                className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-800 scroll-mt-10"
             >
                 <div className="max-w-7xl mx-auto">
                     <h2 className="text-3xl md:text-4xl font-bold text-center text-slate-900 dark:text-white mb-16">
@@ -307,7 +307,7 @@ export default function LandingPage() {
                             rel="noopener noreferrer"
                             className="px-8 py-3 bg-[#fa7316] text-white rounded-lg hover:bg-[#e86514] transition-colors font-semibold"
                         >
-                            Comienza Ya!
+                            Lo Necesito!
                         </a>
                     </div>
                 </div>
@@ -316,7 +316,7 @@ export default function LandingPage() {
             {/* Partners / Reseñas Section */}
             <section
                 id="reseñas"
-                className="py-16 px-4 sm:px-6 lg:px-8 scroll-mt-20"
+                className="py-16 px-4 sm:px-6 lg:px-8 scroll-mt-10"
             >
                 <div className="max-w-7xl mx-auto">
                     <p className="text-center text-slate-400  grayscale dark:text-slate-400 text-md font-medium tracking-wider mb-8 uppercase">
@@ -353,7 +353,7 @@ export default function LandingPage() {
             {/* Pricing Plans Section */}
             <section
                 id="planes"
-                className="py-20 px-4 sm:px-6 lg:px-8 scroll-mt-20"
+                className="py-20 px-4 sm:px-6 lg:px-8 scroll-mt-10"
             >
                 <div className="max-w-7xl mx-auto">
                     <h2 className="text-3xl md:text-4xl font-bold text-center text-slate-900 dark:text-white mb-4">
@@ -564,7 +564,7 @@ export default function LandingPage() {
                                 rel="noopener noreferrer"
                                 className="px-6 py-3 border-2 border-white text-white rounded-lg hover:bg-white hover:text-slate-900 transition-colors font-semibold text-center"
                             >
-                                Solicitar Demo
+                                Llevar mi restaurante a otro nivel!
                             </a>
                         </div>
                     </div>
@@ -602,18 +602,7 @@ export default function LandingPage() {
                             © 2026 Fudi. Todos los derechos reservados.
                         </p>
                         <div className="flex items-center space-x-4">
-                            <a
-                                href="#"
-                                className="text-slate-400 hover:text-[#fa7316] transition-colors"
-                            >
-                                <FaTwitter className="h-5 w-5" />
-                            </a>
-                            <a
-                                href="#"
-                                className="text-slate-400 hover:text-[#fa7316] transition-colors"
-                            >
-                                <FaLinkedin className="h-5 w-5" />
-                            </a>
+                         
                             <a
                                 href="#"
                                 className="text-slate-400 hover:text-[#fa7316] transition-colors"
@@ -636,12 +625,12 @@ export default function LandingPage() {
                 href={WHATSAPP_CONTACT_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="whatsapp-float-btn fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg group"
+                className="whatsapp-float-btn fixed bottom-12 right-10 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg"
                 aria-label="Contactar por WhatsApp"
             >
                 <FaWhatsapp className="h-7 w-7" />
                 <span className="whatsapp-float-tooltip pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-lg bg-slate-800 px-3 py-2 text-sm text-white shadow-md">
-                    Quiero contactarme!
+                    Hablemos por WhatsApp!
                 </span>
             </a>
         </div>
