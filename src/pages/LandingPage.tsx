@@ -119,6 +119,13 @@ function TestimonialsSlider() {
 }
 
 export default function LandingPage() {
+    // Helper function para scroll seguro (solo en cliente)
+    const scrollToSection = (id: string) => {
+        if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     return (
         <div className="min-h-screen bg-white dark:bg-slate-900">
             {/* Header */}
@@ -137,31 +144,19 @@ export default function LandingPage() {
                         {/* Navigation */}
                         <nav className="hidden md:flex items-center space-x-8">
                             <button
-                                onClick={() =>
-                                    document
-                                        .getElementById("funciones")
-                                        ?.scrollIntoView({ behavior: "smooth" })
-                                }
+                                onClick={() => scrollToSection("funciones")}
                                 className="text-slate-700 dark:text-slate-300 hover:text-[#fa7316] transition-colors"
                             >
                                 Funciones
                             </button>
                             <button
-                                onClick={() =>
-                                    document
-                                        .getElementById("reseñas")
-                                        ?.scrollIntoView({ behavior: "smooth" })
-                                }
+                                onClick={() => scrollToSection("reseñas")}
                                 className="text-slate-700 dark:text-slate-300 hover:text-[#fa7316] transition-colors"
                             >
                                 Reseñas
                             </button>
                             <button
-                                onClick={() =>
-                                    document
-                                        .getElementById("planes")
-                                        ?.scrollIntoView({ behavior: "smooth" })
-                                }
+                                onClick={() => scrollToSection("planes")}
                                 className="text-slate-700 dark:text-slate-300 hover:text-[#fa7316] transition-colors"
                             >
                                 Planes
