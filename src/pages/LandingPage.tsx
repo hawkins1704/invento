@@ -8,25 +8,6 @@ import {
 } from "react-icons/fa";
 import { FaTwitter, FaLinkedin, FaFacebook, FaInstagram } from "react-icons/fa";
 
-// Helper type para acceso seguro a document
-type ScrollableElement = {
-    scrollIntoView(options?: { behavior?: 'auto' | 'smooth'; block?: 'start' | 'center' | 'end' | 'nearest'; inline?: 'start' | 'center' | 'end' | 'nearest' }): void;
-};
-
-type BrowserDocument = {
-    getElementById(elementId: string): (HTMLElement & ScrollableElement) | null;
-};
-
-// Helper para obtener document de forma segura
-const getBrowserDocument = (): BrowserDocument | null => {
-    // Esta verificación evita errores durante el prerender
-    if (typeof globalThis === 'undefined') return null;
-    
-    // Type assertion segura - solo accedemos si estamos en el navegador
-    const win = globalThis as unknown as { document?: BrowserDocument };
-    return win?.document || null;
-};
-
 const WHATSAPP_PHONE = "51992095138";
 const WHATSAPP_CONTACT_URL = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent("Hola Fudi! Vengo desde tu website y quisiera recibir más información! ")}`;
 
@@ -138,19 +119,6 @@ function TestimonialsSlider() {
 }
 
 export default function LandingPage() {
-    // Helper function para scroll seguro (solo en cliente)
-    // Esta función solo se ejecuta cuando el usuario hace click (en el navegador)
-    // Durante el prerender, esta función nunca se ejecuta
-    const scrollToSection = (id: string) => {
-        const doc = getBrowserDocument();
-        if (!doc) return;
-        
-        const element = doc.getElementById(id);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-        }
-    };
-
     return (
         <div className="min-h-screen bg-white dark:bg-slate-900">
             {/* Header */}
@@ -169,19 +137,31 @@ export default function LandingPage() {
                         {/* Navigation */}
                         <nav className="hidden md:flex items-center space-x-8">
                             <button
-                                onClick={() => scrollToSection("funciones")}
+                                onClick={() =>
+                                    document
+                                        .getElementById("funciones")
+                                        ?.scrollIntoView({ behavior: "smooth" })
+                                }
                                 className="text-slate-700 dark:text-slate-300 hover:text-[#fa7316] transition-colors"
                             >
                                 Funciones
                             </button>
                             <button
-                                onClick={() => scrollToSection("reseñas")}
+                                onClick={() =>
+                                    document
+                                        .getElementById("reseñas")
+                                        ?.scrollIntoView({ behavior: "smooth" })
+                                }
                                 className="text-slate-700 dark:text-slate-300 hover:text-[#fa7316] transition-colors"
                             >
                                 Reseñas
                             </button>
                             <button
-                                onClick={() => scrollToSection("planes")}
+                                onClick={() =>
+                                    document
+                                        .getElementById("planes")
+                                        ?.scrollIntoView({ behavior: "smooth" })
+                                }
                                 className="text-slate-700 dark:text-slate-300 hover:text-[#fa7316] transition-colors"
                             >
                                 Planes
