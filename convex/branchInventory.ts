@@ -16,10 +16,19 @@ export const categories = query({
     if (!branch) {
       throw new ConvexError("Sucursal no encontrada.");
     }
+    if (branch.userId !== userId) {
+      throw new ConvexError("La sucursal no pertenece a tu cuenta.");
+    }
 
     const [categories, products] = await Promise.all([
-      ctx.db.query("categories").collect(),
-      ctx.db.query("products").collect(),
+      ctx.db
+        .query("categories")
+        .withIndex("userId", (q) => q.eq("userId", userId))
+        .collect(),
+      ctx.db
+        .query("products")
+        .withIndex("userId", (q) => q.eq("userId", userId))
+        .collect(),
     ]);
 
     const productCounts = products.reduce<Record<string, number>>((acc, product) => {
@@ -59,13 +68,20 @@ export const productsByCategory = query({
     if (!branch) {
       throw new ConvexError("Sucursal no encontrada.");
     }
+    if (branch.userId !== userId) {
+      throw new ConvexError("La sucursal no pertenece a tu cuenta.");
+    }
     if (!category) {
       throw new ConvexError("Categoría no encontrada.");
+    }
+    if (category.userId !== userId) {
+      throw new ConvexError("La categoría no pertenece a tu cuenta.");
     }
 
     let allProducts = await ctx.db
       .query("products")
-      .withIndex("categoryId", (q) => q.eq("categoryId", args.categoryId))
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("categoryId"), args.categoryId))
       .collect();
 
     // Filtrar solo productos activos si se solicita
@@ -125,10 +141,16 @@ export const updateStock = mutation({
     if (!branch) {
       throw new ConvexError("Sucursal no encontrada.");
     }
+    if (branch.userId !== userId) {
+      throw new ConvexError("La sucursal no pertenece a tu cuenta.");
+    }
 
     const product = await ctx.db.get(args.productId);
     if (!product) {
       throw new ConvexError("Producto no encontrado.");
+    }
+    if (product.userId !== userId) {
+      throw new ConvexError("El producto no pertenece a tu cuenta.");
     }
 
     if (args.stock < 0) {
@@ -166,8 +188,14 @@ export const getLowStockAlerts = query({
 
     const threshold = args.threshold ?? 10; // Default: stock menor a 10
     const inventories = await ctx.db.query("branchInventories").collect();
-    const products = await ctx.db.query("products").collect();
-    const branches = await ctx.db.query("branches").collect();
+    const products = await ctx.db
+      .query("products")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
+    const branches = await ctx.db
+      .query("branches")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
 
     const productMap = new Map(products.map((p) => [p._id, p]));
     const branchMap = new Map(branches.map((b) => [b._id, b]));

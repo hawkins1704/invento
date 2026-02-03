@@ -1,9 +1,10 @@
 import { mutation, query } from "./_generated/server"
 import { v, ConvexError } from "convex/values"
 import { getAuthUserId } from "@convex-dev/auth/server"
-import type { Id } from "./_generated/dataModel"
+import type { Id, Doc } from "./_generated/dataModel"
+import type { QueryCtx, MutationCtx } from "./_generated/server"
 
-const ensureAuthenticated = async (ctx: any) => {
+const ensureAuthenticated = async (ctx: QueryCtx | MutationCtx) => {
   const userId = await getAuthUserId(ctx)
   if (userId === null) {
     throw new ConvexError("No autenticado")
@@ -11,22 +12,22 @@ const ensureAuthenticated = async (ctx: any) => {
   return userId
 }
 
-const findOpenShift = async (ctx: any, branchId: Id<"branches">) => {
+const findOpenShift = async (ctx: QueryCtx | MutationCtx, branchId: Id<"branches">) => {
   return await ctx.db
     .query("shifts")
-    .withIndex("byBranchStatus", (q: any) => q.eq("branchId", branchId).eq("status", "open"))
+    .withIndex("byBranchStatus", (q) => q.eq("branchId", branchId).eq("status", "open"))
     .first()
 }
 
-const computeCashSalesTotal = async (ctx: any, branchId: Id<"branches">, from: number, to?: number) => {
+const computeCashSalesTotal = async (ctx: QueryCtx | MutationCtx, branchId: Id<"branches">, from: number, to?: number) => {
   const sales = await ctx.db
     .query("sales")
-    .withIndex("byClosedAt", (q: any) => q.gte("closedAt", from))
+    .withIndex("byClosedAt", (q) => q.gte("closedAt", from))
     .collect()
 
   return sales
     .filter(
-      (sale: any) =>
+      (sale: Doc<"sales">) =>
         sale.status === "closed" &&
         sale.paymentMethod === "Contado" &&
         sale.branchId === branchId &&
@@ -34,7 +35,7 @@ const computeCashSalesTotal = async (ctx: any, branchId: Id<"branches">, from: n
         sale.closedAt >= from &&
         (to === undefined || sale.closedAt <= to)
     )
-    .reduce((sum: number, sale: any) => sum + sale.total, 0)
+    .reduce((sum: number, sale: Doc<"sales">) => sum + sale.total, 0)
 }
 
 export const active = query({
@@ -42,7 +43,13 @@ export const active = query({
     branchId: v.id("branches"),
   },
   handler: async (ctx, args) => {
-    await ensureAuthenticated(ctx)
+    const userId = await ensureAuthenticated(ctx)
+    const branch = await ctx.db.get(args.branchId)
+    // Si la branch no existe o no pertenece al usuario, retornar null en lugar de lanzar error
+    // Esto permite que el frontend maneje la situación de forma más elegante
+    if (!branch || branch.userId !== userId) {
+      return null
+    }
     const shift = await findOpenShift(ctx, args.branchId)
     if (!shift) {
       return null
@@ -66,11 +73,14 @@ export const open = mutation({
     openingCash: v.number(),
   },
   handler: async (ctx, args) => {
-    await ensureAuthenticated(ctx)
+    const userId = await ensureAuthenticated(ctx)
 
     const branch = await ctx.db.get(args.branchId)
     if (!branch) {
       throw new ConvexError("La sucursal no existe.")
+    }
+    if (branch.userId !== userId) {
+      throw new ConvexError("La sucursal no pertenece a tu cuenta.")
     }
 
     const existingShift = await findOpenShift(ctx, args.branchId)
@@ -104,11 +114,16 @@ export const close = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await ensureAuthenticated(ctx)
+    const userId = await ensureAuthenticated(ctx)
 
     const shift = await ctx.db.get(args.shiftId)
     if (!shift) {
       throw new ConvexError("El turno no existe.")
+    }
+
+    const branch = await ctx.db.get(shift.branchId)
+    if (!branch || branch.userId !== userId) {
+      throw new ConvexError("No tienes permiso para cerrar este turno.")
     }
 
     if (shift.status !== "open") {
@@ -147,18 +162,23 @@ export const history = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    await ensureAuthenticated(ctx)
+    const userId = await ensureAuthenticated(ctx)
     const limit = args.limit ?? 20
+
+    const branch = await ctx.db.get(args.branchId)
+    if (!branch || branch.userId !== userId) {
+      throw new ConvexError("La sucursal no pertenece a tu cuenta.")
+    }
 
     const shifts = await ctx.db
       .query("shifts")
-      .withIndex("byBranch", (q: any) => q.eq("branchId", args.branchId))
+      .withIndex("byBranch", (q) => q.eq("branchId", args.branchId))
       .collect()
 
     return shifts
-      .sort((a: any, b: any) => b.openedAt - a.openedAt)
+      .sort((a: Doc<"shifts">, b: Doc<"shifts">) => b.openedAt - a.openedAt)
       .slice(0, limit)
-      .map((shift: any) => ({
+      .map((shift: Doc<"shifts">) => ({
         ...shift,
         cashSalesTotal:
           shift.status === "open"

@@ -15,6 +15,15 @@ export const list = query({
       throw new ConvexError("No autenticado")
     }
 
+    // Si se especifica branchId, verificar que pertenece al usuario
+    // Si no pertenece, retornar array vacío en lugar de lanzar error
+    if (args.branchId) {
+      const branch = await ctx.db.get(args.branchId)
+      if (!branch || branch.userId !== userId) {
+        return []
+      }
+    }
+
     const tablesQuery = args.branchId
       ? ctx.db
           .query("branchTables")
@@ -22,6 +31,23 @@ export const list = query({
       : ctx.db.query("branchTables")
 
     const tables = await tablesQuery.collect()
+    
+    // Filtrar por branches del usuario si no se especifica branchId
+    if (!args.branchId) {
+      const userBranches = await ctx.db
+        .query("branches")
+        .withIndex("userId", (q) => q.eq("userId", userId))
+        .collect()
+      const userBranchIds = new Set(userBranches.map((b) => b._id as string))
+      return tables
+        .filter((table) => userBranchIds.has(table.branchId as string))
+        .sort((a, b) => {
+          if (a.branchId === b.branchId) {
+            return a.label.localeCompare(b.label)
+          }
+          return (a.branchId as string).localeCompare(b.branchId as string)
+        })
+    }
 
     return tables.sort((a, b) => {
       if (a.branchId === b.branchId) {
@@ -47,6 +73,9 @@ export const create = mutation({
     const branch = await ctx.db.get(args.branchId)
     if (!branch) {
       throw new ConvexError("La sucursal no existe.")
+    }
+    if (branch.userId !== userId) {
+      throw new ConvexError("La sucursal no pertenece a tu cuenta.")
     }
 
     const normalizedLabel = normalizeLabel(args.label)

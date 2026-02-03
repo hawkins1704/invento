@@ -13,7 +13,10 @@ export const getById = query({
     }
 
     const branch = await ctx.db.get(args.branchId);
-    return branch ?? null;
+    if (!branch || branch.userId !== userId) {
+      return null;
+    }
+    return branch;
   },
 });
 
@@ -28,7 +31,10 @@ export const list = query({
       throw new ConvexError("No autenticado");
     }
 
-    const allBranches = await ctx.db.query("branches").collect();
+    const allBranches = await ctx.db
+      .query("branches")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
     const sorted = allBranches.sort((a, b) => a.name.localeCompare(b.name));
 
     // Obtener el total antes de paginar
@@ -72,7 +78,10 @@ export const create = mutation({
       ? branchLimitByPlan[user.subscriptionType] ?? 1
       : 1;
     if (branchLimit !== null) {
-      const currentBranches = await ctx.db.query("branches").collect();
+      const currentBranches = await ctx.db
+        .query("branches")
+        .withIndex("userId", (q) => q.eq("userId", userId))
+        .collect();
       if (currentBranches.length >= branchLimit) {
         throw new ConvexError(
           `Has alcanzado el límite de ${branchLimit} sucursal${branchLimit === 1 ? "" : "es"} de tu plan. Actualiza tu plan para agregar más.`
@@ -82,7 +91,8 @@ export const create = mutation({
 
     const existing = await ctx.db
       .query("branches")
-      .withIndex("name", (q) => q.eq("name", args.name.trim()))
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("name"), args.name.trim()))
       .first();
 
     if (existing) {
@@ -90,6 +100,7 @@ export const create = mutation({
     }
 
     await ctx.db.insert("branches", {
+      userId,
       name: args.name.trim(),
       address: args.address.trim(),
       correlativoBoleta: 1,
@@ -117,11 +128,18 @@ export const update = mutation({
     if (!branch) {
       throw new ConvexError("La sucursal no existe.");
     }
+    if (branch.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar esta sucursal.");
+    }
+    if (branch.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar esta sucursal.");
+    }
 
     const normalizedName = args.name.trim();
     const existing = await ctx.db
       .query("branches")
-      .withIndex("name", (q) => q.eq("name", normalizedName))
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("name"), normalizedName))
       .first();
 
     if (existing && existing._id !== args.branchId) {
@@ -160,6 +178,9 @@ export const updateCorrelativo = mutation({
     if (!branch) {
       throw new ConvexError("La sucursal no existe.");
     }
+    if (branch.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar esta sucursal.");
+    }
 
     const updates: Record<string, unknown> = {};
     if (args.documentType === "03") {
@@ -192,6 +213,9 @@ export const getNextCorrelativoRA = mutation({
     const branch = await ctx.db.get(args.branchId);
     if (!branch) {
       throw new ConvexError("La sucursal no existe.");
+    }
+    if (branch.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar esta sucursal.");
     }
 
     const today = args.clientDate ?? new Date().toISOString().slice(0, 10);
@@ -230,6 +254,9 @@ export const rollbackCorrelativoRA = mutation({
     if (!branch) {
       throw new ConvexError("La sucursal no existe.");
     }
+    if (branch.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar esta sucursal.");
+    }
 
     const expectedNext = args.valueUsed + 1;
     if (branch.correlativoRA !== expectedNext) {
@@ -257,6 +284,9 @@ export const remove = mutation({
     const branch = await ctx.db.get(args.branchId);
     if (!branch) {
       throw new ConvexError("La sucursal no existe.");
+    }
+    if (branch.userId !== userId) {
+      throw new ConvexError("No tienes permiso para eliminar esta sucursal.");
     }
 
     const openSale = await ctx.db

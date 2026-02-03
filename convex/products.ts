@@ -13,7 +13,7 @@ export const getById = query({
     }
 
     const product = await ctx.db.get(args.productId);
-    if (!product) {
+    if (!product || product.userId !== userId) {
       return null;
     }
 
@@ -62,7 +62,10 @@ export const list = query({
       throw new ConvexError("No autenticado");
     }
 
-    let allProducts = await ctx.db.query("products").collect();
+    let allProducts = await ctx.db
+      .query("products")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
     
     // Filtrar solo productos activos si se solicita
     if (args.onlyActive === true) {
@@ -171,7 +174,10 @@ export const create = mutation({
       ? productLimitByPlan[user.subscriptionType] ?? 100
       : 100;
     if (productLimit !== null) {
-      const currentCount = await ctx.db.query("products").collect();
+      const currentCount = await ctx.db
+        .query("products")
+        .withIndex("userId", (q) => q.eq("userId", userId))
+        .collect();
       if (currentCount.length >= productLimit) {
         throw new ConvexError(
           `Has alcanzado el límite de ${productLimit} productos de tu plan. Actualiza tu plan para agregar más.`
@@ -194,6 +200,9 @@ export const create = mutation({
     if (!category) {
       throw new ConvexError("Categoría no encontrada.");
     }
+    if (category.userId !== userId) {
+      throw new ConvexError("La categoría seleccionada no pertenece a tu cuenta.");
+    }
 
     const branchIds = new Set(args.stockByBranch.map((item) => item.branchId));
     if (branchIds.size !== args.stockByBranch.length) {
@@ -207,13 +216,19 @@ export const create = mutation({
     if (branches.some((branch) => !branch)) {
       throw new ConvexError("Una de las sucursales seleccionadas no existe.");
     }
+    if (branches.some((branch) => branch && branch.userId !== userId)) {
+      throw new ConvexError("Una de las sucursales seleccionadas no pertenece a tu cuenta.");
+    }
 
     const { stockByBranch, image, ...productData } = args;
 
     const inventoryActivated = args.inventoryActivated ?? false;
 
     // Generar código automático (PR0001, PR0002, etc.)
-    const allProducts = await ctx.db.query("products").collect();
+    const allProducts = await ctx.db
+      .query("products")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
     let maxNumber = 0;
     
     for (const product of allProducts) {
@@ -231,6 +246,7 @@ export const create = mutation({
 
     const productId = await ctx.db.insert("products", {
       ...productData,
+      userId,
       code: productCode,
       igv,
       price,
@@ -289,10 +305,16 @@ export const update = mutation({
     if (!product) {
       throw new ConvexError("Producto no encontrado.");
     }
+    if (product.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar este producto.");
+    }
 
     const category = await ctx.db.get(args.categoryId);
     if (!category) {
       throw new ConvexError("Categoría no encontrada.");
+    }
+    if (category.userId !== userId) {
+      throw new ConvexError("La categoría seleccionada no pertenece a tu cuenta.");
     }
 
     const IGVPercentage = user.IGVPercentage ?? 18; // Default a 18% si no está configurado
@@ -317,6 +339,9 @@ export const update = mutation({
 
     if (branches.some((branch) => !branch)) {
       throw new ConvexError("Una de las sucursales seleccionadas no existe.");
+    }
+    if (branches.some((branch) => branch && branch.userId !== userId)) {
+      throw new ConvexError("Una de las sucursales seleccionadas no pertenece a tu cuenta.");
     }
 
     let imageField = product.image ?? undefined;
@@ -406,14 +431,27 @@ export const remove = mutation({
     if (!product) {
       throw new ConvexError("Producto no encontrado.");
     }
+    if (product.userId !== userId) {
+      throw new ConvexError("No tienes permiso para eliminar este producto.");
+    }
 
     // Verificar si el producto tiene ventas asociadas
-    // Buscar al menos un saleItem que use este producto
-    const saleItems = await ctx.db
+    // Buscar al menos un saleItem que use este producto, filtrando solo por las sales del usuario
+    const userSales = await ctx.db
+      .query("sales")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .collect();
+    
+    const userSaleIds = new Set(userSales.map((sale) => sale._id as string));
+    
+    // Obtener todos los saleItems y filtrar solo los que pertenecen a sales del usuario
+    const allSaleItems = await ctx.db
       .query("saleItems")
       .collect();
     
-    const hasSales = saleItems.some((item) => item.productId === args.productId);
+    const hasSales = allSaleItems.some(
+      (item) => item.productId === args.productId && userSaleIds.has(item.saleId as string)
+    );
     
     if (hasSales) {
       throw new ConvexError(

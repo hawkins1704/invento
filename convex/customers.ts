@@ -24,11 +24,15 @@ export const create = mutation({
       throw new ConvexError("El número de documento es requerido.");
     }
 
-    // Verificar si ya existe un cliente con ese documento
+    // Verificar si ya existe un cliente con ese documento para este usuario
     const existing = await ctx.db
       .query("customers")
-      .withIndex("byDocument", (q) =>
-        q.eq("documentType", args.documentType).eq("documentNumber", normalizedDocumentNumber)
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("documentType"), args.documentType),
+          q.eq(q.field("documentNumber"), normalizedDocumentNumber)
+        )
       )
       .first();
 
@@ -45,6 +49,7 @@ export const create = mutation({
 
     // Crear nuevo cliente
     const customerId = await ctx.db.insert("customers", {
+      userId,
       documentType: args.documentType,
       documentNumber: normalizedDocumentNumber,
       name: args.name.trim(),
@@ -72,8 +77,12 @@ export const getByDocument = query({
 
     const customer = await ctx.db
       .query("customers")
-      .withIndex("byDocument", (q) =>
-        q.eq("documentType", args.documentType).eq("documentNumber", normalizedDocumentNumber)
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("documentType"), args.documentType),
+          q.eq(q.field("documentNumber"), normalizedDocumentNumber)
+        )
       )
       .first();
 
@@ -100,6 +109,9 @@ export const update = mutation({
     if (!customer) {
       throw new ConvexError("Cliente no encontrado");
     }
+    if (customer.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar este cliente.");
+    }
 
     // Actualizar el cliente
     await ctx.db.patch(args.customerId, {
@@ -121,7 +133,10 @@ export const list = query({
       throw new ConvexError("No autenticado");
     }
 
-    const customers = await ctx.db.query("customers").collect();
+    const customers = await ctx.db
+      .query("customers")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
     return customers.sort((a, b) => a.name.localeCompare(b.name));
   },
 });

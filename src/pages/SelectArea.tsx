@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useConvex } from "convex/react";
+import { useConvex, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import type { Doc } from "../../convex/_generated/dataModel";
 import CodePinInput from "../components/CodePinInput";
 import { AREA_STORAGE_KEY, BRANCH_STORAGE_KEY } from "../hooks/useSalesShift";
 import { LuStore } from "react-icons/lu";
@@ -45,6 +46,9 @@ const SelectArea = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const convex = useConvex();
+  const currentUser = useQuery(api.users.getCurrent) as
+    | (Doc<"users"> & { companyLogoUrl: string | null })
+    | undefined;
 
   const selectedAreaLabel = useMemo(() => {
     if (!selectedArea) {
@@ -122,6 +126,17 @@ const SelectArea = () => {
         <header className="space-y-4">
           <h1 className="text-4xl font-semibold text-slate-900 dark:text-white">¿Dónde vas a trabajar hoy?</h1>
         </header>
+
+        {currentUser?.isDemo && (
+          <div className="rounded-lg border border-[#fa7316] bg-[#fa7316]/10 p-6">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+              ¡Estás en versión demo!
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              El código de acceso para las áreas es <span className="font-bold text-black]">0000</span>, disfruta la experiencia Fudi
+            </p>
+          </div>
+        )}
 
         <div className="grid gap-6 grid-cols-2 sm:grid-cols-2 ">
           {AREAS.map((area) => {

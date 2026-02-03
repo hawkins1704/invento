@@ -27,8 +27,10 @@ export default defineSchema({
     companyProvince: v.optional(v.string()),
     companyDepartment: v.optional(v.string()),
     subscriptionType: v.optional(v.union(v.literal("starter"), v.literal("negocio"), v.literal("pro"))),
+    isDemo: v.optional(v.boolean()),
   }).index("email", ["email"]),
   products: defineTable({
+    userId: v.id("users"),
     name: v.string(),
     description: v.string(),
     code: v.string(),
@@ -40,11 +42,17 @@ export default defineSchema({
     inventoryActivated: v.optional(v.boolean()),
     allowNegativeSale: v.optional(v.boolean()),
     active: v.optional(v.boolean()),
-  }).index("categoryId", ["categoryId"]),
+  })
+    .index("categoryId", ["categoryId"])
+    .index("userId", ["userId"]),
   categories: defineTable({
+    userId: v.id("users"),
     name: v.string(),
-  }).index("name", ["name"]),
+  })
+    .index("name", ["name"])
+    .index("userId", ["userId"]),
   branches: defineTable({
+    userId: v.id("users"),
     name: v.string(),
     address: v.string(),
     serieBoleta: v.optional(v.string()),
@@ -55,7 +63,9 @@ export default defineSchema({
     correlativoRA: v.optional(v.number()),
     /** Última fecha en que se usó correlativoRA (YYYY-MM-DD). Si cambia el día, se resetea a 1. */
     correlativoRALastDate: v.optional(v.string()),
-  }).index("name", ["name"]),
+  })
+    .index("name", ["name"])
+    .index("userId", ["userId"]),
   branchInventories: defineTable({
     branchId: v.id("branches"),
     productId: v.id("products"),
@@ -94,7 +104,7 @@ export default defineSchema({
     branchId: v.id("branches"),
     tableId: v.optional(v.id("branchTables")),
     staffId: v.optional(v.id("staff")),
-    creatorUserId: v.optional(v.id("users")),
+    userId: v.id("users"),
     customerId: v.optional(v.id("customers")),
     status: v.union(
       v.literal("open"),
@@ -130,7 +140,8 @@ export default defineSchema({
   })
     .index("byBranchStatus", ["branchId", "status", "openedAt"])
     .index("byClosedAt", ["closedAt"])
-    .index("byStaff", ["staffId", "status"]),
+    .index("byStaff", ["staffId", "status"])
+    .index("byUserId", ["userId"]),
   saleItems: defineTable({
     saleId: v.id("sales"),
     productId: v.id("products"),
@@ -158,6 +169,7 @@ export default defineSchema({
     .index("byBranch", ["branchId", "openedAt"])
     .index("byStaff", ["staffId", "openedAt"]),
   customers: defineTable({
+    userId: v.id("users"),
     documentType: v.union(v.literal("RUC"), v.literal("DNI")),
     documentNumber: v.string(),
     name: v.string(),
@@ -165,5 +177,6 @@ export default defineSchema({
     email: v.optional(v.string()),
     phone: v.optional(v.string()),
   })
-    .index("byDocument", ["documentType", "documentNumber"]),
+    .index("byDocument", ["documentType", "documentNumber"])
+    .index("userId", ["userId"]),
 })

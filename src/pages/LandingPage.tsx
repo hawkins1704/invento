@@ -200,7 +200,7 @@ export default function LandingPage() {
                             rel="noopener noreferrer"
                             className="px-8 py-3 bg-[#fa7316] text-white rounded-lg hover:bg-[#e86514] transition-colors font-semibold"
                         >
-                            Despegar Ya!
+                            Despegar ya!
                         </a>
                         <a
                             href="#funciones"

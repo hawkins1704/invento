@@ -16,7 +16,16 @@ export const getById = query({
     }
 
     const staffMember = await ctx.db.get(args.staffId)
-    return staffMember ?? null
+    if (!staffMember) {
+      return null
+    }
+
+    const branch = await ctx.db.get(staffMember.branchId)
+    if (!branch || branch.userId !== userId) {
+      return null
+    }
+
+    return staffMember
   },
 })
 
@@ -33,13 +42,35 @@ export const list = query({
       throw new ConvexError("No autenticado")
     }
 
+    // Si se especifica branchId, verificar que pertenece al usuario
+    // Si no pertenece, retornar array vacío en lugar de lanzar error
+    if (args.branchId) {
+      const branch = await ctx.db.get(args.branchId)
+      if (!branch || branch.userId !== userId) {
+        return {
+          staff: [],
+          total: 0,
+        }
+      }
+    }
+
     const includeInactive = args.includeInactive ?? false
     const staffQuery = args.branchId
       ? ctx.db.query("staff").withIndex("byBranch", (q) => q.eq("branchId", args.branchId as Id<"branches">))
       : ctx.db.query("staff")
 
     const allStaff = await staffQuery.collect()
-    const filtered = allStaff.filter((member) => includeInactive || member.active)
+    
+    // Filtrar por branches del usuario
+    const userBranches = await ctx.db
+      .query("branches")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect()
+    const userBranchIds = new Set(userBranches.map((b) => b._id as string))
+    
+    const filtered = allStaff.filter(
+      (member) => userBranchIds.has(member.branchId as string) && (includeInactive || member.active)
+    )
     const sorted = filtered.sort((a, b) => a.name.localeCompare(b.name))
 
     // Obtener el total antes de paginar
@@ -75,6 +106,9 @@ export const create = mutation({
     const branch = await ctx.db.get(args.branchId)
     if (!branch) {
       throw new ConvexError("La sucursal no existe.")
+    }
+    if (branch.userId !== userId) {
+      throw new ConvexError("La sucursal no pertenece a tu cuenta.")
     }
 
     const normalizedName = normalize(args.name)
@@ -129,9 +163,17 @@ export const update = mutation({
       throw new ConvexError("El miembro del personal no existe.")
     }
 
+    const currentBranch = await ctx.db.get(staffMember.branchId)
+    if (!currentBranch || currentBranch.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar este miembro del personal.")
+    }
+
     const branch = await ctx.db.get(args.branchId)
     if (!branch) {
       throw new ConvexError("La sucursal no existe.")
+    }
+    if (branch.userId !== userId) {
+      throw new ConvexError("La sucursal no pertenece a tu cuenta.")
     }
 
     const normalizedName = normalize(args.name)
@@ -194,6 +236,11 @@ export const remove = mutation({
     const staffMember = await ctx.db.get(args.staffId)
     if (!staffMember) {
       throw new ConvexError("El miembro del personal no existe.")
+    }
+
+    const branch = await ctx.db.get(staffMember.branchId)
+    if (!branch || branch.userId !== userId) {
+      throw new ConvexError("No tienes permiso para eliminar este miembro del personal.")
     }
 
     const relatedSale = await ctx.db

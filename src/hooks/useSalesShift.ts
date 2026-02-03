@@ -74,23 +74,35 @@ export const useSalesShift = () => {
 
   const branches = useMemo(() => branchesData?.branches ?? [], [branchesData]);
 
+  // Validar que el branchId del localStorage pertenezca a las branches del usuario actual
+  // Esto previene ejecutar queries con branchIds de otros usuarios
+  const validBranchId = useMemo(() => {
+    if (!branchIdState || !branches || branches.length === 0) {
+      return null;
+    }
+    const exists = branches.some((branch) => (branch._id as string) === branchIdState);
+    return exists ? branchIdState : null;
+  }, [branchIdState, branches]);
+
+  // Limpiar branchId inválido del estado y localStorage
   useEffect(() => {
-    if (!branches || branches.length === 0 || !branchIdState) {
+    if (!branches || branches.length === 0) {
       return;
     }
 
-    const exists = branches.some((branch) => (branch._id as string) === branchIdState);
-    if (!exists) {
+    if (branchIdState && !validBranchId) {
+      // El branchId no pertenece al usuario actual, limpiarlo
       setBranchId("");
     }
-  }, [branches, branchIdState, setBranchId]);
+  }, [branches, branchIdState, validBranchId, setBranchId]);
 
+  // Solo ejecutar la query si el branchId es válido
   const activeShift = useQuery(
     api.shifts.active,
-    branchIdState ? ({ branchId: branchIdState as Id<"branches"> } as const) : "skip"
+    validBranchId ? ({ branchId: validBranchId as Id<"branches"> } as const) : "skip"
   ) as ActiveShiftResult;
 
-  const isLoadingShift = branchIdState !== "" && activeShift === undefined;
+  const isLoadingShift = validBranchId !== null && validBranchId !== "" && activeShift === undefined;
 
   const summary = useMemo(() => {
     if (!activeShift || activeShift === undefined) {
@@ -100,11 +112,11 @@ export const useSalesShift = () => {
   }, [activeShift]);
 
   const branch = useMemo(() => {
-    if (!branchIdState) {
+    if (!validBranchId) {
       return null;
     }
-    return branches.find((item) => (item._id as string) === branchIdState) ?? null;
-  }, [branches, branchIdState]);
+    return branches.find((item) => (item._id as string) === validBranchId) ?? null;
+  }, [branches, validBranchId]);
 
   const isLoadingBranches = branchesData === undefined;
 

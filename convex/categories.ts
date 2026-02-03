@@ -13,7 +13,10 @@ export const getById = query({
     }
 
     const category = await ctx.db.get(args.categoryId);
-    return category ?? null;
+    if (!category || category.userId !== userId) {
+      return null;
+    }
+    return category;
   },
 });
 
@@ -28,7 +31,10 @@ export const list = query({
       throw new ConvexError("No autenticado");
     }
 
-    const allCategories = await ctx.db.query("categories").collect();
+    const allCategories = await ctx.db
+      .query("categories")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
     const sorted = allCategories.sort((a, b) => a.name.localeCompare(b.name));
 
     // Obtener el total antes de paginar
@@ -58,7 +64,8 @@ export const create = mutation({
 
     const existing = await ctx.db
       .query("categories")
-      .withIndex("name", (q) => q.eq("name", args.name.trim()))
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("name"), args.name.trim()))
       .first();
 
     if (existing) {
@@ -66,6 +73,7 @@ export const create = mutation({
     }
 
     await ctx.db.insert("categories", {
+      userId,
       name: args.name.trim(),
     });
   },
@@ -86,6 +94,9 @@ export const update = mutation({
     if (!category) {
       throw new ConvexError("Categoría no encontrada.");
     }
+    if (category.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar esta categoría.");
+    }
 
     const trimmedName = args.name.trim();
     if (trimmedName.length === 0) {
@@ -94,7 +105,8 @@ export const update = mutation({
 
     const duplicate = await ctx.db
       .query("categories")
-      .withIndex("name", (q) => q.eq("name", trimmedName))
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("name"), trimmedName))
       .first();
 
     if (duplicate && duplicate._id !== args.categoryId) {
@@ -118,6 +130,9 @@ export const remove = mutation({
     const category = await ctx.db.get(args.categoryId);
     if (!category) {
       throw new ConvexError("Categoría no encontrada.");
+    }
+    if (category.userId !== userId) {
+      throw new ConvexError("No tienes permiso para eliminar esta categoría.");
     }
 
     const linkedProduct = await ctx.db

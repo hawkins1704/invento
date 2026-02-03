@@ -12,6 +12,7 @@ export default Password<DataModel>({
       inventoryCode: params.inventoryCode as string,
       IGVPercentage: params.IGVPercentage as 10 | 18 | undefined,
       subscriptionType: "starter" as const,
+      isDemo: params.isDemo as boolean | undefined,
     };
   },
   reset: ResendOTPPasswordReset,

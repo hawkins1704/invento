@@ -244,6 +244,12 @@ export const listLiveByBranch = query({
       throw new ConvexError("No autenticado")
     }
 
+    const branch = await ctx.db.get(args.branchId)
+    // Si la branch no pertenece al usuario, retornar array vacío en lugar de lanzar error
+    if (!branch || branch.userId !== userId) {
+      return []
+    }
+
     const sales = await ctx.db
       .query("sales")
       .withIndex("byBranchStatus", (q) =>
@@ -251,8 +257,11 @@ export const listLiveByBranch = query({
       )
       .collect()
 
+    // Filtrar solo las ventas del usuario
+    const userSales = sales.filter((sale) => sale.userId === userId)
+
     return Promise.all(
-      sales.map(async (sale) => {
+      userSales.map(async (sale) => {
         const [items, table, staffMember] = await Promise.all([
           loadSaleItems(ctx, sale._id),
           sale.tableId ? ctx.db.get(sale.tableId) : undefined,
@@ -284,7 +293,10 @@ export const getTotalSalesCount = query({
     if (userId === null) {
       throw new ConvexError("No autenticado")
     }
-    const allSales = await ctx.db.query("sales").collect()
+    const allSales = await ctx.db
+      .query("sales")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .collect()
     return { total: allSales.length }
   },
 })
@@ -298,7 +310,10 @@ export const getSalesCountThisMonth = query({
     }
     const startOfMonth = getStartOfCurrentMonthUTC()
     const endOfNow = now()
-    const allSales = await ctx.db.query("sales").collect()
+    const allSales = await ctx.db
+      .query("sales")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .collect()
     const count = allSales.filter(
       (s) => s.openedAt >= startOfMonth && s.openedAt <= endOfNow
     ).length
@@ -316,7 +331,10 @@ export const getSalesByMonth = query({
       throw new ConvexError("No autenticado")
     }
     const monthsBack = args.monthsBack ?? 12
-    const allSales = await ctx.db.query("sales").collect()
+    const allSales = await ctx.db
+      .query("sales")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .collect()
     const byMonth = new Map<string, number>()
     const nowDate = new Date()
     for (let i = 0; i < monthsBack; i++) {
@@ -370,13 +388,21 @@ export const listHistory = query({
     const limit = args.limit ?? 10
     const offset = args.offset ?? 0
 
+    // Si se especifica branchId, verificar que pertenece al usuario
+    if (args.branchId) {
+      const branch = await ctx.db.get(args.branchId)
+      if (!branch || branch.userId !== userId) {
+        throw new ConvexError("La sucursal no pertenece a tu cuenta.")
+      }
+    }
+
     const sales = await ctx.db
       .query("sales")
-      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect()
 
     const filtered = sales
-      .filter((sale) => sale.status === "closed")
+      .filter((sale) => sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to)
       .filter((sale) => (args.branchId ? sale.branchId === args.branchId : true))
       .filter((sale) => (args.staffId ? sale.staffId === args.staffId : true))
       .sort((a, b) => (b.closedAt ?? 0) - (a.closedAt ?? 0))
@@ -424,6 +450,9 @@ export const get = query({
     const sale = await ctx.db.get(args.saleId)
     if (!sale) {
       throw new ConvexError("La venta no existe.")
+    }
+    if (sale.userId !== userId) {
+      throw new ConvexError("No tienes permiso para ver esta venta.")
     }
 
     const [items, table, staffMember, branch] = await Promise.all([
@@ -474,7 +503,10 @@ export const create = mutation({
     if (saleLimit !== null) {
       const startOfMonth = getStartOfCurrentMonthUTC()
       const endOfNow = now()
-      const allSales = await ctx.db.query("sales").collect()
+      const allSales = await ctx.db
+        .query("sales")
+        .withIndex("byUserId", (q) => q.eq("userId", userId))
+        .collect()
       const salesThisMonth = allSales.filter(
         (s) => s.openedAt >= startOfMonth && s.openedAt <= endOfNow
       ).length
@@ -488,6 +520,9 @@ export const create = mutation({
     const branch = await ctx.db.get(args.branchId)
     if (!branch) {
       throw new ConvexError("La sucursal no existe.")
+    }
+    if (branch.userId !== userId) {
+      throw new ConvexError("La sucursal no pertenece a tu cuenta.")
     }
 
     const validatedItems = await validateItems(ctx, args.items ?? [])
@@ -513,7 +548,7 @@ export const create = mutation({
       branchId: args.branchId,
       tableId: args.tableId,
       staffId: args.staffId,
-      creatorUserId: userId,
+      userId: userId,
       status: "open",
       openedAt: timestamp,
       closedAt: undefined,
@@ -564,6 +599,9 @@ export const setItems = mutation({
     }
 
     const sale = await ensureSaleOpen(ctx, args.saleId)
+    if (sale.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar esta venta.")
+    }
     const validatedItems = await validateItems(ctx, args.items)
     const timestamp = now()
 
@@ -615,6 +653,9 @@ export const updateDetails = mutation({
     }
 
     const sale = await ensureSaleOpen(ctx, args.saleId)
+    if (sale.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar esta venta.")
+    }
 
     if (args.staffId !== undefined) {
       if (args.staffId) {
@@ -681,6 +722,9 @@ export const close = mutation({
     }
 
     const sale = await ensureSaleOpen(ctx, args.saleId)
+    if (sale.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar esta venta.")
+    }
 
     // Validar que si se emite factura, tenga cliente
     if (args.documentType === "01" && !args.customerId) {
@@ -744,6 +788,9 @@ export const markAsAnulado = mutation({
     if (!sale) {
       throw new ConvexError("La venta no existe.")
     }
+    if (sale.userId !== userId) {
+      throw new ConvexError("No tienes permiso para anular esta venta.")
+    }
     if (sale.status !== "closed") {
       throw new ConvexError("Solo se puede anular una venta cerrada.")
     }
@@ -774,6 +821,9 @@ export const cancel = mutation({
     }
 
     const sale = await ensureSaleOpen(ctx, args.saleId)
+    if (sale.userId !== userId) {
+      throw new ConvexError("No tienes permiso para modificar esta venta.")
+    }
 
     // Restaurar inventario de los items de la venta cancelada
     const items = await loadSaleItems(ctx, sale._id)
@@ -821,14 +871,18 @@ export const getTodaySummary = query({
     // Obtener ventas cerradas de hoy usando índice
     const todaySales = await ctx.db
       .query("sales")
-      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect()
 
-    const closedSales = todaySales.filter((sale) => sale.status === "closed")
+    const closedSales = todaySales.filter(
+      (sale) => sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
+    )
     
-    // Obtener ventas abiertas usando índice porBranchStatus para cada sucursal
-    // Esto es más eficiente que traer todas las ventas
-    const branches = await ctx.db.query("branches").collect()
+    // Obtener ventas abiertas usando índice porBranchStatus para cada sucursal del usuario
+    const branches = await ctx.db
+      .query("branches")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect()
     const openSalesByBranch = await Promise.all(
       branches.map((branch) =>
         ctx.db
@@ -839,7 +893,7 @@ export const getTodaySummary = query({
           .collect()
       )
     )
-    const openSales = openSalesByBranch.flat()
+    const openSales = openSalesByBranch.flat().filter((sale) => sale.userId === userId)
 
     const totalAmount = closedSales.reduce((sum, sale) => sum + sale.total, 0)
     const totalTickets = closedSales.length
@@ -878,10 +932,13 @@ export const getSummaryByBranch = query({
       return endOfDay.getTime()
     })()
 
-    const branches = await ctx.db.query("branches").collect()
+    const branches = await ctx.db
+      .query("branches")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect()
     const todaySales = await ctx.db
       .query("sales")
-      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect()
 
     // Obtener ventas abiertas y shifts usando índices por branch (más eficiente)
@@ -891,7 +948,7 @@ export const getSummaryByBranch = query({
           // Ventas cerradas de hoy para esta sucursal
           Promise.resolve(
             todaySales.filter(
-              (sale) => sale.branchId === branch._id && sale.status === "closed"
+              (sale) => sale.branchId === branch._id && sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
             )
           ),
           // Ventas abiertas usando índice
@@ -955,10 +1012,12 @@ export const getPaymentMethodBreakdown = query({
 
     const todaySales = await ctx.db
       .query("sales")
-      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect()
 
-    let closedSales = todaySales.filter((sale) => sale.status === "closed")
+    let closedSales = todaySales.filter(
+      (sale) => sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
+    )
 
     // Aplicar filtros opcionales
     if (args.branchId) {
@@ -1011,13 +1070,18 @@ export const getTopBranches = query({
       return endOfDay.getTime()
     })()
 
-    const branches = await ctx.db.query("branches").collect()
+    const branches = await ctx.db
+      .query("branches")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect()
     const todaySales = await ctx.db
       .query("sales")
-      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect()
 
-    const closedSales = todaySales.filter((sale) => sale.status === "closed")
+    const closedSales = todaySales.filter(
+      (sale) => sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
+    )
 
     const branchTotals = new Map<string, number>()
 
@@ -1068,10 +1132,12 @@ export const getTopProducts = query({
 
     const todaySales = await ctx.db
       .query("sales")
-      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect()
 
-    let closedSales = todaySales.filter((sale) => sale.status === "closed")
+    let closedSales = todaySales.filter(
+      (sale) => sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
+    )
 
     // Aplicar filtros opcionales
     if (args.branchId) {
@@ -1158,10 +1224,12 @@ export const getTopStaff = query({
 
     const todaySales = await ctx.db
       .query("sales")
-      .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect()
 
-    let closedSales = todaySales.filter((sale) => sale.status === "closed")
+    let closedSales = todaySales.filter(
+      (sale) => sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
+    )
 
     // Aplicar filtros opcionales
     if (args.branchId) {
