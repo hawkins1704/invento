@@ -556,7 +556,7 @@ const Layout = () => {
                                             </NavLink>
                                         </li>
                                         {index === 0 &&
-                                            currentArea === "sales" && (
+                                            currentArea === "sales" && !currentUser?.isDemo && (
                                                 <li key="shift-action">
                                                     <button
                                                         type="button"

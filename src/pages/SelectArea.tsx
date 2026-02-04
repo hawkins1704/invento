@@ -128,12 +128,12 @@ const SelectArea = () => {
         </header>
 
         {currentUser?.isDemo && (
-          <div className="rounded-lg border border-[#fa7316] bg-[#fa7316]/10 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-              ¡Estás en versión demo!
+          <div className="rounded-lg p-6 bg-gradient-to-b from-[#fa7316] to-[#EE8D0F] shadow-[0_4px_40px_rgba(250,115,22,0.9)]">
+            <h2 className="text-3xl font-black text-white mb-3 tracking-tight">
+              Bienvenido al demo!
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              El código de acceso para las áreas es <span className="font-bold text-black]">0000</span>, disfruta la experiencia Fudi
+            <p className="text-lg font-semibold text-white">
+              El código de acceso para las áreas es <span className="font-black text-white text-lg">{currentUser?.administratorCode}</span><br/>Disfruta la experiencia Fudi!
             </p>
           </div>
         )}

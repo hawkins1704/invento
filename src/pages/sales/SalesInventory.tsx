@@ -6,7 +6,7 @@ import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import SalesShiftGuard from "../../components/SalesShiftGuard";
 import SalesPageHeader from "../../components/sales-page-header/SalesPageHeader";
 import type { ShiftSummary } from "../../hooks/useSalesShift";
-import { formatCurrency} from "../../utils/format";
+import { formatCurrency } from "../../utils/format";
 import { api } from "../../../convex/_generated/api";
 import { BiDish } from "react-icons/bi";
 import { FaBoxArchive } from "react-icons/fa6";
@@ -26,7 +26,6 @@ type InventoryProduct = {
     inventoryId: Id<"branchInventories"> | null;
     imageUrl: string | null;
 };
-
 
 const InventoryProductCard = ({
     item,
@@ -131,7 +130,9 @@ const InventoryCodeVerification = ({
     const [code, setCode] = useState<string[]>(() => Array(4).fill(""));
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const currentUser = useQuery(api.users.getCurrent) as
+        | Doc<"users">
+        | undefined;
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -156,9 +157,13 @@ const InventoryCodeVerification = ({
             }
 
             if (result?.reason === "notConfigured") {
-                setError("Tu perfil no tiene un código de inventario configurado.");
+                setError(
+                    "Tu perfil no tiene un código de inventario configurado."
+                );
             } else {
-                setError("Código incorrecto. Revisa el código asignado para inventario.");
+                setError(
+                    "Código incorrecto. Revisa el código asignado para inventario."
+                );
             }
         } catch (caughtError) {
             const message =
@@ -172,7 +177,22 @@ const InventoryCodeVerification = ({
     };
 
     return (
-        <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="flex flex-col gap-4 min-h-[60vh] items-center justify-center">
+            {currentUser?.isDemo ? (
+                <div className="max-w-md w-full rounded-lg p-6 bg-gradient-to-b from-[#fa7316] to-[#EE8D0F] shadow-[0_4px_40px_rgba(250,115,22,0.9)]">
+                    <h2 className="text-3xl font-black text-white mb-3 tracking-tight">
+                        Bienvenido al demo!
+                    </h2>
+                    <p className="text-lg font-semibold text-white">
+                        El código de acceso para las áreas es{" "}
+                        <span className="font-black text-white text-lg">
+                            {currentUser?.administratorCode}
+                        </span>
+                        <br />
+                        Disfruta la experiencia Fudi!
+                    </p>
+                </div>
+            ) : null}
             <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-8 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white">
                 <div className="space-y-6">
                     <div className="text-center">
@@ -180,7 +200,8 @@ const InventoryCodeVerification = ({
                             Código de Inventario
                         </h2>
                         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                            Ingresa el código de 4 dígitos para acceder a la gestión de inventario.
+                            Ingresa el código de 4 dígitos para acceder a la
+                            gestión de inventario.
                         </p>
                     </div>
 
@@ -205,7 +226,9 @@ const InventoryCodeVerification = ({
                             disabled={isSubmitting}
                             className="w-full inline-flex items-center justify-center rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                         >
-                            {isSubmitting ? "Verificando..." : "Verificar código"}
+                            {isSubmitting
+                                ? "Verificando..."
+                                : "Verificar código"}
                         </button>
                     </form>
                 </div>
@@ -215,12 +238,12 @@ const InventoryCodeVerification = ({
 };
 
 const SalesInventoryContent = ({
-  branch,
-  branchId,
+    branch,
+    branchId,
 }: {
-  branch: Doc<"branches">;
-  branchId: string;
-  activeShift: ShiftSummary;
+    branch: Doc<"branches">;
+    branchId: string;
+    activeShift: ShiftSummary;
 }) => {
     const [isCodeVerified, setIsCodeVerified] = useState<boolean>(false);
 
@@ -366,24 +389,26 @@ const SalesInventoryContent = ({
     };
 
     if (!isCodeVerified) {
-        return <InventoryCodeVerification onVerified={() => setIsCodeVerified(true)} />;
+        return (
+            <InventoryCodeVerification
+                onVerified={() => setIsCodeVerified(true)}
+            />
+        );
     }
 
-  return (
-    <div className="space-y-8">
-      <SalesPageHeader
-        title="Inventario"
-        chip="Inventario en turno"
-        actions={
-          <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-2 text-sm font-semibold text-[#fa7316]">
-            {branch.name}
-          </span>
-        }
-      />
+    return (
+        <div className="space-y-8">
+            <SalesPageHeader
+                title="Inventario"
+                chip="Inventario en turno"
+                actions={
+                    <span className="rounded-full border border-[#fa7316]/30 bg-[#fa7316]/10 px-4 py-2 text-sm font-semibold text-[#fa7316]">
+                        {branch.name}
+                    </span>
+                }
+            />
 
-     
-
-      <section>
+            <section>
                 <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                     Inventario
                 </h2>
@@ -430,14 +455,14 @@ const SalesInventoryContent = ({
                             🗂️
                         </span>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Selecciona una categoría para ver el
-                            inventario de sus productos.
+                            Selecciona una categoría para ver el inventario de
+                            sus productos.
                         </p>
                     </div>
                 ) : products.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-slate-500 dark:text-slate-400">
                         <FaBoxArchive className="w-10 h-10 text-slate-400 dark:text-slate-400" />
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             No hay productos en esta categoría. Agrega productos
                             desde el catálogo general.
                         </p>
@@ -459,7 +484,12 @@ const SalesInventoryContent = ({
                                             item.stock.toString()
                                         }
                                         isSaving={savingProductId === productId}
-                                        isEditable={isCodeVerified && Boolean(item.product.inventoryActivated)}
+                                        isEditable={
+                                            isCodeVerified &&
+                                            Boolean(
+                                                item.product.inventoryActivated
+                                            )
+                                        }
                                         onStockChange={(event) =>
                                             handleStockChange(productId, event)
                                         }
@@ -475,7 +505,14 @@ const SalesInventoryContent = ({
                                     { label: "Producto", key: "product" },
                                     { label: "Precio", key: "price" },
                                     { label: "Stock", key: "stock" },
-                                    ...(isCodeVerified ? [{ label: "Acciones", key: "actions" }] : []),
+                                    ...(isCodeVerified
+                                        ? [
+                                              {
+                                                  label: "Acciones",
+                                                  key: "actions",
+                                              },
+                                          ]
+                                        : []),
                                 ]}
                             >
                                 {products.map((item) => {
@@ -520,7 +557,8 @@ const SalesInventoryContent = ({
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">
-                                                {item.product.inventoryActivated ? (
+                                                {item.product
+                                                    .inventoryActivated ? (
                                                     isCodeVerified ? (
                                                         <input
                                                             type="number"
@@ -553,11 +591,14 @@ const SalesInventoryContent = ({
                                             </td>
                                             {isCodeVerified && (
                                                 <td className="px-6 py-4">
-                                                    {item.product.inventoryActivated && (
+                                                    {item.product
+                                                        .inventoryActivated && (
                                                         <button
                                                             type="button"
                                                             onClick={() =>
-                                                                handleSaveStock(item)
+                                                                handleSaveStock(
+                                                                    item
+                                                                )
                                                             }
                                                             className="inline-flex items-center justify-center rounded-lg bg-[#fa7316] px-4 py-2 text-xs font-semibold text-white  transition hover:bg-[#e86811] disabled:cursor-not-allowed disabled:opacity-70"
                                                             disabled={
@@ -590,16 +631,15 @@ const SalesInventoryContent = ({
                         itemLabel="productos"
                     />
                 )}
-      </section>
-    </div>
-  );
+            </section>
+        </div>
+    );
 };
 
 const SalesInventory = () => (
-  <SalesShiftGuard>
-    {(props) => <SalesInventoryContent {...props} />}
-  </SalesShiftGuard>
+    <SalesShiftGuard>
+        {(props) => <SalesInventoryContent {...props} />}
+    </SalesShiftGuard>
 );
 
 export default SalesInventory;
-
