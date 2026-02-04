@@ -1,16 +1,16 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import CodePinInput from "../components/CodePinInput";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
 
 type Step = "signIn" | "signUp";
 
 export function SignIn() {
     const { signIn } = useAuthActions();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [step, setStep] = useState<Step>("signIn");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -26,6 +26,12 @@ export function SignIn() {
     const [showPassword, setShowPassword] = useState(false);
     const [showRepeatPassword, setShowRepeatPassword] = useState(false);
     const [repeatPassword, setRepeatPassword] = useState("");
+
+    // Prellenar credenciales desde query params
+    const [email, setEmail] = useState(searchParams.get("email") || "");
+    const [password, setPassword] = useState(
+        searchParams.get("password") || ""
+    );
 
     useEffect(() => {
         setError(null);
@@ -72,7 +78,9 @@ export function SignIn() {
                 (digit) => digit !== ""
             );
             const salesComplete = salesCode.every((digit) => digit !== "");
-            const inventoryComplete = inventoryCode.every((digit) => digit !== "");
+            const inventoryComplete = inventoryCode.every(
+                (digit) => digit !== ""
+            );
 
             if (!adminComplete || !salesComplete || !inventoryComplete) {
                 setError(
@@ -83,9 +91,11 @@ export function SignIn() {
 
             const formData = new FormData(event.currentTarget);
             const password = formData.get("password") as string;
-            
+
             if (password !== repeatPassword) {
-                setError("Las contraseñas no coinciden. Por favor, verifica que ambas sean iguales.");
+                setError(
+                    "Las contraseñas no coinciden. Por favor, verifica que ambas sean iguales."
+                );
                 return;
             }
         }
@@ -110,8 +120,14 @@ export function SignIn() {
 
     return (
         <div className=" flex min-h-screen  flex-col lg:flex-row">
-            <aside className="flex-1 min-w-0 hidden items-end justify-between text-white lg:flex" style={{ backgroundImage: "url('/background-2.jpg')" }}>
-                <div className="relative w-full z-10 flex flex-col justify-end gap-6 p-12 h-full" style={{ backdropFilter: "blur(6px)" }}>
+            <aside
+                className="flex-1 min-w-0 hidden items-end justify-between text-white lg:flex"
+                style={{ backgroundImage: "url('/background-2.jpg')" }}
+            >
+                <div
+                    className="relative w-full z-10 flex flex-col justify-end gap-6 p-12 h-full"
+                    style={{ backdropFilter: "blur(6px)" }}
+                >
                     <h2 className="text-4xl font-semibold leading-tight text-white">
                         Gestiona tus productos, ventas y caja en un solo lugar
                     </h2>
@@ -125,15 +141,33 @@ export function SignIn() {
             <main className="flex-1 min-w-0 flex items-center justify-center bg-white dark:bg-slate-950 px-6 py-16 lg:px-0 lg:py-0">
                 <div className="w-full max-w-md">
                     <header className="mb-10 flex flex-col gap-3 text-center">
-                        <img src="/logo-main.svg" alt="Logo" className="w-full h-10 object-contain" />
-                        <div className="space-y-1">
-                            <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
-                                {heading}
-                            </h1>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                                {subheading}
-                            </p>
-                        </div>
+                        <img
+                            src="/logo-main.svg"
+                            alt="Logo"
+                            className="w-full h-10 object-contain"
+                        />
+                        {searchParams.get("email") === null ? (
+                            <div className="space-y-1">
+                                <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
+                                    {heading}
+                                </h1>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                    {subheading}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="rounded-lg p-6 bg-gradient-to-b from-[#fa7316] to-[#EE8D0F] shadow-[0_4px_40px_rgba(250,115,22,0.9)] my-6">
+                                <h2 className="text-2xl font-semibold text-white mb-3 tracking-tight">
+                                    Bienvenido al demo!
+                                </h2>
+                                <p className="text-lg font-semibold text-white">
+                                 
+                                    Email: solucionesfudi@gmail.com
+                                    <br />
+                                    Password: fudi2026
+                                </p>
+                            </div>
+                        )}
                     </header>
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
@@ -171,6 +205,8 @@ export function SignIn() {
                                 name="email"
                                 type="email"
                                 placeholder="correo@ejemplo.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                 autoComplete="email"
                                 required
@@ -195,6 +231,10 @@ export function SignIn() {
                                     name="password"
                                     type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
                                     className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 pr-10 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                     autoComplete={
                                         step === "signIn"
@@ -205,9 +245,15 @@ export function SignIn() {
                                 />
                                 <button
                                     type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
+                                    onClick={() =>
+                                        setShowPassword(!showPassword)
+                                    }
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-                                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                    aria-label={
+                                        showPassword
+                                            ? "Ocultar contraseña"
+                                            : "Mostrar contraseña"
+                                    }
                                 >
                                     {showPassword ? (
                                         <FaEyeSlash className="h-5 w-5" />
@@ -235,19 +281,33 @@ export function SignIn() {
                                     <input
                                         id="repeatPassword"
                                         name="repeatPassword"
-                                        type={showRepeatPassword ? "text" : "password"}
+                                        type={
+                                            showRepeatPassword
+                                                ? "text"
+                                                : "password"
+                                        }
                                         placeholder="••••••••"
                                         value={repeatPassword}
-                                        onChange={(e) => setRepeatPassword(e.target.value)}
+                                        onChange={(e) =>
+                                            setRepeatPassword(e.target.value)
+                                        }
                                         className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 pr-10 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/40 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                                         autoComplete="new-password"
                                         required
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setShowRepeatPassword(!showRepeatPassword)}
+                                        onClick={() =>
+                                            setShowRepeatPassword(
+                                                !showRepeatPassword
+                                            )
+                                        }
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-                                        aria-label={showRepeatPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                        aria-label={
+                                            showRepeatPassword
+                                                ? "Ocultar contraseña"
+                                                : "Mostrar contraseña"
+                                        }
                                     >
                                         {showRepeatPassword ? (
                                             <FaEyeSlash className="h-5 w-5" />
@@ -293,7 +353,8 @@ export function SignIn() {
 
                         {error && (
                             <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-                               Ups! Tal vez tus credenciales no son correctas. Intenta de nuevo.
+                                Ups! Tal vez tus credenciales no son correctas.
+                                Intenta de nuevo.
                             </div>
                         )}
 
@@ -309,30 +370,35 @@ export function SignIn() {
                                   : "Crear cuenta"}
                         </button>
 
-                        {step === "signIn" && (
-                            <div className="text-center">
-                                <Link
-                                    to="/password-reset"
-                                    className="text-sm font-medium text-slate-600 transition hover:text-[#fa7316] dark:text-slate-400 dark:hover:text-[#fa7316]"
-                                >
-                                    ¿Olvidaste tu contraseña?
-                                </Link>
-                            </div>
-                        )}
+                        {step === "signIn" &&
+                            searchParams.get("email") === null && (
+                                <div className="text-center">
+                                    <Link
+                                        to="/password-reset"
+                                        className="text-sm font-medium text-slate-600 transition hover:text-[#fa7316] dark:text-slate-400 dark:hover:text-[#fa7316]"
+                                    >
+                                        ¿Olvidaste tu contraseña?
+                                    </Link>
+                                </div>
+                            )}
                     </form>
 
-                    <footer className="mt-8 text-center text-sm text-slate-600 dark:text-slate-400">
-                        <span>{toggleMessage} </span>
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setStep(step === "signIn" ? "signUp" : "signIn")
-                            }
-                            className="font-semibold text-slate-900 dark:text-white transition hover:text-[#fa7316]"
-                        >
-                            {toggleAction}
-                        </button>
-                    </footer>
+                    {searchParams.get("email") === null && (
+                        <footer className="mt-8 text-center text-sm text-slate-600 dark:text-slate-400">
+                            <span>{toggleMessage} </span>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setStep(
+                                        step === "signIn" ? "signUp" : "signIn"
+                                    )
+                                }
+                                className="font-semibold text-slate-900 dark:text-white transition hover:text-[#fa7316]"
+                            >
+                                {toggleAction}
+                            </button>
+                        </footer>
+                    )}
                 </div>
             </main>
         </div>

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
     FaCheck,
@@ -119,6 +119,12 @@ function TestimonialsSlider() {
 }
 
 export default function LandingPage() {
+    const navigate = useNavigate();
+
+    const handleDemoClick = () => {
+        navigate("/login?email=solucionesfudi@gmail.com&password=fudi2026");
+    };
+
     return (
         <div className="min-h-screen bg-white dark:bg-slate-900">
             {/* Header */}
@@ -202,12 +208,12 @@ export default function LandingPage() {
                         >
                             Despegar ya!
                         </a>
-                        <a
-                            href="#funciones"
+                        <button
+                            onClick={handleDemoClick}
                             className="px-8 py-3 border border-[#fa7316] text-[#fa7316] rounded-lg hover:bg-[#fa7316] hover:text-white transition-colors font-semibold"
                         >
                             Probar demo
-                        </a>
+                        </button>
                     </div>
                 </div>
             </section>
