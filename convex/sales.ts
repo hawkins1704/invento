@@ -497,9 +497,19 @@ export const create = mutation({
       negocio: null,
       pro: null,
     }
-    const saleLimit = user.subscriptionType
-      ? saleLimitByPlan[user.subscriptionType] ?? 2000
-      : 2000
+    // Normalizar el subscriptionType para manejar casos edge (espacios, mayúsculas, etc.)
+    const subscriptionType = user.subscriptionType?.toLowerCase().trim();
+    let saleLimit: number | null;
+    
+    if (subscriptionType && subscriptionType in saleLimitByPlan) {
+      // Si el plan está en el mapa, usar su valor (puede ser null para "negocio" y "pro")
+      saleLimit = saleLimitByPlan[subscriptionType];
+    } else {
+      // Si no hay subscriptionType o es un valor desconocido, tratar como starter
+      saleLimit = 2000;
+    }
+    
+    // Solo validar límite si hay un límite numérico definido (no null)
     if (saleLimit !== null) {
       const startOfMonth = getStartOfCurrentMonthUTC()
       const endOfNow = now()

@@ -74,9 +74,19 @@ export const create = mutation({
       negocio: 5,
       pro: null,
     };
-    const branchLimit = user.subscriptionType
-      ? branchLimitByPlan[user.subscriptionType] ?? 1
-      : 1;
+    // Normalizar el subscriptionType para manejar casos edge (espacios, mayúsculas, etc.)
+    const subscriptionType = user.subscriptionType?.toLowerCase().trim();
+    let branchLimit: number | null;
+    
+    if (subscriptionType && subscriptionType in branchLimitByPlan) {
+      // Si el plan está en el mapa, usar su valor (puede ser null para "pro")
+      branchLimit = branchLimitByPlan[subscriptionType];
+    } else {
+      // Si no hay subscriptionType o es un valor desconocido, tratar como starter
+      branchLimit = 1;
+    }
+    
+    // Solo validar límite si hay un límite numérico definido (no null)
     if (branchLimit !== null) {
       const currentBranches = await ctx.db
         .query("branches")

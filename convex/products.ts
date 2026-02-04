@@ -170,9 +170,19 @@ export const create = mutation({
       negocio: 300,
       pro: null,
     };
-    const productLimit = user.subscriptionType
-      ? productLimitByPlan[user.subscriptionType] ?? 100
-      : 100;
+    // Normalizar el subscriptionType para manejar casos edge (espacios, mayúsculas, etc.)
+    const subscriptionType = user.subscriptionType?.toLowerCase().trim();
+    let productLimit: number | null;
+    
+    if (subscriptionType && subscriptionType in productLimitByPlan) {
+      // Si el plan está en el mapa, usar su valor (puede ser null para "pro")
+      productLimit = productLimitByPlan[subscriptionType];
+    } else {
+      // Si no hay subscriptionType o es un valor desconocido, tratar como starter
+      productLimit = 100;
+    }
+    
+    // Solo validar límite si hay un límite numérico definido (no null)
     if (productLimit !== null) {
       const currentCount = await ctx.db
         .query("products")
