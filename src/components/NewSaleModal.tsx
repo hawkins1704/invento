@@ -123,23 +123,7 @@ const NewSaleModal = ({
         }
 
         if (items.length === 0) {
-            setIsSubmitting(true);
-            try {
-                await onCreate({
-                    branchId,
-                    ...(table ? { tableId: table._id } : {}),
-                    ...(staffId ? { staffId } : {}),
-                    notes: notes.trim() || undefined,
-                });
-            } catch (error) {
-                const message =
-                    error instanceof Error
-                        ? error.message
-                        : "No se pudo crear la venta. Inténtalo de nuevo.";
-                toastError(message);
-            } finally {
-                setIsSubmitting(false);
-            }
+            toastError("Debes agregar al menos un producto para crear la venta.");
             return;
         }
 
@@ -359,8 +343,8 @@ const NewSaleModal = ({
                             <button
                                 type="button"
                                 onClick={handleSubmit}
-                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-                                disabled={isSubmitting}
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 cursor-pointer disabled:bg-slate-400 disabled:hover:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-70"
+                                disabled={isSubmitting || items.length === 0}
                             >
                                 {isSubmitting ? "Guardando..." : "Crear venta"}
                             </button>
@@ -506,8 +490,8 @@ const NewSaleModal = ({
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-                        disabled={isSubmitting}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 cursor-pointer disabled:bg-slate-400 disabled:hover:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-70"
+                        disabled={isSubmitting || items.length === 0}
                     >
                         {isSubmitting ? "Guardando..." : "Crear venta"}
                     </button>

@@ -556,7 +556,8 @@ const Layout = () => {
                                             </NavLink>
                                         </li>
                                         {index === 0 &&
-                                            currentArea === "sales" && !currentUser?.isDemo && (
+                                            currentArea === "sales" &&
+                                            !currentUser?.isDemo && (
                                                 <li key="shift-action">
                                                     <button
                                                         type="button"
@@ -656,21 +657,29 @@ const Layout = () => {
                             >
                                 {currentArea === "admin" && (
                                     <>
-                                        <button
-                                            type="button"
-                                            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/80 cursor-pointer"
-                                            onClick={() => {
-                                                handleCloseProfileMenu();
-                                                setTimeout(() => {
-                                                    navigate("/admin/profile");
-                                                }, 300);
-                                            }}
-                                        >
-                                            <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
-                                                Editar perfil
-                                            </span>
-                                            <FaRegUser color={PRIMARY_COLOR} />
-                                        </button>
+                                        {
+                                            !currentUser?.isDemo && (
+                                            <button
+                                                type="button"
+                                                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/80 cursor-pointer"
+                                                onClick={() => {
+                                                    handleCloseProfileMenu();
+                                                    setTimeout(() => {
+                                                        navigate(
+                                                            "/admin/profile"
+                                                        );
+                                                    }, 300);
+                                                }}
+                                            >
+                                                <span className="text-sm font-semibold text-slate-900 dark:text-white text-left">
+                                                    Editar perfil
+                                                </span>
+                                                <FaRegUser
+                                                    color={PRIMARY_COLOR}
+                                                />
+                                            </button>
+                                            )
+                                        }
                                         <button
                                             type="button"
                                             className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/80 cursor-pointer"
