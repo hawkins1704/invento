@@ -537,7 +537,7 @@ const SaleEditorDrawer = ({
                             <button
                                 type="button"
                                 onClick={() => onCancelSale(sale.sale._id)}
-                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 cursor-pointer"
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 cursor-pointer"
                             >
                                 Cancelar venta
                             </button>
@@ -810,7 +810,7 @@ const SaleEditorDrawer = ({
                             <button
                                 type="button"
                                 onClick={() => onCancelSale(sale.sale._id)}
-                                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 cursor-pointer"
+                                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 cursor-pointer"
                             >
                                 Cancelar venta
                             </button>

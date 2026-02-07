@@ -29,7 +29,7 @@ const ConfirmDialog = ({
 
   const confirmClasses =
     tone === "danger"
-      ? "bg-red-500 text-white hover:bg-red-400 border border-red-500/60"
+      ? "bg-red-600 text-white hover:bg-red-700 border border-red-600/60"
       : "bg-[#fa7316] text-white hover:bg-[#e86811] border border-[#fa7316]/60 ";
 
   return (

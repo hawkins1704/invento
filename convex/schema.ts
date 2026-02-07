@@ -136,12 +136,17 @@ export default defineSchema({
     pdfTicket: v.optional(v.string()),
     xmlFirmado: v.optional(v.string()),
     xmlSinFirmar: v.optional(v.string()),
+    /** ID del turno al que pertenece esta venta. */
+    shiftId: v.optional(v.id("shifts")),
+    /** Número de ticket de cocina asignado dentro del turno (01, 02, 03, etc.). */
+    kitchenTicketNumber: v.optional(v.number()),
     updatedAt: v.number(),
   })
     .index("byBranchStatus", ["branchId", "status", "openedAt"])
     .index("byClosedAt", ["closedAt"])
     .index("byStaff", ["staffId", "status"])
-    .index("byUserId", ["userId"]),
+    .index("byUserId", ["userId"])
+    .index("byShift", ["shiftId", "kitchenTicketNumber"]),
   saleItems: defineTable({
     saleId: v.id("sales"),
     productId: v.id("products"),

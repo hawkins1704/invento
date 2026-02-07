@@ -12,6 +12,7 @@ import {
     fetchPdfBlobFromUrl,
     printPdfBlobInHiddenIframe,
 } from "../../utils/pdfPrint";
+import { printKitchenTicketInIframe } from "../../utils/kitchenTicket";
 import { miapiClient } from "../../services/miapi";
 import type { GenerarXMLComprobanteRequest, EnviarXMLASUNATResponse } from "../../services/miapi";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -30,6 +31,7 @@ type LiveSale = {
     items: Doc<"saleItems">[];
     table?: Doc<"branchTables"> | null;
     staff?: Doc<"staff"> | null;
+    notes?: string | null;
 };
 
 type SalesTablesContentProps = {
@@ -179,7 +181,11 @@ const SalesTablesContent = ({
     };
 
     const branchTables = tables ?? [];
-    const branchLiveSales = liveSales ?? [];
+    // Ordenar los pedidos abiertos: más recientes primero (orden descendente por openedAt)
+    const branchLiveSales = useMemo(() => {
+        if (!liveSales) return [];
+        return [...liveSales].sort((a, b) => b.sale.openedAt - a.sale.openedAt);
+    }, [liveSales]);
 
     // const summary = useMemo(() => {
     //     const list = liveSales ?? [];
@@ -504,36 +510,69 @@ const SalesTablesContent = ({
                                     </div>
                                 </div>
 
-                                <div className="mt-auto flex gap-2">
+                                <div className="mt-auto flex flex-col gap-2">
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedSaleId(entry.sale._id);
+                                            }}
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#fa7316] bg-transparent px-3 py-2 text-sm font-semibold text-[#fa7316] transition hover:bg-[#fa7316]/10 cursor-pointer"
+                                        >
+                                            Gestionar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openCloseDialog(entry.sale._id);
+                                            }}
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 cursor-pointer"
+                                        >
+                                            Concluir
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openCancelDialog(entry.sale._id);
+                                            }}
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 cursor-pointer"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
                                     <button
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            setSelectedSaleId(entry.sale._id);
+                                            const saleData: LiveSale = {
+                                                sale: entry.sale,
+                                                items: entry.items,
+                                                table: entry.table,
+                                                staff: entry.staff,
+                                                notes: entry.sale.notes
+                                            };
+                                            // Crear un mapa de productos con descripciones
+                                            const productsMap = new Map<string, { _id: Id<"products">; name: string; description?: string }>();
+                                            // Agregar todos los productos del productMap que tienen descripción
+                                            productMap.forEach((product) => {
+                                                productsMap.set(product._id as string, {
+                                                    _id: product._id,
+                                                    name: product.name,
+                                                    description: product.description || "",
+                                                });
+                                            });
+                                            printKitchenTicketInIframe(
+                                                saleData,
+                                                productsMap,
+                                                currentUser?.companyCommercialName
+                                            );
                                         }}
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#fa7316] bg-transparent px-3 py-2 text-sm font-semibold text-[#fa7316] transition hover:bg-[#fa7316]/10 cursor-pointer"
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-800 dark:bg-blue-800 dark:hover:bg-blue-700 cursor-pointer"
                                     >
-                                        Gestionar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            openCloseDialog(entry.sale._id);
-                                        }}
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 cursor-pointer"
-                                    >
-                                        Concluir
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            openCancelDialog(entry.sale._id);
-                                        }}
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 cursor-pointer"
-                                    >
-                                        Cancelar
+                                        Imprimir Ticket
                                     </button>
                                 </div>
                             </article>
@@ -1175,6 +1214,7 @@ const SalesTablesContent = ({
                         </label>
                     </div>
                 }
+                cancelLabel="Volver"
                 confirmLabel="Cancelar venta"
                 isConfirming={isProcessingCancel}
                 onCancel={() => {

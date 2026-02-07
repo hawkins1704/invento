@@ -2,7 +2,8 @@
 import { mutation, query } from "./_generated/server"
 import { v, ConvexError } from "convex/values"
 import { getAuthUserId } from "@convex-dev/auth/server"
-import type { Id } from "./_generated/dataModel"
+import type { Id, Doc } from "./_generated/dataModel"
+import type { QueryCtx, MutationCtx } from "./_generated/server"
 const itemInputSchema = v.object({
   productId: v.id("products"),
   productName: v.optional(v.string()),
@@ -92,6 +93,34 @@ const releaseTable = async (ctx: any, tableId?: string, saleId?: string) => {
     status: "available",
     currentSaleId: undefined,
   })
+}
+
+const findOpenShift = async (ctx: QueryCtx | MutationCtx, branchId: Id<"branches">) => {
+  return await ctx.db
+    .query("shifts")
+    .withIndex("byBranchStatus", (q: any) => q.eq("branchId", branchId).eq("status", "open"))
+    .first()
+}
+
+const getNextKitchenTicketNumber = async (ctx: QueryCtx | MutationCtx, shiftId: Id<"shifts">): Promise<number> => {
+  // Buscar todas las ventas del turno que ya tienen número asignado
+  const salesWithTicketNumber = await ctx.db
+    .query("sales")
+    .withIndex("byShift", (q: any) => q.eq("shiftId", shiftId))
+    .collect()
+  
+  // Filtrar solo las que tienen kitchenTicketNumber asignado
+  const ticketNumbers = salesWithTicketNumber
+    .filter((sale: Doc<"sales">) => sale.kitchenTicketNumber !== undefined)
+    .map((sale: Doc<"sales">) => sale.kitchenTicketNumber!)
+  
+  // Si no hay ninguna, empezar en 1, sino tomar el máximo y sumar 1
+  if (ticketNumbers.length === 0) {
+    return 1
+  }
+  
+  const maxTicketNumber = Math.max(...ticketNumbers)
+  return maxTicketNumber + 1
 }
 
 const occupyTable = async (ctx: any, tableId: string, saleId: string) => {
@@ -554,6 +583,15 @@ export const create = mutation({
 
     await ensureStaffForBranch(ctx, args.branchId, args.staffId)
 
+    // Buscar el turno activo de la sucursal
+    const activeShift = await findOpenShift(ctx, args.branchId)
+    if (!activeShift) {
+      throw new ConvexError("No hay un turno abierto en esta sucursal. Debes abrir un turno antes de crear ventas.")
+    }
+
+    // Obtener el siguiente número de ticket de cocina para este turno
+    const kitchenTicketNumber = await getNextKitchenTicketNumber(ctx, activeShift._id)
+
     const saleId = await ctx.db.insert("sales", {
       branchId: args.branchId,
       tableId: args.tableId,
@@ -566,6 +604,8 @@ export const create = mutation({
       total: totals.total,
       paymentMethod: undefined,
       notes: normalizeNotes(args.notes),
+      shiftId: activeShift._id,
+      kitchenTicketNumber: kitchenTicketNumber,
       updatedAt: timestamp,
     })
 
