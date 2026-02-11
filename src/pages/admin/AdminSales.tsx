@@ -22,6 +22,7 @@ import { printPdfFromUrl } from "../../utils/pdfPrint";
 import { miapiClient } from "../../services/miapi";
 
 type PeriodKey = "day" | "month" | "custom";
+type HistoryStatus = "closed" | "cancelled";
 
 type LiveSale = {
     sale: Doc<"sales">;
@@ -190,6 +191,8 @@ const AdminSales = () => {
     const [historyStaffFilter, setHistoryStaffFilter] = useState<
         "all" | Id<"staff">
     >("all");
+    const [historyStatusFilter, setHistoryStatusFilter] =
+        useState<HistoryStatus>("closed");
     const [liveBranchId, setLiveBranchId] = useState<Id<"branches"> | null>(
         null,
     );
@@ -239,7 +242,12 @@ const AdminSales = () => {
     // Resetear a página 1 cuando cambien los filtros
     useEffect(() => {
         setCurrentPage(1);
-    }, [periodRange, historyBranchFilter, historyStaffFilter]);
+    }, [
+        periodRange,
+        historyBranchFilter,
+        historyStaffFilter,
+        historyStatusFilter,
+    ]);
 
     // Resetear filtros cuando se cambia de periodo
     useEffect(() => {
@@ -268,6 +276,7 @@ const AdminSales = () => {
             to: number;
             limit: number;
             offset: number;
+            status: HistoryStatus;
             branchId?: Id<"branches">;
             staffId?: Id<"staff">;
         } = {
@@ -275,6 +284,7 @@ const AdminSales = () => {
             to: periodRange.to,
             limit: ITEMS_PER_PAGE,
             offset,
+            status: historyStatusFilter,
         };
 
         if (historyBranchFilter !== "all") {
@@ -286,7 +296,13 @@ const AdminSales = () => {
         }
 
         return args;
-    }, [periodRange, historyBranchFilter, historyStaffFilter, currentPage]);
+    }, [
+        periodRange,
+        historyBranchFilter,
+        historyStaffFilter,
+        currentPage,
+        historyStatusFilter,
+    ]);
 
     const historyDataResult = useQuery(
         api.sales.listHistory,
@@ -308,11 +324,13 @@ const AdminSales = () => {
         const args: {
             from: number;
             to: number;
+            status: HistoryStatus;
             branchId?: Id<"branches">;
             staffId?: Id<"staff">;
         } = {
             from: periodRange.from,
             to: periodRange.to,
+            status: historyStatusFilter,
         };
         if (historyBranchFilter !== "all") {
             args.branchId = historyBranchFilter;
@@ -321,7 +339,7 @@ const AdminSales = () => {
             args.staffId = historyStaffFilter;
         }
         return args;
-    }, [periodRange, historyBranchFilter, historyStaffFilter]);
+    }, [periodRange, historyBranchFilter, historyStaffFilter, historyStatusFilter]);
 
     const paymentBreakdown = useQuery(
         api.sales.getPaymentMethodBreakdown,
@@ -342,12 +360,14 @@ const AdminSales = () => {
             limit: number;
             from: number;
             to: number;
+            status: HistoryStatus;
             branchId?: Id<"branches">;
             staffId?: Id<"staff">;
         } = {
             limit: 3,
             from: periodRange.from,
             to: periodRange.to,
+            status: historyStatusFilter,
         };
         if (historyBranchFilter !== "all") {
             args.branchId = historyBranchFilter;
@@ -356,7 +376,7 @@ const AdminSales = () => {
             args.staffId = historyStaffFilter;
         }
         return args;
-    }, [periodRange, historyBranchFilter, historyStaffFilter]);
+    }, [periodRange, historyBranchFilter, historyStaffFilter, historyStatusFilter]);
 
     const topProducts = useQuery(
         api.sales.getTopProducts,
@@ -378,12 +398,14 @@ const AdminSales = () => {
             limit: number;
             from: number;
             to: number;
+            status: HistoryStatus;
             branchId?: Id<"branches">;
             staffId?: Id<"staff">;
         } = {
             limit: 3,
             from: periodRange.from,
             to: periodRange.to,
+            status: historyStatusFilter,
         };
         if (historyBranchFilter !== "all") {
             args.branchId = historyBranchFilter;
@@ -392,7 +414,7 @@ const AdminSales = () => {
             args.staffId = historyStaffFilter;
         }
         return args;
-    }, [periodRange, historyBranchFilter, historyStaffFilter]);
+    }, [periodRange, historyBranchFilter, historyStaffFilter, historyStatusFilter]);
 
     const topStaff = useQuery(
         api.sales.getTopStaff,
@@ -412,11 +434,13 @@ const AdminSales = () => {
         const args: {
             from: number;
             to: number;
+            status: HistoryStatus;
             branchId?: Id<"branches">;
             staffId?: Id<"staff">;
         } = {
             from: periodRange.from,
             to: periodRange.to,
+            status: historyStatusFilter,
         };
         if (historyBranchFilter !== "all") {
             args.branchId = historyBranchFilter;
@@ -425,7 +449,7 @@ const AdminSales = () => {
             args.staffId = historyStaffFilter;
         }
         return args;
-    }, [periodRange, historyBranchFilter, historyStaffFilter]);
+    }, [periodRange, historyBranchFilter, historyStaffFilter, historyStatusFilter]);
 
     const salesByHour = useQuery(
         api.sales.getSalesByHour,
@@ -553,6 +577,8 @@ const AdminSales = () => {
                     onBranchChange={setHistoryBranchFilter}
                     selectedStaff={historyStaffFilter}
                     onStaffChange={setHistoryStaffFilter}
+                    selectedSaleStatus={historyStatusFilter}
+                    onSaleStatusChange={setHistoryStatusFilter}
                     currentPage={currentPage}
                     totalPages={totalPages}
                     totalItems={totalHistorySales}
@@ -626,6 +652,8 @@ type HistoryViewProps = {
     onBranchChange: (branch: "all" | Id<"branches">) => void;
     selectedStaff: "all" | Id<"staff">;
     onStaffChange: (staff: "all" | Id<"staff">) => void;
+    selectedSaleStatus: HistoryStatus;
+    onSaleStatusChange: (status: HistoryStatus) => void;
     currentPage: number;
     totalPages: number;
     totalItems: number;
@@ -680,6 +708,8 @@ const HistoryView = ({
     onBranchChange,
     selectedStaff,
     onStaffChange,
+    selectedSaleStatus,
+    onSaleStatusChange,
     currentPage,
     totalPages,
     totalItems,
@@ -711,6 +741,8 @@ const HistoryView = ({
         };
         return labels[method] || method;
     };
+    const isClosedStatus = selectedSaleStatus === "closed";
+    const selectedSalesLabel = isClosedStatus ? "cerradas" : "canceladas";
 
     const handleAnularSubmit = async () => {
         if (
@@ -1124,14 +1156,18 @@ const HistoryView = ({
 
             <section className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                 <InfoCard
-                    label="Total vendido"
+                    label={isClosedStatus ? "Total vendido" : "Total cancelado"}
                     value={formatCurrency(summary.totalAmount)}
-                    description="Suma de ventas cerradas en el periodo seleccionado."
+                    description={`Suma de ventas ${selectedSalesLabel} en el periodo seleccionado.`}
                 />
                 <InfoCard
-                    label="Tickets cerrados"
+                    label={
+                        isClosedStatus
+                            ? "Tickets cerrados"
+                            : "Tickets cancelados"
+                    }
                     value={summary.totalSales.toString()}
-                    description="Cantidad de ventas finalizadas."
+                    description={`Cantidad de ventas ${selectedSalesLabel}.`}
                 />
                 <InfoCard
                     label="Ticket promedio"
@@ -1157,10 +1193,35 @@ const HistoryView = ({
 
             <section className="">
                 <div className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 text-slate-900 dark:text-white mb-6">
-                    <header className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                            Ventas cerradas
-                        </h2>
+                    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+                        <div className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-800/80 gap-1">
+                            <button
+                                type="button"
+                                onClick={() => onSaleStatusChange("closed")}
+                                aria-pressed={selectedSaleStatus === "closed"}
+                                className={`rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fa7316]/40 ${
+                                    selectedSaleStatus === "closed"
+                                        ? "bg-white text-slate-900 shadow-sm dark:bg-slate-100 dark:text-slate-900"
+                                        : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                                }`}
+                            >
+                                Ventas cerradas
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onSaleStatusChange("cancelled")}
+                                aria-pressed={
+                                    selectedSaleStatus === "cancelled"
+                                }
+                                className={`rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fa7316]/40 ${
+                                    selectedSaleStatus === "cancelled"
+                                        ? "bg-white text-slate-900 shadow-sm dark:bg-slate-100 dark:text-slate-900"
+                                        : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                                }`}
+                            >
+                                Ventas canceladas
+                            </button>
+                        </div>
 
                         <Chip label={data.length.toString() + " registros"} />
                     </header>
@@ -1169,9 +1230,9 @@ const HistoryView = ({
                         <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-slate-600 dark:text-slate-400">
                             <FaRegSadTear size={40} />
                             <p className="text-sm">
-                                No se encontraron ventas en el periodo
-                                seleccionado. Ajusta los filtros para ver otros
-                                resultados.
+                                No se encontraron ventas {selectedSalesLabel} en
+                                el periodo seleccionado. Ajusta los filtros para
+                                ver otros resultados.
                             </p>
                         </div>
                     ) : (
@@ -1194,6 +1255,7 @@ const HistoryView = ({
                                                 : undefined
                                         }
                                         isAnulado={
+                                            entry.sale.status === "cancelled" ||
                                             entry.sale.correlativoRA != null
                                         }
                                     />
@@ -1335,8 +1397,10 @@ const HistoryView = ({
                                                     >
                                                         Anular
                                                     </button>
-                                                ) : entry.sale.correlativoRA !=
-                                                  null ? (
+                                                ) : entry.sale.status ===
+                                                      "cancelled" ||
+                                                  entry.sale.correlativoRA !=
+                                                      null ? (
                                                     <span className="text-slate-500 dark:text-slate-400">
                                                         Anulado
                                                     </span>

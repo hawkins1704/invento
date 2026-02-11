@@ -401,6 +401,7 @@ export const listHistory = query({
   args: {
     branchId: v.optional(v.id("branches")),
     staffId: v.optional(v.id("staff")),
+    status: v.optional(v.union(v.literal("closed"), v.literal("cancelled"))),
     from: v.optional(v.number()),
     to: v.optional(v.number()),
     limit: v.optional(v.number()),
@@ -416,6 +417,7 @@ export const listHistory = query({
     const to = args.to ?? now()
     const limit = args.limit ?? 10
     const offset = args.offset ?? 0
+    const status = args.status ?? "closed"
 
     // Si se especifica branchId, verificar que pertenece al usuario
     if (args.branchId) {
@@ -431,7 +433,7 @@ export const listHistory = query({
       .collect()
 
     const filtered = sales
-      .filter((sale) => sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to)
+      .filter((sale) => sale.status === status && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to)
       .filter((sale) => (args.branchId ? sale.branchId === args.branchId : true))
       .filter((sale) => (args.staffId ? sale.staffId === args.staffId : true))
       .sort((a, b) => (b.closedAt ?? 0) - (a.closedAt ?? 0))
@@ -1041,6 +1043,7 @@ export const getPaymentMethodBreakdown = query({
     to: v.optional(v.number()),
     branchId: v.optional(v.id("branches")),
     staffId: v.optional(v.id("staff")),
+    status: v.optional(v.union(v.literal("closed"), v.literal("cancelled"))),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx)
@@ -1059,29 +1062,30 @@ export const getPaymentMethodBreakdown = query({
       endOfDay.setHours(23, 59, 59, 999)
       return endOfDay.getTime()
     })()
+    const status = args.status ?? "closed"
 
     const todaySales = await ctx.db
       .query("sales")
       .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect()
 
-    let closedSales = todaySales.filter(
-      (sale) => sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
+    let filteredSales = todaySales.filter(
+      (sale) => sale.status === status && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
     )
 
     // Aplicar filtros opcionales
     if (args.branchId) {
-      closedSales = closedSales.filter((sale) => sale.branchId === args.branchId)
+      filteredSales = filteredSales.filter((sale) => sale.branchId === args.branchId)
     }
 
     if (args.staffId) {
-      closedSales = closedSales.filter((sale) => sale.staffId === args.staffId)
+      filteredSales = filteredSales.filter((sale) => sale.staffId === args.staffId)
     }
 
     const breakdown = new Map<string, number>()
     let total = 0
 
-    closedSales.forEach((sale) => {
+    filteredSales.forEach((sale) => {
       const method = sale.paymentMethod ?? "Sin registrar"
       const current = breakdown.get(method) ?? 0
       breakdown.set(method, current + sale.total)
@@ -1161,6 +1165,7 @@ export const getTopProducts = query({
     to: v.optional(v.number()),
     branchId: v.optional(v.id("branches")),
     staffId: v.optional(v.id("staff")),
+    status: v.optional(v.union(v.literal("closed"), v.literal("cancelled"))),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx)
@@ -1179,26 +1184,27 @@ export const getTopProducts = query({
       endOfDay.setHours(23, 59, 59, 999)
       return endOfDay.getTime()
     })()
+    const status = args.status ?? "closed"
 
     const todaySales = await ctx.db
       .query("sales")
       .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect()
 
-    let closedSales = todaySales.filter(
-      (sale) => sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
+    let filteredSales = todaySales.filter(
+      (sale) => sale.status === status && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
     )
 
     // Aplicar filtros opcionales
     if (args.branchId) {
-      closedSales = closedSales.filter((sale) => sale.branchId === args.branchId)
+      filteredSales = filteredSales.filter((sale) => sale.branchId === args.branchId)
     }
 
     if (args.staffId) {
-      closedSales = closedSales.filter((sale) => sale.staffId === args.staffId)
+      filteredSales = filteredSales.filter((sale) => sale.staffId === args.staffId)
     }
 
-    const saleIds = closedSales.map((sale) => sale._id)
+    const saleIds = filteredSales.map((sale) => sale._id)
 
     const productStats = new Map<string, { quantity: number; revenue: number; productName: string }>()
 
@@ -1253,6 +1259,7 @@ export const getTopStaff = query({
     to: v.optional(v.number()),
     branchId: v.optional(v.id("branches")),
     staffId: v.optional(v.id("staff")),
+    status: v.optional(v.union(v.literal("closed"), v.literal("cancelled"))),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx)
@@ -1271,29 +1278,30 @@ export const getTopStaff = query({
       endOfDay.setHours(23, 59, 59, 999)
       return endOfDay.getTime()
     })()
+    const status = args.status ?? "closed"
 
     const todaySales = await ctx.db
       .query("sales")
       .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect()
 
-    let closedSales = todaySales.filter(
-      (sale) => sale.status === "closed" && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
+    let filteredSales = todaySales.filter(
+      (sale) => sale.status === status && sale.closedAt && sale.closedAt >= from && sale.closedAt <= to
     )
 
     // Aplicar filtros opcionales
     if (args.branchId) {
-      closedSales = closedSales.filter((sale) => sale.branchId === args.branchId)
+      filteredSales = filteredSales.filter((sale) => sale.branchId === args.branchId)
     }
 
     if (args.staffId) {
-      closedSales = closedSales.filter((sale) => sale.staffId === args.staffId)
+      filteredSales = filteredSales.filter((sale) => sale.staffId === args.staffId)
     }
 
     // Agrupar por staff
     const staffTotals = new Map<string, number>()
 
-    closedSales.forEach((sale) => {
+    filteredSales.forEach((sale) => {
       const staffId = sale.staffId ? (sale.staffId as string) : "sinStaff"
       const current = staffTotals.get(staffId) ?? 0
       staffTotals.set(staffId, current + sale.total)
@@ -1337,6 +1345,7 @@ export const getSalesByHour = query({
     to: v.optional(v.number()),
     branchId: v.optional(v.id("branches")),
     staffId: v.optional(v.id("staff")),
+    status: v.optional(v.union(v.literal("closed"), v.literal("cancelled"))),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx)
@@ -1355,21 +1364,22 @@ export const getSalesByHour = query({
       endOfDay.setHours(23, 59, 59, 999)
       return endOfDay.getTime()
     })()
+    const status = args.status ?? "closed"
 
     const todaySales = await ctx.db
       .query("sales")
       .withIndex("byClosedAt", (q) => q.gte("closedAt", from).lte("closedAt", to))
       .collect()
 
-    let closedSales = todaySales.filter((sale) => sale.status === "closed" && sale.closedAt)
+    let filteredSales = todaySales.filter((sale) => sale.status === status && sale.closedAt)
 
     // Aplicar filtros opcionales
     if (args.branchId) {
-      closedSales = closedSales.filter((sale) => sale.branchId === args.branchId)
+      filteredSales = filteredSales.filter((sale) => sale.branchId === args.branchId)
     }
 
     if (args.staffId) {
-      closedSales = closedSales.filter((sale) => sale.staffId === args.staffId)
+      filteredSales = filteredSales.filter((sale) => sale.staffId === args.staffId)
     }
 
     // Inicializar horas del día (0-23)
@@ -1378,7 +1388,7 @@ export const getSalesByHour = query({
       hourlyData.set(hour, 0)
     }
 
-    closedSales.forEach((sale) => {
+    filteredSales.forEach((sale) => {
       if (sale.closedAt) {
         // Convertir a hora local de Perú (America/Lima, UTC-5)
         const date = new Date(sale.closedAt)
