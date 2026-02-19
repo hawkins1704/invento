@@ -141,3 +141,73 @@ export const list = query({
   },
 });
 
+export const listWithStats = query({
+  args: {
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+    sortBy: v.optional(
+      v.union(
+        v.literal("name"),
+        v.literal("salesCount"),
+        v.literal("salesTotal")
+      )
+    ),
+    sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new ConvexError("No autenticado");
+    }
+
+    const allCustomers = await ctx.db
+      .query("customers")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
+
+    const customersWithStats = await Promise.all(
+      allCustomers.map(async (customer) => {
+        const sales = await ctx.db
+          .query("sales")
+          .withIndex("byCustomer", (q) => q.eq("customerId", customer._id))
+          .filter((q) => q.eq(q.field("status"), "closed"))
+          .collect();
+
+        const salesCount = sales.length;
+        const salesTotal = sales.reduce((sum, s) => sum + s.total, 0);
+
+        return {
+          ...customer,
+          salesCount,
+          salesTotal,
+        };
+      })
+    );
+
+    const sortBy = args.sortBy ?? "name";
+    const sortOrder = args.sortOrder ?? "asc";
+
+    const sorted = [...customersWithStats].sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === "name") {
+        cmp = a.name.localeCompare(b.name);
+      } else if (sortBy === "salesCount") {
+        cmp = a.salesCount - b.salesCount;
+      } else {
+        cmp = a.salesTotal - b.salesTotal;
+      }
+      return sortOrder === "asc" ? cmp : -cmp;
+    });
+
+    const total = sorted.length;
+    const limit = args.limit ?? 10;
+    const offset = args.offset ?? 0;
+    const paginated = sorted.slice(offset, offset + limit);
+
+    return {
+      customers: paginated,
+      total,
+    };
+  },
+});
+

@@ -50,7 +50,7 @@ export const updateProfile = mutation({
     removeCompanyLogo: v.optional(v.boolean()),
     secretKey: v.optional(v.string()),
     currency: v.optional(v.union(v.literal("PEN"), v.literal("USD"))),
-    IGVPercentage: v.optional(v.union(v.literal(10), v.literal(18))),
+    IGVPercentage: v.optional(v.union(v.literal(10.5), v.literal(18))),
     companyCommercialName: v.optional(v.string()),
     companyAddress: v.optional(v.string()),
     companyDistrict: v.optional(v.string()),

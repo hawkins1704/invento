@@ -7,7 +7,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import type { ProductListItem } from "../../types/products";
-import { MdDeleteOutline } from "react-icons/md";
+import DeleteButton from "../../components/DeleteButton";
 import { FaArrowLeft } from "react-icons/fa";
 import { BiDish } from "react-icons/bi";
 import { useToast } from "../../contexts/ToastContext";
@@ -557,15 +557,12 @@ const AdminProductDetail = () => {
                     </div>
                 </div>
                 <div className="flex flex-col items-end gap-3 text-sm text-slate-600 dark:text-slate-300">
-                    <button
-                        type="button"
+                    <DeleteButton
                         onClick={requestDeleteProduct}
-                        className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-50 dark:bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-500/60 hover:bg-red-100 hover:text-red-700 dark:text-red-200 dark:hover:text-red-100 dark:hover:bg-red-500/20"
                         disabled={isDeleting || isSubmitting}
                     >
-                        <MdDeleteOutline />
                         Eliminar producto
-                    </button>
+                    </DeleteButton>
                 </div>
             </header>
 
@@ -852,21 +849,10 @@ const AdminProductDetail = () => {
                                     <BiDish className="h-12 w-12 text-slate-500 dark:text-slate-600" />
                                 )}
                             </div>
-                            <button
-                                type="button"
-                                onClick={requestRemoveImage}
-                                className="inline-flex items-center gap-2 rounded-lg border border-red-500 bg-red-50 dark:bg-red-500 px-4 py-2 text-xs font-semibold text-red-600 transition hover:border-red-500 hover:bg-red-100 hover:text-red-700 dark:text-white dark:hover:text-red-100 dark:hover:bg-red-500 disabled:opacity-50"
-                                disabled={
-                                    isSubmitting ||
-                                    isDeleting ||
-                                    (!currentImageUrl &&
-                                        !formState.imageFile &&
-                                        !previewImageUrl)
-                                }
-                            >
-                                <MdDeleteOutline />
+                            <DeleteButton onClick={requestRemoveImage}>
                                 Quitar imagen
-                            </button>
+                            </DeleteButton>
+                            
                             <div className="w-full space-y-1 text-center">
                                 <p className="text-sm font-semibold text-slate-900 dark:text-white">
                                     {formState.name}

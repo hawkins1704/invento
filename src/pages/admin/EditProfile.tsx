@@ -261,7 +261,7 @@ const EditProfile = () => {
         companyLogo: companyLogoStorageId,
         removeCompanyLogo: shouldRemoveCompanyLogo ? true : undefined,
         IGVPercentage: formState.IGVPercentage
-          ? (Number(formState.IGVPercentage) as 10 | 18)
+          ? (Number(formState.IGVPercentage) as 10.5 | 18)
           : undefined,
         currency: formState.currency
           ? (formState.currency as "PEN" | "USD")
@@ -557,7 +557,7 @@ const EditProfile = () => {
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-[#fa7316] focus:outline-none focus:ring-2 focus:ring-[#fa7316]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
               >
                 <option value="">Selecciona un porcentaje</option>
-                <option value="10">10%</option>
+                <option value="10.5">10.5% (IGV Restaurante)</option>
                 <option value="18">18%</option>
               </select>
               <p className="text-xs text-slate-500">

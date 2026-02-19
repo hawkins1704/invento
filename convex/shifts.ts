@@ -156,6 +156,74 @@ export const close = mutation({
   },
 })
 
+export const list = query({
+  args: {
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await ensureAuthenticated(ctx)
+
+    const branches = await ctx.db
+      .query("branches")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect()
+
+    const allShifts: Doc<"shifts">[] = []
+    for (const branch of branches) {
+      const branchShifts = await ctx.db
+        .query("shifts")
+        .withIndex("byBranch", (q) => q.eq("branchId", branch._id))
+        .collect()
+      allShifts.push(...branchShifts)
+    }
+
+    const sorted = allShifts.sort(
+      (a: Doc<"shifts">, b: Doc<"shifts">) => b.openedAt - a.openedAt
+    )
+    const total = sorted.length
+
+    const limit = args.limit ?? 10
+    const offset = args.offset ?? 0
+    const paginated = sorted.slice(offset, offset + limit)
+
+    const branchesMap = new Map(branches.map((b) => [b._id, b]))
+    const staffIds = [
+      ...new Set(
+        paginated
+          .map((s) => s.staffId)
+          .filter((id): id is Id<"staff"> => id !== undefined)
+      ),
+    ]
+    const staffList = await Promise.all(staffIds.map((id) => ctx.db.get(id)))
+    const staffMap = new Map<Id<"staff">, Doc<"staff">>()
+    staffList.forEach((s) => {
+      if (s) staffMap.set(s._id, s)
+    })
+
+    const shiftsWithDetails = paginated.map((shift) => {
+      const branch = branchesMap.get(shift.branchId)
+      const staff = shift.staffId ? staffMap.get(shift.staffId) : null
+      const cashSalesTotal =
+        shift.status === "closed" && shift.closingExpectedCash !== undefined
+          ? shift.closingExpectedCash - shift.openingCash
+          : undefined
+
+      return {
+        ...shift,
+        branchName: branch?.name ?? "—",
+        staffName: staff?.name ?? "—",
+        cashSalesTotal,
+      }
+    })
+
+    return {
+      shifts: shiftsWithDetails,
+      total,
+    }
+  },
+})
+
 export const history = query({
   args: {
     branchId: v.id("branches"),

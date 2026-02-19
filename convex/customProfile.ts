@@ -10,7 +10,7 @@ export default Password<DataModel>({
       administratorCode: params.administratorCode as string,
       salesCode: params.salesCode as string,
       inventoryCode: params.inventoryCode as string,
-      IGVPercentage: params.IGVPercentage as 10 | 18 | undefined,
+      IGVPercentage: params.IGVPercentage as 10.5 | 18 | undefined,
       subscriptionType: "starter" as const,
       isDemo: params.isDemo as boolean | undefined,
     };

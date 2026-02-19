@@ -15,7 +15,7 @@ export default defineSchema({
     administratorCode: v.string(),
     salesCode: v.string(),
     inventoryCode: v.string(),
-    IGVPercentage: v.optional(v.union(v.literal(10), v.literal(18))),
+    IGVPercentage: v.optional(v.union( v.literal(10.5), v.literal(18))),
     secretKey: v.optional(v.string()),
     currency: v.optional(v.union(v.literal("PEN"), v.literal("USD"))),
     companyName: v.optional(v.string()),
@@ -146,7 +146,8 @@ export default defineSchema({
     .index("byClosedAt", ["closedAt"])
     .index("byStaff", ["staffId", "status"])
     .index("byUserId", ["userId"])
-    .index("byShift", ["shiftId", "kitchenTicketNumber"]),
+    .index("byShift", ["shiftId", "kitchenTicketNumber"])
+    .index("byCustomer", ["customerId"]),
   saleItems: defineTable({
     saleId: v.id("sales"),
     productId: v.id("products"),

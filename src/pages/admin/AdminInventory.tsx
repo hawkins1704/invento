@@ -365,7 +365,7 @@ const updateStockField = (branchId: string, value: string) => {
               disabled={!hasCategoriesAndBranches}
             >
               <IoMdAdd />
-              <span>Agregar producto</span>
+              <span>Agregar</span>
             </button>
             {!hasCategoriesAndBranches && (
               <span className="text-xs text-[#fa7316]">

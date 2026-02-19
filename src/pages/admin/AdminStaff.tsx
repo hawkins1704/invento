@@ -217,7 +217,7 @@ const AdminStaff = () => {
                             disabled={!branches || branches.length === 0}
                         >
                             <IoMdAdd />
-                            <span>Agregar personal</span>
+                            <span>Agregar</span>
                         </button>
                         {!branches || branches.length === 0 ? (
                             <span className="text-xs text-red-300">

@@ -511,8 +511,8 @@ const SalesTablesContent = ({
                                 </div>
 
                                 <div className="mt-auto flex flex-col gap-2">
-                                    <div className="flex gap-2">
-                                        <button
+                                    <div className="flex gap-2 md:flex-row flex-col">
+                                        {/* <button
                                             type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -521,7 +521,7 @@ const SalesTablesContent = ({
                                             className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#fa7316] bg-transparent px-3 py-2 text-sm font-semibold text-[#fa7316] transition hover:bg-[#fa7316]/10 cursor-pointer"
                                         >
                                             Gestionar
-                                        </button>
+                                        </button> */}
                                         <button
                                             type="button"
                                             onClick={(e) => {

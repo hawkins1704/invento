@@ -10,7 +10,7 @@ import { FiEdit3 } from "react-icons/fi";
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { BiDish } from "react-icons/bi";
 import { FaBoxArchive } from "react-icons/fa6";
-import { MdDeleteOutline } from "react-icons/md";
+import DeleteButton from "../../components/DeleteButton";
 import DataTable from "../../components/table/DataTable";
 import TableRow from "../../components/table/TableRow";
 import Pagination from "../../components/pagination/Pagination";
@@ -630,15 +630,12 @@ const AdminBranchDetails = () => {
                         </p>
                     </div>
                 </div>
-                <button
-                    type="button"
+                <DeleteButton
                     onClick={requestDeleteBranch}
-                    className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-500/60 hover:bg-red-100 hover:text-red-700 dark:border-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20 dark:hover:text-red-100"
                     disabled={isDeletingBranch || isSavingBranch}
                 >
-                    <MdDeleteOutline />
-                    <span>Eliminar sucursal</span>
-                </button>
+                    Eliminar
+                </DeleteButton>
             </header>
 
             <section className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-slate-900 dark:border-slate-800 dark:bg-slate-900/60 dark:text-white">

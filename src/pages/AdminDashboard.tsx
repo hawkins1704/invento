@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
@@ -10,12 +10,16 @@ import { BiDish } from "react-icons/bi";
 import { IoChevronDown } from "react-icons/io5";
 import type { Id } from "../../convex/_generated/dataModel";
 import InfoCard from "../components/InfoCard";
+import Pagination from "../components/pagination/Pagination";
+
+const LOW_STOCK_ITEMS_PER_PAGE = 5;
 
 type Period = "today" | "lastWeek" | "lastMonth";
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [selectedPeriod, setSelectedPeriod] = useState<Period>("today");
+    const [lowStockPage, setLowStockPage] = useState(1);
 
     // Calcular fechas según el período seleccionado
     const { from, to, periodLabel, dateRangeLabel } = useMemo(() => {
@@ -138,6 +142,23 @@ const AdminDashboard = () => {
               isOutOfStock: boolean;
           }>
         | undefined;
+
+    const lowStockTotal = lowStockAlerts?.length ?? 0;
+    const lowStockTotalPages = Math.max(
+        1,
+        Math.ceil(lowStockTotal / LOW_STOCK_ITEMS_PER_PAGE)
+    );
+    const lowStockOffset = (lowStockPage - 1) * LOW_STOCK_ITEMS_PER_PAGE;
+    const paginatedLowStock = lowStockAlerts?.slice(
+        lowStockOffset,
+        lowStockOffset + LOW_STOCK_ITEMS_PER_PAGE
+    ) ?? [];
+
+    useEffect(() => {
+        if (lowStockPage > lowStockTotalPages) {
+            setLowStockPage(1);
+        }
+    }, [lowStockPage, lowStockTotalPages]);
 
     const getPaymentMethodLabel = (method: string) => {
         const labels: Record<string, string> = {
@@ -497,60 +518,58 @@ const AdminDashboard = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        {lowStockAlerts.slice(0, 10).map((alert) => (
-                            <div
-                                key={`${alert.productId}-${alert.branchId}`}
-                                className={`flex items-center justify-between rounded-lg border p-4 ${
-                                    alert.isOutOfStock
-                                        ? "border-red-300 bg-red-50 dark:border-red-500/40 dark:bg-red-500/10"
-                                        : "border-yellow-300 bg-yellow-50 dark:border-yellow-500/40 dark:bg-yellow-500/10"
-                                }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div
-                                        className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                                            alert.isOutOfStock
-                                                ? "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400"
-                                                : "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400"
-                                        }`}
-                                    >
-                                        <FaExclamationTriangle className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                                            {alert.productName}
-                                        </p>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400">
-                                            {alert.branchName}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    {alert.isOutOfStock ? (
-                                        <span className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-400">
-                                            Sin stock
-                                        </span>
-                                    ) : (
-                                        <span className="inline-flex items-center rounded-full border border-yellow-300 bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700 dark:border-yellow-500/40 dark:bg-yellow-500/10 dark:text-yellow-400">
-                                            Stock bajo: {alert.stock}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                        {lowStockAlerts.length > 10 && (
-                            <div className="text-center pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => navigate("/admin/inventory")}
-                                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-[#fa7316] transition"
+                    <div className="space-y-4">
+                        <div className="space-y-3">
+                            {paginatedLowStock.map((alert) => (
+                                <div
+                                    key={`${alert.productId}-${alert.branchId}`}
+                                    className={`flex items-center justify-between rounded-lg border p-4 ${
+                                        alert.isOutOfStock
+                                            ? "border-red-300 bg-red-50 dark:border-red-500/40 dark:bg-red-500/10"
+                                            : "border-yellow-300 bg-yellow-50 dark:border-yellow-500/40 dark:bg-yellow-500/10"
+                                    }`}
                                 >
-                                    Ver {lowStockAlerts.length - 10} alertas más
-                                    →
-                                </button>
-                            </div>
-                        )}
+                                    <div className="flex items-center gap-3">
+                                        <div
+                                            className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                                                alert.isOutOfStock
+                                                    ? "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400"
+                                                    : "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400"
+                                            }`}
+                                        >
+                                            <FaExclamationTriangle className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                                                {alert.productName}
+                                            </p>
+                                            <p className="text-xs text-slate-600 dark:text-slate-400">
+                                                {alert.branchName}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        {alert.isOutOfStock ? (
+                                            <span className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-400">
+                                                Sin stock
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center rounded-full border border-yellow-300 bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700 dark:border-yellow-500/40 dark:bg-yellow-500/10 dark:text-yellow-400">
+                                                Stock bajo: {alert.stock}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <Pagination
+                            currentPage={lowStockPage}
+                            totalPages={lowStockTotalPages}
+                            totalItems={lowStockTotal}
+                            itemsPerPage={LOW_STOCK_ITEMS_PER_PAGE}
+                            onPageChange={setLowStockPage}
+                            itemLabel="alertas"
+                        />
                     </div>
                 )}
             </section>

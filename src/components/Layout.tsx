@@ -13,7 +13,7 @@ import { FaBoxArchive } from "react-icons/fa6";
 import { PiMoney } from "react-icons/pi";
 import { BsFillPeopleFill } from "react-icons/bs";
 import { FaRegClock } from "react-icons/fa";
-import { MdOutlineDinnerDining } from "react-icons/md";
+import { MdOutlineDinnerDining, MdOutlinePeople } from "react-icons/md";
 import { IoLogInOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
 import { FaCreditCard } from "react-icons/fa";
@@ -75,10 +75,22 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
         icon: <PiMoney color={PRIMARY_COLOR} />,
     },
     {
+        label: "Clientes",
+        description: "Base de clientes y compras",
+        path: "/admin/customers",
+        icon: <MdOutlinePeople color={PRIMARY_COLOR} />,
+    },
+    {
         label: "Personal",
         description: "Roles y accesos",
         path: "/admin/staff",
         icon: <BsFillPeopleFill color={PRIMARY_COLOR} />,
+    },
+    {
+        label: "Turnos",
+        description: "Historial de turnos",
+        path: "/admin/shifts",
+        icon: <FaRegClock color={PRIMARY_COLOR} />,
     },
     {
         label: "Sucursales",

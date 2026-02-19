@@ -6,7 +6,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { FaArrowLeft } from "react-icons/fa";
-import { MdDeleteOutline } from "react-icons/md";
+import DeleteButton from "../../components/DeleteButton";
 
 const AdminCategoryDetail = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
@@ -157,15 +157,12 @@ const AdminCategoryDetail = () => {
             </p>
           </div>
         </div>
-        <button
-          type="button"
+        <DeleteButton
           onClick={requestDeleteCategory}
-          className="inline-flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-50 dark:bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-500/60 hover:bg-red-100 hover:text-red-700 dark:text-red-200 dark:hover:text-red-100 dark:hover:bg-red-500/20"
           disabled={isDeleting || isSubmitting}
         >
-          <MdDeleteOutline />
-          <span>Eliminar categoría</span>
-        </button>
+          Eliminar categoría
+        </DeleteButton>
       </header>
 
       <section className="rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 p-8 text-slate-900 dark:text-white">

@@ -130,7 +130,7 @@ const AdminCategories = () => {
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#fa7316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#e86811] cursor-pointer"
           >
             <IoMdAdd />
-            <span>Agregar categoría</span>
+            <span>Agregar</span>
           </button>
         }
       />
