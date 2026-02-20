@@ -20,16 +20,18 @@ export async function fetchPdfBlobFromUrl(pdfUrl: string): Promise<Blob> {
 }
 
 /**
- * Convierte un PDF a imágenes (data URLs) usando pdf.js.
- * Mismo enfoque que el ticket de cocina: contenido HTML en iframe para que
- * la impresión capture el iframe y no el modal de la app.
+ * Convierte un PDF a UNA sola imagen (todas las páginas apiladas verticalmente).
+ * Evita paginación y páginas en blanco.
  */
-async function pdfBlobToImageDataUrls(pdfBlob: Blob): Promise<string[]> {
+async function pdfBlobToSingleImage(pdfBlob: Blob): Promise<string> {
   const arrayBuffer = await pdfBlob.arrayBuffer();
   const pdf = await getDocument({ data: arrayBuffer }).promise;
   const numPages = pdf.numPages;
-  const scale = 2.0; // Resolución para impresión
-  const dataUrls: string[] = [];
+  const scale = 2.0;
+
+  const pageCanvases: HTMLCanvasElement[] = [];
+  let totalWidth = 0;
+  let totalHeight = 0;
 
   for (let i = 1; i <= numPages; i++) {
     const page = await pdf.getPage(i);
@@ -38,66 +40,63 @@ async function pdfBlobToImageDataUrls(pdfBlob: Blob): Promise<string[]> {
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      throw new Error("No se pudo obtener contexto del canvas.");
-    }
+    if (!ctx) throw new Error("No se pudo obtener contexto del canvas.");
     await page.render({
       canvasContext: ctx,
       viewport,
       canvas,
     }).promise;
-    dataUrls.push(canvas.toDataURL("image/png"));
+    pageCanvases.push(canvas);
+    totalWidth = Math.max(totalWidth, viewport.width);
+    totalHeight += viewport.height;
   }
 
-  return dataUrls;
+  const combined = document.createElement("canvas");
+  combined.width = totalWidth;
+  combined.height = totalHeight;
+  const ctx = combined.getContext("2d");
+  if (!ctx) throw new Error("No se pudo obtener contexto del canvas.");
+
+  let y = 0;
+  for (const canvas of pageCanvases) {
+    ctx.drawImage(canvas, 0, y, canvas.width, canvas.height);
+    y += canvas.height;
+  }
+
+  return combined.toDataURL("image/png");
 }
 
 /**
- * Construye documento HTML con las imágenes del PDF, igual que kitchen ticket.
+ * Documento HTML con la boleta como imagen única. Sin saltos de página.
  */
-function buildPdfPrintDocument(imageDataUrls: string[]): string {
-  const imagesHtml = imageDataUrls
-    .map(
-      (src) =>
-        `<img src="${src}" alt="" style="width:100%;height:auto;display:block;page-break-after:always;" />`,
-    )
-    .join("");
+function buildPdfPrintDocument(imageDataUrl: string): string {
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #fff;
-      width: 80mm;
-      max-width: 80mm;
-      margin: 0 auto;
-      padding: 0;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-    img { max-width: 100%; height: auto; }
-    img:last-child { page-break-after: auto !important; }
+    * { margin: 0; padding: 0; }
+    body { background: #fff; }
+    img { width: 80mm; max-width: 80mm; height: auto; display: block; margin: 0; }
     @page { size: 80mm auto; margin: 0; }
     @media print {
       html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+      img { page-break-inside: avoid !important; }
     }
   </style>
 </head>
-<body>${imagesHtml}</body>
+<body><img src="${imageDataUrl}" alt="Boleta" /></body>
 </html>`;
 }
 
 /**
- * Imprime un PDF convirtiéndolo a imágenes y mostrándolas en un iframe con srcdoc.
- * Así la impresión captura solo el contenido del iframe (la boleta), no el modal.
- * Mismo patrón que el ticket de cocina.
+ * Imprime el PDF usando iframe aislado (igual que kitchen ticket).
+ * El iframe tiene su propio documento; al cambiar impresora el modal no reaparece.
+ * Una sola imagen = una sola página.
  */
 export async function printPdfBlobInHiddenIframe(pdfBlob: Blob): Promise<void> {
-  const imageDataUrls = await pdfBlobToImageDataUrls(pdfBlob);
-  const fullDocument = buildPdfPrintDocument(imageDataUrls);
+  const singleImageDataUrl = await pdfBlobToSingleImage(pdfBlob);
+  const fullDocument = buildPdfPrintDocument(singleImageDataUrl);
 
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
