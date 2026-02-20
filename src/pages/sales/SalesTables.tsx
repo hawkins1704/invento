@@ -11,6 +11,7 @@ import {
 import {
     fetchPdfBlobFromUrl,
     printPdfBlobInHiddenIframe,
+    printPdfFromUrl,
 } from "../../utils/pdfPrint";
 import { printKitchenTicketInIframe } from "../../utils/kitchenTicket";
 import { miapiClient } from "../../services/miapi";
@@ -634,13 +635,15 @@ const SalesTablesContent = ({
                 paymentMethod={closeState.paymentMethod}
                 notes={closeState.notes}
                 isProcessing={isProcessingClose}
-                onPrint={() => {
-                    if (!emittedPdfBlob) {
-                        return;
+                onPrint={async () => {
+                    if (emittedPdfBlob) {
+                        await printPdfBlobInHiddenIframe(emittedPdfBlob);
+                    } else if (emittedPdfTicketUrl) {
+                        await printPdfFromUrl(emittedPdfTicketUrl);
                     }
-                    printPdfBlobInHiddenIframe(emittedPdfBlob);
                 }}
                 companyName={currentUser?.companyCommercialName ?? ""}
+                canPrint={!!(emittedPdfBlob || emittedPdfTicketUrl)}
                 pdfTicketUrl={emittedPdfTicketUrl ?? ""}
                 onClose={() => {
                     setIsClosingSale(false);

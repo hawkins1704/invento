@@ -42,6 +42,7 @@ type CloseSaleDialogProps = {
     isProcessing: boolean;
     onClose: () => void;
     onPrint?: () => void;
+    canPrint?: boolean;
     companyName?: string;
     pdfTicketUrl?: string;
     onCloseWithoutEmit: (
@@ -78,6 +79,7 @@ const CloseSaleDialog = ({
     isProcessing,
     onClose,
     onPrint,
+    canPrint = false,
     companyName = "",
     pdfTicketUrl = "",
     onCloseWithoutEmit,
@@ -1004,7 +1006,7 @@ const CloseSaleDialog = ({
                                         <button
                                             type="button"
                                             onClick={() => onPrint?.()}
-                                            disabled={!onPrint}
+                                            disabled={!onPrint || !canPrint}
                                             className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#fa7316] hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white cursor-pointer"
                                         >
                                             IMPRIMIR
